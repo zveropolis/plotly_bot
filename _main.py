@@ -1,3 +1,6 @@
+#!./.venv/bin/python
+
+
 import argparse
 import logging
 import logging.config
@@ -16,15 +19,23 @@ logger = logging.getLogger()
 
 
 def main():
-    """Точка входа и парсер аргументов
-    """
+    """Точка входа и парсер аргументов"""
     parser = argparse.ArgumentParser(
-        prog="ProgramName",
-        description="What the program does",
-        epilog="Text at the bottom of help",
+        prog="PlotlyBot",
+        description="Create Plotly charts in telegram",
+        epilog="Plotly bot start script",
     )
 
-    parser.add_argument("--name")
+    parser.add_argument(
+        "-m",
+        "--mode",
+        type=str,
+        choices=[
+            "main",
+        ],
+        default='main',
+        help='Bot launch mode'
+    )
 
     args = parser.parse_args()
 
