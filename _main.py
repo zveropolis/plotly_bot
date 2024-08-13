@@ -2,6 +2,7 @@
 
 
 import argparse
+import asyncio
 import logging
 import logging.config
 import os
@@ -10,7 +11,7 @@ import sys
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
 
 
-from src.app import func
+from src.app import start
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 # logging.disable()
@@ -33,13 +34,13 @@ def main():
         choices=[
             "main",
         ],
-        default='main',
-        help='Bot launch mode'
+        default="main",
+        help="Bot launch mode",
     )
 
     args = parser.parse_args()
 
-    func()
+    asyncio.run(start())
 
 
 if __name__ == "__main__":

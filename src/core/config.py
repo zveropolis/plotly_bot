@@ -1,16 +1,18 @@
-# from pydantic import SecretStr
-from pydantic_settings import BaseSettings
+import os
+
+from pydantic import SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from core.path import PATH
 
 
 class Settings(BaseSettings):
-    param_name: str
-    # token: SecretStr
-    ...
+    bot_token: SecretStr
 
-    @property
-    def fix_param(self):
-        """Параметр с фиксированным значением"""
-        return
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(os.path.dirname(PATH), ".env"),
+        env_file_encoding="utf-8",
+    )
 
 
 settings = Settings()
