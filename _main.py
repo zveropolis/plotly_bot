@@ -14,7 +14,7 @@ sys.path.insert(1, os.path.join(sys.path[0], "src"))
 from src.app import start
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
-# logging.disable()
+logging.disable()
 
 logger = logging.getLogger()
 
