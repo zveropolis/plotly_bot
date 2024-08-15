@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 from datetime import datetime
 
 from aiogram import Bot, Dispatcher
@@ -43,8 +44,10 @@ async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
         ],
         timeout=timeout,
     )
-
-    await dp.stop_polling()
+    try:
+        await dp.stop_polling()
+    except RuntimeError:
+        pass
     return tasks
 
 
@@ -62,11 +65,15 @@ async def cycle_start_bot():
     while True:
         try:
             repo = Repo(PATH)
-            pull_out = repo.git.pull()
+            current = repo.head.commit
+            repo.remotes.origin.pull()
+
         except GitCommandError:
             logger.exception("Ошибка операции git pull")
         else:
-            logger.info(pull_out)
+            if current != repo.head.commit:
+                logger.warning("Зафиксированы изменения в коде. Перезапуск бота.")
+                sys.exit(0)
         finally:
             done, pending = await __start_bot(bot, dp, timeout=settings.cycle_duration)
 
