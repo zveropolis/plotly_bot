@@ -16,7 +16,11 @@
             "type": "debugpy",
             "request": "launch",
             "program": "./_main.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": [
+                // "--nolog=console",
+                "--mode=cycle"
+            ]
         },
         {
             "name": "Шаблон запуска точки входа тестов",

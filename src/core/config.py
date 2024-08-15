@@ -8,9 +8,10 @@ from core.path import PATH
 
 class Settings(BaseSettings):
     bot_token: SecretStr
+    cycle_duration: float
 
     model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(PATH), ".env"),
+        env_file=os.path.join(PATH, ".env"),
         env_file_encoding="utf-8",
     )
 

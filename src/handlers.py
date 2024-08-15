@@ -28,5 +28,5 @@ async def help_me(message: types.Message):
 
 
 @router.message(Command("time"))
-async def started(message: types.Message):
-    await message.answer(f"Время начала работы бота: {message.date}")
+async def started(message: types.Message, started_at):
+    await message.answer(f"Время начала работы бота: {started_at}")

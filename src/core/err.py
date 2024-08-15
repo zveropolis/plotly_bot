@@ -15,7 +15,7 @@ def exception_logging(
     custom_exception=Exception,
     message="Something went wrong",
 ):
-    """Логирование возникающих в функции исключений
+    """Логирование возникающих в функции исключений (NOT FOR ASYNC)
 
     Args:
         ignore_raise (bool, optional): Прерывать ли ход действия программы? Defaults to False.
