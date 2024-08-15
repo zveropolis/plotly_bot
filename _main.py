@@ -15,7 +15,7 @@ sys.path.insert(1, os.path.join(sys.path[0], "src"))
 from src.app import cycle_start_bot, noncycle_start_bot
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
-logging.disable()
+# logging.disable()
 
 logger = logging.getLogger()
 
