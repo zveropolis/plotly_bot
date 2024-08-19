@@ -10,3 +10,4 @@ compile.md
 
 *logs
 *.log
+.authorize.py

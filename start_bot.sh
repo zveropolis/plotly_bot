@@ -5,5 +5,7 @@ pid=$(ps aux | grep venv | grep -v grep | grep _main | tr -s [:blank:] | tr [:bl
 if [[ -z $pid ]]
 then
     cd ~/code/plotly_bot
+    poetry install
+    poetry update
     ./_main.py -m cycle --nolog console
 fi

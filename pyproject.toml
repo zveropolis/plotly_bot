@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "template"
+name = "vpn_dan_bot"
 version = "0.1.0"
 description = ""
 authors = ["zveropolis <zadira-era@yandex.ru>"]
@@ -9,10 +9,12 @@ readme = "README.md"
 python = "^3.10"
 pydantic-settings = "^2.4.0"
 aiogram = "^3.11.0"
-pandas = "^2.2.2"
-openpyxl = "^3.1.5"
-plotly = "^5.23.0"
 gitpython = "^3.1.43"
+yoomoney = "^0.1.1"
+requests = "^2.32.3"
+sqlalchemy = "^2.0.32"
+asyncpg = "^0.29.0"
+psycopg = {extras = ["binary"], version = "^3.2.1"}
 
 
 [tool.poetry.group.dev.dependencies]
