@@ -52,3 +52,8 @@ async def delete_user(user_id):
 
 async def recover_user(user_id):
     await __update_user_activity(user_id, activity=UserActivity.inactive)
+
+
+async def set_admin(user_id):
+    query = update(UserData).values(admin=True).filter_by(telegram_id=user_id)
+    await execute_query(query)

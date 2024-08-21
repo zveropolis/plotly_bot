@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: SecretStr
     DB_NAME: str
+    
+    admin_pass: SecretStr
 
     cycle_duration: float
 
