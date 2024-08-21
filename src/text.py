@@ -5,6 +5,7 @@ from pandas import DataFrame
 from db.models import UserActivity
 
 me = {"я", "мои данные", "данные", "конфиги", "мои конфиги", "config"}
+DB_ERROR = "Ошибка подключения к БД. Обратитесь к администратору."
 
 
 @dataclass
@@ -30,4 +31,3 @@ def get_sub_status(user_data: DataFrame):
         return "Неактивна"
     else:
         return ""
-

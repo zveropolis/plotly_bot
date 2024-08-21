@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
 
 import text
+from core import exceptions as exc
 from db import utils
 from kb import get_account_keyboard
 
@@ -52,15 +53,22 @@ async def get_user_data(message: Message):
 @router.message(Command("start"))
 async def start_bot(message: Message):
     await message.answer(f"Добро пожаловать, {message.from_user.full_name}!")
-    user_data = await utils.select_user(message.from_user.id)
-
-    await account_actions(message, user_data)
+    try:
+        user_data = await utils.select_user(message.from_user.id)
+    except exc.DB_error:
+        await message.answer(text.DB_ERROR)
+    else:
+        await account_actions(message, user_data)
 
 
 @router.message(Command("account"))
 async def account_actions(message: Message, user_data: pd.DataFrame = None):
     if user_data is None:
-        user_data = await utils.select_user(message.from_user.id)
+        try:
+            user_data = await utils.select_user(message.from_user.id)
+        except exc.DB_error:
+            await message.answer(text.DB_ERROR)
+            return
 
     account_kb = get_account_keyboard(user_data)
 
@@ -86,23 +94,38 @@ async def account_actions(message: Message, user_data: pd.DataFrame = None):
 
 @router.callback_query(F.data == "register_user")
 async def register_user(callback: CallbackQuery, bot: Bot):
-    await utils.insert_user(callback.from_user.id, callback.from_user.full_name)
-    await callback.answer(text="Поздравляю, регистрация успешна!", show_alert=True)
-    await bot.delete_message(callback.from_user.id, callback.message.message_id)
+    try:
+        await utils.insert_user(callback.from_user.id, callback.from_user.full_name)
+    except exc.DB_error:
+        await callback.answer(text=text.DB_ERROR, show_alert=True)
+    else:
+        await callback.answer(text="Поздравляю, регистрация успешна!", show_alert=True)
+    finally:
+        await bot.delete_message(callback.from_user.id, callback.message.message_id)
 
 
 @router.callback_query(F.data == "delete_account")
 async def delete_user(callback: CallbackQuery, bot: Bot):
-    await utils.delete_user(callback.from_user.id)
-    await callback.answer(text="Аккаунт успешно удален!", show_alert=True)
-    await bot.delete_message(callback.from_user.id, callback.message.message_id)
+    try:
+        await utils.delete_user(callback.from_user.id)
+    except exc.DB_error:
+        await callback.answer(text=text.DB_ERROR, show_alert=True)
+    else:
+        await callback.answer(text="Аккаунт успешно удален!", show_alert=True)
+    finally:
+        await bot.delete_message(callback.from_user.id, callback.message.message_id)
 
 
 @router.callback_query(F.data == "recover_account")
 async def recover_user(callback: CallbackQuery, bot: Bot):
-    await utils.recover_user(callback.from_user.id)
-    await callback.answer(text="Аккаунт успешно восстановлен!", show_alert=True)
-    await bot.delete_message(callback.from_user.id, callback.message.message_id)
+    try:
+        await utils.recover_user(callback.from_user.id)
+    except exc.DB_error:
+        await callback.answer(text=text.DB_ERROR, show_alert=True)
+    else:
+        await callback.answer(text="Аккаунт успешно восстановлен!", show_alert=True)
+    finally:
+        await bot.delete_message(callback.from_user.id, callback.message.message_id)
 
 
 # ===========================================================

@@ -10,11 +10,10 @@ import os
 import sys
 
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
+logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 
 
 from src.app import cycle_start_bot, noncycle_start_bot
-
-logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 
 logger = logging.getLogger()
 

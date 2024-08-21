@@ -1,20 +1,31 @@
+import asyncio
 import logging
 
 from pandas import DataFrame
 from sqlalchemy import insert, select, update
 
-from db.database import async_engine
-from db.models import UserActivity, UserData
+from db.database import execute_query
+from db.models import Transactions, UserActivity, UserData, WgConfig
 
 logger = logging.getLogger()
 
 
+async def test_base():
+    async def __test_base(base):
+        query = select(base)
+        await execute_query(query)
+
+    return await asyncio.gather(
+        *(__test_base(base) for base in (UserData, Transactions, WgConfig)),
+        return_exceptions=True,
+    )
+
+
 async def select_user(user_id):
     query = select(UserData).where(UserData.telegram_id == user_id)
+    res = await execute_query(query)
 
-    async with async_engine.connect() as conn:
-        res = await conn.execute(query)
-        return DataFrame(data=res.mappings().all())
+    return DataFrame(data=res.mappings().all())
 
 
 async def insert_user(user_id, user_name):
@@ -27,17 +38,12 @@ async def insert_user(user_id, user_name):
 
     query = insert(UserData).values(user_data)
 
-    async with async_engine.connect() as conn:
-        await conn.execute(query)
-        await conn.commit()
+    return await execute_query(query)
 
 
 async def __update_user_activity(user_id, activity):
     query = update(UserData).values(active=activity).filter_by(telegram_id=user_id)
-
-    async with async_engine.connect() as conn:
-        await conn.execute(query)
-        await conn.commit()
+    await execute_query(query)
 
 
 async def delete_user(user_id):

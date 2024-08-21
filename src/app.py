@@ -13,6 +13,7 @@ from git import GitCommandError, Repo
 from core.config import settings
 from core.err import exception_logging
 from core.path import PATH
+from db.utils import test_base
 from handlers import router
 
 logger = logging.getLogger()
@@ -33,6 +34,15 @@ def __create_bot():
 
 
 async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
+    bases = await test_base()
+    for base in bases:
+        try:
+            if base is not None:
+                raise base
+        except Exception:
+            logger.exception("Возникло исключение при подключении к БД")
+            raise
+
     tasks = await asyncio.wait(
         [
             bot.delete_webhook(drop_pending_updates=True),

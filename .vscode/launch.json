@@ -19,7 +19,7 @@
             "console": "integratedTerminal",
             "args": [
                 // "--nolog=console",
-                "--mode=cycle"
+                // "--mode=cycle"
             ]
         },
         {

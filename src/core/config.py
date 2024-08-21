@@ -1,3 +1,4 @@
+import logging
 import os
 
 from pydantic import HttpUrl, SecretStr
@@ -5,6 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import DeclarativeBase
 
 from core.path import PATH
+
+logger = logging.getLogger()
 
 
 class AuthorizeVar(BaseSettings):
@@ -48,4 +51,8 @@ class Settings(BaseSettings):
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS.get_secret_value()}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
 
-settings = Settings()
+try:
+    settings = Settings()
+except ValueError:
+    logger.exception("Ошибка загрузки входных параметров")
+    raise
