@@ -14,7 +14,7 @@ from core.config import settings
 from core.err import exception_logging
 from core.path import PATH
 from db.utils import test_base
-from handlers import router
+from handlers import account, service, info, admin
 
 logger = logging.getLogger()
 
@@ -28,7 +28,7 @@ def __create_bot():
 
     dp = Dispatcher(storage=MemoryStorage())  # Данные бота стираются при перезапуске
     dp.message.middleware(ChatActionMiddleware())
-    dp.include_router(router)  # Добавка обработчиков
+    dp.include_routers(account.router, service.router, info.router, admin.router)
 
     return bot, dp
 
