@@ -17,7 +17,9 @@ async def help_me(message: Message):
         "Сообщение вступительное",
         as_marked_section(
             Bold("Алгоритм работы с ботом:"),
-            "Запустить бота командой /start",
+            "Запустить бота командой  /start",
+            "Данные об аккаунте + быстрый доступ к основным функциям  /account",
+            "Список всех команд  /cmd | /commands",
             marker="✅ ",
         ),
         "Готово!",
@@ -37,12 +39,17 @@ async def started(message: Message, started_at):
     await message.answer(f"Время начала работы бота: {started_at}")
 
 
-@router.message(Command("me"))
-@router.message(Command("config"))
-@router.message(F.text.lower().in_(text.me))
-async def get_user_data(message: Message):
-    user_data = as_list(
-        *[f"{key}\t--\t{value}" for key, value in message.from_user.__dict__.items()]
+@router.message(Command("cmd"))
+@router.message(Command("commands"))
+async def commands_list(message: Message):
+    help_t = as_list(
+        as_marked_section(
+            "/start | /account - основной функционал",
+            "/time - время запуска бота",
+            "/me | /config - данные о моих конфигурациях wireguard",
+            "/",
+            marker="~ ",
+        ),
     )
 
-    await message.answer(**user_data.as_kwargs())
+    await message.answer(**help_t.as_kwargs())
