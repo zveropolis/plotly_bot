@@ -15,6 +15,7 @@ asyncssh = "^2.16.0"
 pytils = "^0.4.1"
 pyqrcode = "^1.2.1"
 pypng = "^0.20220715.0"
+openpyxl = "^3.1.5"
 
 
 [tool.poetry.group.dev.dependencies]

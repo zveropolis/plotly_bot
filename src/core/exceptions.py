@@ -8,6 +8,11 @@ class UniquenessError(DatabaseError):
         super().__init__(text)
 
 
+class DumpError(DatabaseError):
+    def __init__(self, text="Ошибка создания дампа базы") -> None:
+        super().__init__(text)
+
+
 class WireguardError(Exception):
     def __init__(
         self, text="Ошибка при выполнении удаленной команды на wireguard сервере"

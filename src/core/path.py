@@ -7,5 +7,5 @@ def get_path():
         PATH = os.path.dirname(PATH)
     return PATH
 
-
 PATH = get_path()
+"""PATH TO VPN_DAN_BOT"""

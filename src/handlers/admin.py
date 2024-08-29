@@ -1,16 +1,13 @@
 import logging
 
-import pandas as pd
 from aiogram import Bot, F, Router
 from aiogram.filters.command import Command
-from aiogram.types import Message
-from aiogram.utils.formatting import as_list
+from aiogram.types import FSInputFile, Message
 
 import text
 from core import exceptions as exc
 from core.config import settings
 from db import utils
-from kb import get_account_keyboard
 
 logger = logging.getLogger()
 router = Router()
@@ -42,3 +39,20 @@ async def become_an_admin(message: Message, bot: Bot):
         await message.answer("Вы успешно зарегистрированы как администратор!")
     finally:
         await bot.delete_message(message.from_user.id, message.message_id)
+
+
+@router.message(Command("dump"))
+async def get_dump(message: Message):
+    try:
+        user_data = await utils.select_user(message.from_user.id)
+        if user_data.admin[0]:
+            dump = await utils.async_dump()
+            await message.answer_document(FSInputFile(dump))
+        else:
+            await message.answer(
+                "Данный функционал предназначен для пользования администратором. Если вы администратор, а мы не знаем об этом, отправьте боту секретный пароль."
+            )
+    except exc.DumpError as e:
+        await message.answer(e.args[0])
+    except exc.DatabaseError:
+        await message.answer(text.DB_ERROR)
