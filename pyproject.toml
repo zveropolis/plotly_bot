@@ -8,19 +8,34 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 pydantic-settings = "^2.4.0"
-aiogram = "^3.11.0"
-gitpython = "^3.1.43"
-yoomoney = "^0.1.1"
-requests = "^2.32.3"
-sqlalchemy = "^2.0.32"
-asyncpg = "^0.29.0"
-psycopg = {extras = ["binary"], version = "^3.2.1"}
+aiogram = "^3.12.0"
 pandas = "^2.2.2"
+gitpython = "^3.1.43"
+asyncssh = "^2.16.0"
+pytils = "^0.4.1"
+pyqrcode = "^1.2.1"
+pypng = "^0.20220715.0"
 
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"
 ipykernel = "^6.29.5"
+
+
+[tool.poetry.group.database.dependencies]
+sqlalchemy = "^2.0.32"
+asyncpg = "^0.29.0"
+
+
+[tool.poetry.group.pay.dependencies]
+yoomoney = "^0.1.1"
+requests = "^2.32.3"
+
+
+[tool.poetry.group.server.dependencies]
+fastapi = {extras = ["all"], version = "^0.112.2"}
+uvicorn = {extras = ["standard"], version = "^0.30.6"}
+requests = "^2.32.3"
 
 [build-system]
 requires = ["poetry-core"]

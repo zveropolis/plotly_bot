@@ -4,14 +4,12 @@
 import asyncio
 import logging
 import logging.config
-import logging.handlers
 import os
 import sys
 
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
 
 from src.parser import parse_args
-
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 logger = logging.getLogger()

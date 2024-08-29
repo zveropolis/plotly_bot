@@ -1,5 +1,4 @@
 #!/bin/zsh
-# ssh -p 23847 zadira@assa.ddns.net
 #Создание переменной первого аргумента
 first="$1"
 privkey="Nothing in privkey"
