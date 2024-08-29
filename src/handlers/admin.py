@@ -1,7 +1,7 @@
 import logging
 
 import pandas as pd
-from aiogram import Router, F, Bot
+from aiogram import Bot, F, Router
 from aiogram.filters.command import Command
 from aiogram.types import Message
 from aiogram.utils.formatting import as_list
@@ -20,7 +20,7 @@ router = Router()
 async def admin_actions(message: Message):
     try:
         user_data = await utils.select_user(message.from_user.id)
-    except exc.DB_error:
+    except exc.DatabaseError:
         await message.answer(text.DB_ERROR)
         return
 
@@ -32,11 +32,11 @@ async def admin_actions(message: Message):
         )
 
 
-@router.message(F.text == settings.admin_pass.get_secret_value())
+@router.message(F.text == settings.ADMIN_PASS.get_secret_value())
 async def become_an_admin(message: Message, bot: Bot):
     try:
         await utils.set_admin(message.from_user.id)
-    except exc.DB_error:
+    except exc.DatabaseError:
         await message.answer(text.DB_ERROR)
     else:
         await message.answer("Вы успешно зарегистрированы как администратор!")

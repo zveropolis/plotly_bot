@@ -10,11 +10,11 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.utils.chat_action import ChatActionMiddleware
 from git import GitCommandError, Repo
 
+import handlers as hd
 from core.config import settings
 from core.err import exception_logging
 from core.path import PATH
 from db.utils import test_base
-import handlers as hd
 
 logger = logging.getLogger()
 
@@ -22,7 +22,7 @@ logger = logging.getLogger()
 @exception_logging()
 def __create_bot():
     bot = Bot(
-        token=settings.bot_token.get_secret_value(),
+        token=settings.BOT_TOKEN.get_secret_value(),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
 
@@ -30,10 +30,11 @@ def __create_bot():
     dp.message.middleware(ChatActionMiddleware())
     dp.include_routers(
         hd.account.router,
-        hd.service.router,
+        hd.user_service.router,
         hd.info.router,
         hd.admin.router,
         hd.wg_service.router,
+        hd.payment.router,
     )
 
     return bot, dp
