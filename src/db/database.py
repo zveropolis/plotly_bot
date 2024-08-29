@@ -1,9 +1,11 @@
 import logging
 
-from sqlalchemy.ext.asyncio import create_async_engine
+from asyncpg.exceptions import UniqueViolationError
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from core.config import settings
-from core.exceptions import DB_error
+from core.exceptions import DatabaseError, UniquenessError
 
 logger = logging.getLogger()
 
@@ -20,8 +22,11 @@ async def execute_query(query):
         async with async_engine.connect() as conn:
             res = await conn.execute(query)
             await conn.commit()
+    except (UniqueViolationError, IntegrityError):
+        logger.warning("Эта запись в базе уже существует")
+        raise UniquenessError
     except Exception:
         logger.exception("Ошибка при подключении к БД", exc_info=query.__dict__)
-        raise DB_error
+        raise DatabaseError
     else:
         return res

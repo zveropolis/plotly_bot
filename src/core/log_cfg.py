@@ -21,6 +21,9 @@ class ColoredConsoleHandler(logging.StreamHandler):
         else:  # NOTSET and anything else
             color = "\x1b[0m"  # normal
         myrecord.levelname = color + str(myrecord.levelname) + "\x1b[0m"  # normal
+        myrecord.name = "\x1b[34m" + str(myrecord.name) + "\x1b[0m"
+        myrecord.filename = "\x1b[36m" + str(myrecord.filename) + "\x1b[0m"
+        myrecord.funcName = "\x1b[36m" + str(myrecord.funcName) + "\x1b[0m"
         logging.StreamHandler.emit(self, myrecord)
 
 

@@ -22,8 +22,8 @@ class Base(DeclarativeBase):
 
 
 class Settings(BaseSettings):
-    bot_token: SecretStr
-    yoo_token: SecretStr
+    BOT_TOKEN: SecretStr
+    YOO_TOKEN: SecretStr
 
     BOT_URL: HttpUrl = "https://t.me/vpn_dan_bot"
 
@@ -32,10 +32,18 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: SecretStr
     DB_NAME: str
-    
-    admin_pass: SecretStr
+
+    ADMIN_PASS: SecretStr
+
+    WG_USERNAME: str
+    WG_IP: str
+    WG_PORT: int
+    WG_PASS: SecretStr
+    WG_KEY: SecretStr
 
     cycle_duration: float
+    acceptable_config: int
+    cost: float
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(PATH, ".env"),
