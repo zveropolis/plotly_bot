@@ -11,3 +11,6 @@ compile.md
 *logs
 *.log
 .authorize.py
+src/db/dumps/*
+sql/*
+ssh

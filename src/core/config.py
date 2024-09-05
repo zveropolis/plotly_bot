@@ -1,9 +1,10 @@
 import logging
 import os
 
-from pydantic import HttpUrl, SecretStr
+from pydantic import HttpUrl, SecretStr, BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import DeclarativeBase
+from redis import Redis
 
 from core.path import PATH
 
@@ -16,6 +17,20 @@ class AuthorizeVar(BaseSettings):
 
 
 class Base(DeclarativeBase):
+    @property
+    def __udict__(self):
+        model_data = {col: getattr(self, col) for col in self.__table__.columns.keys()}
+        model_data.pop("id")
+        return model_data
+
+    @property
+    def __ustr_dict__(self):
+        model_data = {
+            col: str(getattr(self, col)) for col in self.__table__.columns.keys()
+        }
+        model_data.pop("id")
+        return model_data
+
     def __repr__(self):
         cols = [f"{col}={getattr(self, col)}" for col in self.__table__.columns.keys()]
         return f"<{self.__class__.__name__} {', '.join(cols)}>"
@@ -35,11 +50,17 @@ class Settings(BaseSettings):
 
     ADMIN_PASS: SecretStr
 
-    WG_USERNAME: str
-    WG_IP: str
+    WG_HOST: str
     WG_PORT: int
+    WG_USER: str
     WG_PASS: SecretStr
     WG_KEY: SecretStr
+
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_USER: str
+    REDIS_PASS: SecretStr
+    REDIS_NAME: str
 
     cycle_duration: float
     acceptable_config: int
@@ -60,9 +81,19 @@ class Settings(BaseSettings):
         """
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS.get_secret_value()}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
+    @property
+    def CASHBASE_URL(self):
+        """URL для подключения к базе (redis)
+
+        Returns:
+            str: redis://LOGIN:PASSWORD@HOST:PORT/NUM_DB
+        """
+        return f"redis://{self.REDIS_USER}:{self.REDIS_PASS.get_secret_value()}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_NAME}"
+
 
 try:
     settings = Settings()
+
 except ValueError:
     logger.exception("Ошибка загрузки входных параметров")
     raise

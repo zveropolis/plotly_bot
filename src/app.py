@@ -1,20 +1,21 @@
 import asyncio
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.utils.chat_action import ChatActionMiddleware
+from aiogram.fsm.storage.redis import RedisStorage
 from git import GitCommandError, Repo
 
 import handlers as hd
 from core.config import settings
 from core.err import exception_logging
 from core.path import PATH
-from db.utils import test_base
+from db.utils.tests import test_base, test_redis_base
 
 logger = logging.getLogger()
 
@@ -26,7 +27,14 @@ def __create_bot():
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
 
-    dp = Dispatcher(storage=MemoryStorage())  # Данные бота стираются при перезапуске
+    storage = RedisStorage.from_url(
+        settings.CASHBASE_URL,
+        state_ttl=timedelta(days=30),
+        data_ttl=timedelta(days=30),
+    )
+
+    # dp = Dispatcher(storage=MemoryStorage())  # Данные бота стираются при перезапуске
+    dp = Dispatcher(storage=storage)
     dp.message.middleware(ChatActionMiddleware())
     dp.include_routers(
         hd.account.router,
@@ -42,9 +50,11 @@ def __create_bot():
 
 async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
     bases = await test_base()
+    bases.extend(await test_redis_base())
+
     for base in bases:
         try:
-            if base is not None:
+            if isinstance(base, Exception):
                 raise base
         except Exception:
             logger.exception("Возникло исключение при подключении к БД")

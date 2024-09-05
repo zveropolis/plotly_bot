@@ -16,6 +16,7 @@ pytils = "^0.4.1"
 pyqrcode = "^1.2.1"
 pypng = "^0.20220715.0"
 openpyxl = "^3.1.5"
+redis = "^5.0.8"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -3,6 +3,7 @@ from datetime import datetime
 from ipaddress import IPv4Address, IPv4Interface
 from uuid import UUID
 
+from pydantic import BaseModel
 from sqlalchemy import BigInteger, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import INET, CIDR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -15,8 +16,24 @@ class UserActivity(enum.Enum):
     inactive = "inactive"
     deleted = "deleted"
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class UserData(Base):
+    class ValidationSchema(BaseModel):
+        telegram_id: int
+        telegram_name: str | None
+        admin: bool
+        active: UserActivity
+        stage: int
+        month: int
+
+    def __init__(self, **kw):
+        validated_data = self.ValidationSchema(**kw).__dict__
+
+        super().__init__(**(kw | validated_data))
+
     __tablename__ = "userdata"
 
     id: Mapped[int] = mapped_column(primary_key=True)

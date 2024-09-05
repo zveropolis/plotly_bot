@@ -28,3 +28,10 @@ class PayError(Exception):
 class StagePayError(PayError):
     def __init__(self, text="Недостаточный уровень подписки") -> None:
         super().__init__(text)
+
+
+class RedisTypeError(Exception):
+    def __init__(
+        self, text="Ошибка типа данных при получении или передаче данных в Redis"
+    ) -> None:
+        super().__init__(text)
