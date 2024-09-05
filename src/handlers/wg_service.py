@@ -28,7 +28,7 @@ router = Router()
 @router.callback_query(F.data == "user_configurations")
 async def post_user_data(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
-        user_data = await utils.select_user(trigger.from_user.id, extensions="config")
+        user_data = await utils.get_users_wg_configs(trigger.from_user.id)
 
         if user_data.empty:
             await getattr(trigger, "message", trigger).answer(
@@ -73,10 +73,10 @@ async def post_user_data(trigger: Union[Message, CallbackQuery], bot: Bot):
 @router.callback_query(F.data == "create_configuration")
 async def post_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
-        user_data = await utils.select_user(trigger.from_user.id, extensions="config")
+        user_data = await utils.get_users_wg_configs(trigger.from_user.id)
 
         if user_data.empty:
-            await utils.insert_user(trigger.from_user.id, trigger.from_user.full_name)
+            await utils.add_user(trigger.from_user.id, trigger.from_user.full_name)
             raise exc.PayError
         elif user_data.active[0] != UserActivity.active:
             raise exc.PayError
@@ -86,7 +86,7 @@ async def post_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
             conf = await wg.move_user(
                 trigger.from_user.id, move="add"
             )  # TODO config name?
-            await utils.insert_wg_config(conf)
+            await utils.add_wg_config(conf)
 
         else:
             await getattr(trigger, "message", trigger).answer(
@@ -140,9 +140,7 @@ async def get_config_text(callback: CallbackQuery):
     *_, cfg_id = callback.message.text.partition("| id: ")
     try:
         user_config = (
-            await utils.select_wg_config(
-                callback.from_user.id, cfg_id=cfg_id.split("_")
-            )
+            await utils.get_wg_config(callback.from_user.id, cfg_id=cfg_id.split("_"))
         ).iloc[0]
     except exc.DatabaseError:
         await callback.answer(text=text.DB_ERROR, show_alert=True)
@@ -160,9 +158,7 @@ async def get_config_file(callback: CallbackQuery):
     *_, cfg_id = callback.message.text.partition("| id: ")
     try:
         user_config = (
-            await utils.select_wg_config(
-                callback.from_user.id, cfg_id=cfg_id.split("_")
-            )
+            await utils.get_wg_config(callback.from_user.id, cfg_id=cfg_id.split("_"))
         ).iloc[0]
     except exc.DatabaseError:
         await callback.answer(text=text.DB_ERROR, show_alert=True)
@@ -182,9 +178,7 @@ async def get_config_qr(callback: CallbackQuery):
     *_, cfg_id = callback.message.text.partition("| id: ")
     try:
         user_config = (
-            await utils.select_wg_config(
-                callback.from_user.id, cfg_id=cfg_id.split("_")
-            )
+            await utils.get_wg_config(callback.from_user.id, cfg_id=cfg_id.split("_"))
         ).iloc[0]
     except exc.DatabaseError:
         await callback.answer(text=text.DB_ERROR, show_alert=True)

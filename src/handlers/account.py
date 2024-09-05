@@ -19,7 +19,7 @@ router = Router()
 async def start_bot(message: Message):
     await message.answer(f"Добро пожаловать, {message.from_user.full_name}!")
     try:
-        user_data = await utils.select_user(message.from_user.id)
+        user_data = await utils.get_user(message.from_user.id)
     except exc.DatabaseError:
         await message.answer(text.DB_ERROR)
     else:
@@ -32,7 +32,7 @@ async def account_actions(
 ):
     if user_data is None:
         try:
-            user_data = await utils.select_user(
+            user_data = await utils.get_user(
                 usr_id if usr_id else message.from_user.id
             )
         except exc.DatabaseError:

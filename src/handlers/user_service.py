@@ -18,7 +18,7 @@ router = Router()
 @router.callback_query(F.data == "register_user")
 async def register_user(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
-        await utils.insert_user(trigger.from_user.id, trigger.from_user.full_name)
+        await utils.add_user(trigger.from_user.id, trigger.from_user.full_name)
     except exc.UniquenessError as e:
         await trigger.answer(text=e.args[0], show_alert=True)
     except exc.DatabaseError:

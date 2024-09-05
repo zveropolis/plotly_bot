@@ -16,7 +16,7 @@ router = Router()
 @router.message(Command("admin"))
 async def admin_actions(message: Message):
     try:
-        user_data = await utils.select_user(message.from_user.id)
+        user_data = await utils.get_user(message.from_user.id)
     except exc.DatabaseError:
         await message.answer(text.DB_ERROR)
         return
@@ -44,7 +44,7 @@ async def become_an_admin(message: Message, bot: Bot):
 @router.message(Command("dump"))
 async def get_dump(message: Message):
     try:
-        user_data = await utils.select_user(message.from_user.id)
+        user_data = await utils.get_user(message.from_user.id)
         if user_data.admin[0]:
             dump = await utils.async_dump()
             await message.answer_document(FSInputFile(dump))

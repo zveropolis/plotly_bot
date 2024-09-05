@@ -29,7 +29,7 @@ router = Router()
 @router.callback_query(F.data == "user_payment")
 async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMContext):
     try:
-        user_data = await utils.select_user(trigger.from_user.id)
+        user_data = await utils.get_user(trigger.from_user.id)
 
         if user_data.empty:
             await getattr(trigger, "message", trigger).answer(
@@ -164,6 +164,7 @@ async def pay(callback: CallbackQuery, bot: Bot, state: FSMContext):
                 quickpay.redirected_url,
             )
         )
+        await state.clear()
 
     except KeyError:
         await callback.answer("Истек срок давности сообщения")

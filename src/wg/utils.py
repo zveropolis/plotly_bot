@@ -82,7 +82,7 @@ class WgConfigMaker:
             dns="9.9.9.9",
             server_public_key=self.public_key,
             allowed_ips="0.0.0.0/0",
-            endpoint_ip=settings.WG_IP,
+            endpoint_ip=settings.WG_HOST,
             endpoint_port=settings.WG_PORT,
         )
         return self.user_config
@@ -92,8 +92,8 @@ class WgConfigMaker:
         self, user_id: int, move: Literal["add", "ban", "unban"], cfg_name: str = None
     ):
         async with asyncssh.connect(
-            settings.WG_IP,
-            username=settings.WG_USERNAME,
+            settings.WG_HOST,
+            username=settings.WG_USER,
             client_keys=settings.WG_KEY.get_secret_value(),
         ) as conn:
             await self._create_keys(conn)
