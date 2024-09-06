@@ -13,7 +13,7 @@ logger = logging.getLogger()
 async def get_user(user_id):
     result = await CashManager(UserData).get(user_id, dict())
 
-    if result is not None:
+    if not result.empty:
         return result
 
     query = select(UserData).where(UserData.telegram_id == user_id)
@@ -40,6 +40,7 @@ async def add_user(user_id, user_name):
 
 
 async def __update_user_activity(user_id, activity):
+    await get_user(user_id)
     await CashManager(UserData).update(dict(active=activity), user_id)
 
     query = update(UserData).values(active=activity).filter_by(telegram_id=user_id)

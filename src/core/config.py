@@ -1,10 +1,9 @@
 import logging
 import os
 
-from pydantic import HttpUrl, SecretStr, BaseModel
+from pydantic import HttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import DeclarativeBase
-from redis import Redis
 
 from core.path import PATH
 

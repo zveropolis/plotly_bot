@@ -22,9 +22,9 @@ async def test_base():
 
 async def test_redis_base():
     pipe = redis_engine.pipeline()
-    query = pipe.ping()
+    pipe.ping()
 
     return await asyncio.gather(
-        *(execute_redis_query(pipe, query),),
+        *(execute_redis_query(pipe),),
         return_exceptions=True,
     )

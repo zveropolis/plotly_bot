@@ -6,8 +6,8 @@ from uuid import uuid4
 
 from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.fsm.context import FSMContext
 from aiogram.filters.command import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.markdown import hlink
 from pytils.numeral import get_plural
@@ -53,6 +53,7 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
                         f"Актуальная стоимость 1 уровня подписки за 1 месяц: <b>{get_plural(settings.cost, 'рубль, рубля, рублей')}</b>",
                         f"Допустимое количество создаваемых конфигураций на 1 уровень подписки: <b>{settings.acceptable_config}</b>",
                         "(Одна конфигурация может быть подключена к нескольким устройствам, однако такие подключения не могут быть одновременными, поэтому рекомендуется создавать по одной конфигурации на каждое устройство)",
+                        "<b>Плата взимается единоразово</b>",
                     )
                 )
             )

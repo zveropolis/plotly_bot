@@ -7,8 +7,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.utils.chat_action import ChatActionMiddleware
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.utils.chat_action import ChatActionMiddleware
 from git import GitCommandError, Repo
 
 import handlers as hd

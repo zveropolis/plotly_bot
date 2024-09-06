@@ -1,11 +1,10 @@
 import logging
 
-from aiogram import F, Router
+from aiogram import Router
 from aiogram.filters.command import Command
 from aiogram.types import Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
 
-import text
 
 logger = logging.getLogger()
 router = Router()
@@ -17,21 +16,15 @@ async def help_me(message: Message):
         "Сообщение вступительное",
         as_marked_section(
             Bold("Алгоритм работы с ботом:"),
-            "Запустить бота командой  /start",
-            "Данные об аккаунте + быстрый доступ к основным функциям  /account",
+            "Данные об аккаунте + быстрый доступ к основным функциям  /account | /start",
             "Список всех команд  /cmd | /commands",
+            "/bug - Доложить о баге",
             marker="✅ ",
         ),
         "Готово!",
     )
 
     await message.answer(**help_t.as_kwargs())
-    # await message.answer(
-    #     hlink(
-    #         "Plotly examples",
-    #         "https://plotly.com/python/",
-    #     )
-    # )
 
 
 @router.message(Command("time"))
@@ -43,11 +36,43 @@ async def started(message: Message, started_at):
 @router.message(Command("commands"))
 async def commands_list(message: Message):
     help_t = as_list(
+        Bold("Запуск:"),
         as_marked_section(
-            "/start | /account - основной функционал",
-            "/time - время запуска бота",
+            "/start - запуск бота",
+            "/reg - Регистрация в БД Бота",
+            "/account - Основной функционал аккаунта",
+            marker="~ ",
+        ),
+        Bold("Действия с аккаунтом:"),
+        as_marked_section(
+            "/account - Основной функционал аккаунта",
+            "/reg - Регистрация в БД Бота",
+            "/delete - Удалить аккаунт",
+            "/recover - Восстановить аккаунт",
+            marker="~ ",
+        ),
+        Bold("Действия с конфигурациями:"),
+        as_marked_section(
             "/me | /config - данные о моих конфигурациях wireguard",
-            "/",
+            "/create - создать конфигурацию",
+            marker="~ ",
+        ),
+        Bold("Действия с подпиской:"),
+        as_marked_section(
+            "/sub - Купить подписку",
+            "/levelup - Повысить уровень подписки",
+            "/refund - Вернуть деньги (ПХААХАХА)",
+            "/history - История транзакций",
+            marker="~ ",
+        ),
+        Bold("Информация:"),
+        as_marked_section(
+            "/help - Помощь",
+            "/help_wg - Помощь по настройке wireguard конфигураций на устройствах",
+            "/cmd - Список всех команд",
+            "/bug - Доложить о баге",
+            "/id - ХЗ пока что",
+            "/time - время запуска бота",
             marker="~ ",
         ),
     )

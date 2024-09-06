@@ -17,16 +17,14 @@ router = Router()
 async def admin_actions(message: Message):
     try:
         user_data = await utils.get_user(message.from_user.id)
+        if user_data.admin[0]:
+            await message.answer("Ты админ! (Крутяк)")
+        else:
+            await message.answer(
+                "Данный функционал предназначен для пользования администратором. Если вы администратор, а мы не знаем об этом, отправьте боту секретный пароль."
+            )
     except exc.DatabaseError:
         await message.answer(text.DB_ERROR)
-        return
-
-    if user_data.admin[0]:
-        await message.answer("Ты админ! (Крутяк)")
-    else:
-        await message.answer(
-            "Данный функционал предназначен для пользования администратором. Если вы администратор, а мы не знаем об этом, отправьте боту секретный пароль."
-        )
 
 
 @router.message(F.text == settings.ADMIN_PASS.get_secret_value())
