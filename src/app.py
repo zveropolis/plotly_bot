@@ -29,8 +29,8 @@ def __create_bot():
 
     storage = RedisStorage.from_url(
         settings.CASHBASE_URL,
-        state_ttl=timedelta(days=30),
-        data_ttl=timedelta(days=30),
+        state_ttl=timedelta(hours=settings.cash_ttl),
+        data_ttl=timedelta(hours=settings.cash_ttl),
     )
 
     # dp = Dispatcher(storage=MemoryStorage())  # Данные бота стираются при перезапуске

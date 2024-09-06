@@ -9,13 +9,13 @@ sys.path.insert(1, os.path.dirname(sys.path[0]))
 
 from core.config import Base
 from db import models as _
-from db.database import async_engine
+from db.database import async_engine, redis_engine, execute_redis_query
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 logger = logging.getLogger()
 
 
-async def async_connect():
+async def postgresql_recreate_tables():
     async with async_engine.connect() as conn:
         async_engine.echo = False
         await conn.run_sync(Base.metadata.drop_all)
@@ -24,5 +24,26 @@ async def async_connect():
         await conn.commit()
 
 
+async def clear_redis():
+    pipe = redis_engine.pipeline()
+    pipe.ping()
+    await execute_redis_query(pipe)
+
+
 if __name__ == "__main__":
-    asyncio.run(async_connect())
+
+    async def start():
+        bases = await asyncio.gather(
+            *(postgresql_recreate_tables(), clear_redis()),
+            return_exceptions=True,
+        )
+
+        for base in bases:
+            try:
+                if isinstance(base, Exception):
+                    raise base
+            except Exception:
+                logger.exception("Возникло исключение при подключении к БД")
+                raise
+
+    asyncio.run(start())

@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     cycle_duration: float
     acceptable_config: int
     cost: float
+    cash_ttl: int
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(PATH, ".env"),

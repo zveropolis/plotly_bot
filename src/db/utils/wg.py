@@ -19,7 +19,7 @@ async def get_cash_wg_configs(user_id):
     ):
         cash.cmd.hgetall(wg_conf_key)
 
-    return await cash()
+    return await cash(user_id)
 
 
 async def add_cash_wg_configs(user_id, configs):
@@ -27,7 +27,7 @@ async def add_cash_wg_configs(user_id, configs):
         if conf["user_private_key"]:
             validated_conf = WgConfig(**conf).__udict__
             await CashManager(WgConfig).add(
-                validated_conf, f'{user_id}:{validated_conf["name"]}'
+                validated_conf, f'{validated_conf["name"]}:{user_id}'
             )
 
 
@@ -83,7 +83,7 @@ async def get_users_wg_configs(user_id):
 
 
 async def add_wg_config(conf: dict):
-    await CashManager(WgConfig).add(conf, f'{conf["user_id"]}:{conf["name"]}')
+    await CashManager(WgConfig).add(conf, f'{conf["name"]}:{conf["user_id"]}')
 
     query = insert(WgConfig).values(**conf)
     await execute_query(query)
