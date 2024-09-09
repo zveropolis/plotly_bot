@@ -10,6 +10,8 @@ from core.path import PATH
 from db.models import UserActivity, WgConfig
 
 me = {"я", "мои данные", "данные", "конфиги", "мои конфиги", "config"}
+yes = {"yes", "y", "da", "да"}
+no = {"no", "n", "нет"}
 DB_ERROR = "Ошибка подключения к БД. Обратитесь к администратору."
 WG_ERROR = "Ошибка подключения к серверу wireguard. Обратитесь к администратору."
 YOO_ERROR = "Ошибка подключения к серверу yoomoney. Попробуйте еще раз позже"

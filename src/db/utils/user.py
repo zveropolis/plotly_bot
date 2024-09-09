@@ -24,6 +24,14 @@ async def get_user(user_id):
     return DataFrame(result)
 
 
+async def get_all_users(my_id):
+    query = select(UserData).where(UserData.telegram_id != my_id)
+
+    result = (await execute_query(query)).mappings().all()
+
+    return DataFrame(result)
+
+
 async def add_user(user_id, user_name):
     user_data = dict(
         telegram_id=user_id,
