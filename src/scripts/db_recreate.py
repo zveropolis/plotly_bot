@@ -26,7 +26,7 @@ async def postgresql_recreate_tables():
 
 async def clear_redis():
     pipe = redis_engine.pipeline()
-    pipe.ping()
+    pipe.flushdb()
     await execute_redis_query(pipe)
 
 

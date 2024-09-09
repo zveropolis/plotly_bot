@@ -62,7 +62,7 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
 Текущий:
     1 месяц
     1 уровень
-Итоговая стоимость = <b>{get_plural(settings.cost, 'рубль, рубля, рублей')}</b>""",
+Итоговая стоимость = <b>{get_plural(settings.cost*settings.transfer_fee, 'рубль, рубля, рублей')}</b>""",
                 reply_markup=get_pay_keyboard(month=1, stage=1),
             )
 
@@ -108,7 +108,7 @@ async def edit_sub_stage(callback: CallbackQuery, bot: Bot, state: FSMContext):
 async def update_stage_text(message: Message, user_sub_param: dict):
     new_val_month = user_sub_param["month"]
     new_val_stage = user_sub_param["stage"]
-    SUM = settings.cost * new_val_stage * new_val_month * 1.03
+    SUM = settings.cost * new_val_stage * new_val_month * settings.transfer_fee
 
     with suppress(TelegramBadRequest):
         await message.edit_text(
@@ -130,7 +130,7 @@ async def pay(callback: CallbackQuery, bot: Bot, state: FSMContext):
         client = Client(settings.YOO_TOKEN.get_secret_value())
         transaction_label = uuid4()
 
-        SUM = settings.cost * user_stage * user_month * 1.03
+        SUM = settings.cost * user_stage * user_month * settings.transfer_fee
 
         quickpay = Quickpay(
             receiver=client.account_info().account,
@@ -144,12 +144,12 @@ async def pay(callback: CallbackQuery, bot: Bot, state: FSMContext):
         await utils.insert_transaction(
             dict(
                 user_id=callback.from_user.id,
-                transaction_reference=quickpay.base_url,
-                transaction_label=transaction_label,
-                transaction_date=datetime.today(),
-                transaction_sum=SUM,
+                date=datetime.today(),
+                amount=SUM,
+                label=transaction_label,
                 transaction_stage=user_stage,
                 transaction_month=user_month,
+                transaction_reference=quickpay.base_url,
             )
         )
 

@@ -62,12 +62,20 @@ class Transactions(Base):
         ),
         type_=BigInteger,
     )
-    transaction_reference: Mapped[str]
-    transaction_label: Mapped[UUID]
-    transaction_date: Mapped[datetime]
-    transaction_sum: Mapped[int]
+    date: Mapped[datetime]
+    amount: Mapped[float]
+    label: Mapped[UUID]
     transaction_stage: Mapped[int]
     transaction_month: Mapped[int]
+
+    # PAYED
+    transaction_id: Mapped[int | None] = mapped_column(type_=BigInteger)
+    sha1_hash: Mapped[str | None]
+    sender: Mapped[str | None]
+    withdraw_amount: Mapped[float | None]
+
+    # additionally
+    transaction_reference: Mapped[str]
 
 
 class WgConfig(Base):
