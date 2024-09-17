@@ -1,6 +1,7 @@
 import logging
 import os
 
+from pandas import DataFrame
 from pydantic import HttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.orm import DeclarativeBase
@@ -16,6 +17,10 @@ class AuthorizeVar(BaseSettings):
 
 
 class Base(DeclarativeBase):
+    def __repr__(self):
+        cols = [f"{col}={getattr(self, col)}" for col in self.__table__.columns.keys()]
+        return f"<{self.__class__.__name__} {', '.join(cols)}>"
+
     @property
     def __udict__(self):
         model_data = {col: getattr(self, col) for col in self.__table__.columns.keys()}
@@ -30,9 +35,18 @@ class Base(DeclarativeBase):
         model_data.pop("id")
         return model_data
 
-    def __repr__(self):
-        cols = [f"{col}={getattr(self, col)}" for col in self.__table__.columns.keys()]
-        return f"<{self.__class__.__name__} {', '.join(cols)}>"
+    @property
+    def frame(self):
+        return DataFrame([self.__udict__]).dropna(how="all")
+
+    def get_frame(self, *objects):
+        res = []
+        for obj in objects:
+            if type(obj) is type(self):
+                res.append(obj.__udict__)
+            else:
+                res.append(self.__udict__)
+        return DataFrame(res).dropna(how="all")
 
 
 class Settings(BaseSettings):

@@ -7,12 +7,38 @@ import logging.config
 import os
 import sys
 
+# import sentry_sdk
+# from sentry_sdk.integrations.logging import LoggingIntegration
+# from sentry_sdk.integrations.asyncio import AsyncioIntegration
+
+
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
+
 
 from src.parser import parse_args
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 logger = logging.getLogger()
+
+
+# sentry_sdk.init(
+#     dsn="https://b8e429b4b5f5415244aa3721d587b3b7@o4507927167631360.ingest.de.sentry.io/4507927764664400",
+#     release="dan-vpn-0.1.0",  # Релизная версия приложения
+#     environment="dev",  # Возможность добавить среду выполнения
+#     traces_sample_rate=1.0,
+#     send_default_pii=True,
+#     enable_tracing=True,
+#     # instrumenter="otel",
+#     integrations=[
+#         AsyncioIntegration(),
+#         LoggingIntegration(
+#             level=logging.DEBUG,  # Capture info and above as breadcrumbs
+#             event_level=logging.DEBUG,  # Send records as events
+#         ),
+#     ],
+#     profiles_sample_rate=1.0,
+#     # before_send=USERNAME,
+# )
 
 
 def main(args):

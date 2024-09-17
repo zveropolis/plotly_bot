@@ -12,5 +12,5 @@ compile.md
 *.log
 .authorize.py
 src/db/dumps/*
-sql/*
 ssh
+poetry.lock
