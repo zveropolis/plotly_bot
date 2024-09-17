@@ -17,6 +17,7 @@ from yoomoney import Client, Quickpay
 import text
 from core import exceptions as exc
 from core.config import settings
+from core.metric import async_speed_metric
 from db import utils
 from kb import get_pay_keyboard, static_reg_button
 from states import Service
@@ -27,11 +28,12 @@ router = Router()
 
 @router.message(Command("sub"))
 @router.callback_query(F.data == "user_payment")
+@async_speed_metric
 async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMContext):
     try:
         user_data = await utils.get_user(trigger.from_user.id)
 
-        if user_data.empty:
+        if user_data is None:
             await getattr(trigger, "message", trigger).answer(
                 "Отсутсвуют данные пользователя. Зарегистрируйтесь",
                 reply_markup=static_reg_button,
@@ -72,6 +74,7 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
 
 @router.callback_query(F.data.startswith("stage_"))
 @router.callback_query(F.data.startswith("month_"))
+@async_speed_metric
 async def edit_sub_stage(callback: CallbackQuery, bot: Bot, state: FSMContext):
     try:
         user_sub_param = (await state.get_data())["sub"]
@@ -88,8 +91,8 @@ async def edit_sub_stage(callback: CallbackQuery, bot: Bot, state: FSMContext):
             case "stage_decr":
                 if user_sub_param["stage"] > 1:
                     user_sub_param["stage"] -= 1
-                await update_stage_text(callback.message, user_sub_param)
-                await state.update_data({"sub": user_sub_param})
+                    await update_stage_text(callback.message, user_sub_param)
+                    await state.update_data({"sub": user_sub_param})
 
             case "month_incr":
                 user_sub_param["month"] += 1
@@ -99,12 +102,13 @@ async def edit_sub_stage(callback: CallbackQuery, bot: Bot, state: FSMContext):
             case "month_decr":
                 if user_sub_param["month"] > 1:
                     user_sub_param["month"] -= 1
-                await update_stage_text(callback.message, user_sub_param)
-                await state.update_data({"sub": user_sub_param})
+                    await update_stage_text(callback.message, user_sub_param)
+                    await state.update_data({"sub": user_sub_param})
 
         await callback.answer()
 
 
+@async_speed_metric
 async def update_stage_text(message: Message, user_sub_param: dict):
     new_val_month = user_sub_param["month"]
     new_val_stage = user_sub_param["stage"]
@@ -122,6 +126,7 @@ async def update_stage_text(message: Message, user_sub_param: dict):
 
 
 @router.callback_query(F.data == "pay_sub")
+@async_speed_metric
 async def pay(callback: CallbackQuery, bot: Bot, state: FSMContext):
     try:
         user_sub = (await state.get_data())["sub"]
@@ -166,6 +171,7 @@ async def pay(callback: CallbackQuery, bot: Bot, state: FSMContext):
             )
         )
         await state.clear()
+        await state.set_state()
 
     except KeyError:
         await callback.answer("Истек срок давности сообщения")

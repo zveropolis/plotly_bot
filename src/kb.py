@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pandas import DataFrame
 from pytils.numeral import get_plural
 
-from db.models import UserActivity
+from db.models import UserActivity, UserData
 
 static_reg_button = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -16,9 +16,9 @@ static_pay_button = InlineKeyboardMarkup(
 )
 
 
-def get_account_keyboard(user_data: DataFrame):
+def get_account_keyboard(user_data: UserData):
     buttons = []
-    match user_data.get("active", ["new"])[0]:
+    match getattr(user_data, "active", None):
         case UserActivity.active | UserActivity.inactive:
             buttons.append(
                 [

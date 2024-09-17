@@ -5,7 +5,6 @@ from aiogram.filters.command import Command
 from aiogram.types import Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
 
-
 logger = logging.getLogger()
 router = Router()
 
@@ -16,7 +15,8 @@ async def help_me(message: Message):
         "Сообщение вступительное",
         as_marked_section(
             Bold("Алгоритм работы с ботом:"),
-            "Данные об аккаунте + быстрый доступ к основным функциям  /account | /start",
+            "Запуск (перезагрузка) бота  /start",
+            "Данные об аккаунте + быстрый доступ к основным функциям  /account",
             "Список всех команд  /cmd | /commands",
             "/bug - Доложить о баге",
             marker="✅ ",
@@ -37,12 +37,7 @@ async def started(message: Message, started_at):
 async def commands_list(message: Message):
     help_t = as_list(
         Bold("Запуск:"),
-        as_marked_section(
-            "/start - запуск бота",
-            "/reg - Регистрация в БД Бота",
-            "/account - Основной функционал аккаунта",
-            marker="~ ",
-        ),
+        "/start - запуск (перезагрузка) бота",
         Bold("Действия с аккаунтом:"),
         as_marked_section(
             "/account - Основной функционал аккаунта",
