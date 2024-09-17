@@ -3,6 +3,7 @@ import logging
 
 logger = logging.getLogger()
 sql_logger = logging.getLogger("sqlalchemy.engine.Engine")
+sched_logger = logging.getLogger("apscheduler")
 
 
 def parse_args():
@@ -36,6 +37,7 @@ def parse_args():
         case "file":
             logger.removeHandler(logger.handlers[1])
             sql_logger.removeHandler(sql_logger.handlers[1])
+            sched_logger.removeHandler(sched_logger.handlers[1])
         case "console":
             logger.removeHandler(logger.handlers[0])
             sql_logger.removeHandler(sql_logger.handlers[0])
