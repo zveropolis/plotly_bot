@@ -9,6 +9,7 @@ from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, FSInputFile, Message
 from pytils.numeral import get_plural
 from random_word import RandomWords
+from asyncssh import SSHClientConnection
 
 import text
 from core import exceptions as exc
@@ -75,13 +76,18 @@ async def post_user_data(trigger: Union[Message, CallbackQuery], bot: Bot):
 @router.message(Command("create"))
 @router.callback_query(F.data == "create_configuration")
 @async_speed_metric
-async def post_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
+async def create_config_data(
+    trigger: Union[Message, CallbackQuery], bot: Bot, wg_connection: SSHClientConnection
+):
     try:
         user_data: UserData = await utils.get_user_with_configs(trigger.from_user.id)
 
         if user_data is None:
-            await utils.add_user(trigger.from_user.id, trigger.from_user.full_name)
-            raise exc.PayError
+            await getattr(trigger, "message", trigger).answer(
+                "Отсутсвуют данные пользователя. Зарегистрируйтесь",
+                reply_markup=static_reg_button,
+            )
+            return
         elif user_data.active != UserActivity.active:
             raise exc.PayError
 
@@ -89,7 +95,10 @@ async def post_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
             wg = WgConfigMaker()
             name_gen = RandomWords()
             conf = await wg.move_user(
-                trigger.from_user.id, move="add", cfg_name=name_gen.get_random_word()
+                move="add",
+                user_id=trigger.from_user.id,
+                cfg_name=name_gen.get_random_word(),
+                conn=wg_connection,
             )
             await utils.add_wg_config(conf, user_id=trigger.from_user.id)
 

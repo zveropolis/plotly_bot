@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
+import asyncssh
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -9,7 +10,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.utils.chat_action import ChatActionMiddleware
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-import handlers as hd
+import handlers as hand
 from core.config import settings
 from core.err import exception_logging
 from db.utils.tests import test_base, test_redis_base
@@ -48,12 +49,12 @@ def __create_bot():
     dp = Dispatcher(storage=storage)
     dp.message.middleware(ChatActionMiddleware())
     dp.include_routers(
-        hd.account.router,
-        hd.user_service.router,
-        hd.info.router,
-        hd.admin.router,
-        hd.wg_service.router,
-        hd.payment.router,
+        hand.admin.router,
+        hand.account.router,
+        hand.user_service.router,
+        hand.info.router,
+        hand.wg_service.router,
+        hand.payment.router,
     )
 
     return bot, dp, scheduler
@@ -71,22 +72,28 @@ async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
             logger.exception("Возникло исключение при подключении к БД")
             raise
 
-    tasks = await asyncio.wait(
-        [
-            bot.delete_webhook(drop_pending_updates=True),
-            dp.start_polling(
-                bot,
-                allowed_updates=dp.resolve_used_update_types(),
-                started_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
-            ),
-        ],
-        timeout=timeout,
-    )
-    try:
-        await dp.stop_polling()
-    except RuntimeError:
-        pass
-    return tasks
+    async with asyncssh.connect(
+        settings.WG_HOST,
+        username=settings.WG_USER,
+        client_keys=settings.WG_KEY.get_secret_value(),
+    ) as conn:
+        tasks = await asyncio.wait(
+            [
+                bot.delete_webhook(drop_pending_updates=True),
+                dp.start_polling(
+                    bot,
+                    allowed_updates=dp.resolve_used_update_types(),
+                    started_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    wg_connection=conn,
+                ),
+            ],
+            timeout=timeout,
+        )
+        try:
+            await dp.stop_polling()
+        except RuntimeError:
+            pass
+        return tasks
 
 
 async def noncycle_start_bot():

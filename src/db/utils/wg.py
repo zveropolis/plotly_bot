@@ -44,7 +44,7 @@ async def get_user_with_configs(user_id):
     wg_data = await get_cash_wg_configs(user_id)
     if wg_data:
         if user_data is not None:
-            user_data.configs = wg_data
+            user_data.configs = wg_data if isinstance(wg_data, list) else [wg_data]
 
         return user_data
 
