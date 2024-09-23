@@ -9,7 +9,7 @@ from redis import exceptions as rexc
 
 from core.config import settings
 from core.exceptions import DatabaseError, RedisTypeError
-from db.database import execute_redis_query, redis_engine, iter_redis_keys
+from db.database import execute_redis_query, iter_redis_keys, redis_engine
 from db.models import Transactions, UserData, WgConfig
 
 # import sentry_sdk
@@ -44,13 +44,8 @@ class CashManager:
             if result and isinstance(result, dict)
         ]  # TODO а валидирует то только словари получается
 
-        match len(validated_results):
-            case 0:
-                return None
-            case 1:
-                return validated_results[0]
-            case _:
-                return validated_results
+        if len(validated_results):
+            return validated_results
 
     def __converter(self, data):
         match data:
@@ -119,10 +114,10 @@ class CashManager:
 
     async def delete(self, *keys, fullkey=False):
         if not fullkey:
-            keys = (f"data:{self.model.__tablename__}:{key}" for key in keys)
-
-        self.pipe.delete(*keys)
-        return await self.__call__()
+            keys = [f"data:{self.model.__tablename__}:{key}" for key in keys]
+        if keys:
+            self.pipe.delete(*keys)
+            return await self.__call__()
 
     async def clear(self, user_id, fullkey=False):
         if not fullkey:

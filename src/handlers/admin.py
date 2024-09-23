@@ -4,6 +4,7 @@ from aiogram import Bot, F, Router
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile, Message
+from aiogram.utils.formatting import Bold, as_list, as_marked_section
 from pytils.numeral import get_plural
 
 import text
@@ -23,8 +24,24 @@ router = Router()
 async def admin_actions(message: Message):
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
-        if user_data.admin:
-            await message.answer("Ты админ! (Крутяк)")
+        if getattr(user_data, "admin", False):
+            help_t = as_marked_section(
+                Bold("Функционал администратора телеграмм бота"),
+                "/admin - список команд администратора",
+                "/dump - выгрузить дамп БД в виде excel таблицы",
+                "/send - рассылка сообщения всем зарегистрированным пользователям",
+                "/server_status",
+                "/reboot",
+                "/wg_reboot",
+                "/ban",
+                "/admin_history",
+                "/close | /sorry",
+                "/clear",
+                marker="~ ",
+            )
+
+            await message.answer(**help_t.as_kwargs())
+
         else:
             await message.answer(text.only_admin)
     except exc.DatabaseError:
@@ -35,11 +52,16 @@ async def admin_actions(message: Message):
 @async_speed_metric
 async def become_an_admin(message: Message, bot: Bot):
     try:
-        await utils.set_admin(message.from_user.id)
+        user_data: UserData = await utils.set_admin(message.from_user.id)
     except exc.DatabaseError:
         await message.answer(text.DB_ERROR)
     else:
-        await message.answer("Вы успешно зарегистрированы как администратор!")
+        if getattr(user_data, "admin", False):
+            await message.answer("Вы успешно зарегистрированы как администратор!")
+        else:
+            await message.answer(
+                "Пароль верный! Однако для начала необходимо зарегистрироваться! Попробуйте ввести команду /reg"
+            )
     finally:
         await bot.delete_message(message.from_user.id, message.message_id)
 
@@ -49,7 +71,7 @@ async def become_an_admin(message: Message, bot: Bot):
 async def get_dump(message: Message):
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
-        if user_data.admin:
+        if getattr(user_data, "admin", False):
             dump = await utils.async_dump()
             await message.answer_document(FSInputFile(dump))
         else:
@@ -65,7 +87,7 @@ async def get_dump(message: Message):
 async def admin_mailing_start(message: Message, state: FSMContext):
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
-        if user_data.admin:
+        if getattr(user_data, "admin", False):
             await state.set_state(AdminService.mailing_confirm)
             await message.answer(
                 "Введите сообщение для рассылки зарегистрированным пользователям"
@@ -81,7 +103,7 @@ async def admin_mailing_start(message: Message, state: FSMContext):
 async def admin_mailing_confirm(message: Message, state: FSMContext):
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
-        if user_data.admin:
+        if getattr(user_data, "admin", False):
             await state.set_state(AdminService.mailing_message)
             await message.answer(f"Сообщение для рассылки:\n<b>{message.text}</b>")
             await message.answer(
@@ -100,7 +122,7 @@ async def admin_mailing_confirm(message: Message, state: FSMContext):
 async def admin_mailing_finish(message: Message, bot: Bot, state: FSMContext):
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
-        if user_data.admin:
+        if getattr(user_data, "admin", False):
             mailing_message = (await state.get_data())["mailing_message"]
 
             all_users_data: list[UserData] = await utils.get_all_users(
@@ -125,8 +147,14 @@ async def admin_mailing_finish(message: Message, bot: Bot, state: FSMContext):
 
 @router.message(AdminService.mailing_message, F.text.lower().in_(text.no))
 @async_speed_metric
-async def admin_mailing_cancel(message: Message, bot: Bot, state: FSMContext):
+async def admin_mailing_cancel(message: Message, state: FSMContext):
     await message.answer("Отменено")
 
     await state.clear()
     await state.set_state()
+
+
+@router.message(AdminService.mailing_message, F.text)
+@async_speed_metric
+async def admin_mailing_repeat(message: Message):
+    await message.answer("<b>ДА ИЛИ НЕТ?!</b>")

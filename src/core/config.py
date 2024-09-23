@@ -68,6 +68,7 @@ class Settings(BaseSettings):
     WG_USER: str
     WG_PASS: SecretStr
     WG_KEY: SecretStr
+    WG_SERVER_KEY: str
 
     REDIS_HOST: str
     REDIS_PORT: int

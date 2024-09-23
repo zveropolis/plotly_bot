@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import aiofiles
 import pyqrcode
 
+from core.config import settings
 from core.path import PATH
 from db.models import UserActivity, UserData, WgConfig
 
@@ -51,7 +52,7 @@ PrivateKey = {user_config.user_private_key}
 Address = {user_config.address}
 DNS = {user_config.dns}
 [Peer]
-PublicKey = {user_config.server_public_key}
+PublicKey = {settings.WG_SERVER_KEY}
 AllowedIPs = {user_config.allowed_ips}
 Endpoint = {user_config.endpoint_ip}:{user_config.endpoint_port}
 """

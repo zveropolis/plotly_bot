@@ -1,11 +1,11 @@
 import logging
 
-from sqlalchemy import update, select, and_
+from sqlalchemy import and_, select, update
 
-from db.database import execute_query
-from db.models import UserData, UserActivity
-from db.utils.redis import CashManager
 from core.metric import async_speed_metric
+from db.database import execute_query
+from db.models import UserActivity, UserData
+from db.utils.redis import CashManager
 
 logger = logging.getLogger()
 
@@ -14,8 +14,13 @@ logger = logging.getLogger()
 async def set_admin(user_id):
     await CashManager(UserData).delete(user_id)
 
-    query = update(UserData).values(admin=True).filter_by(telegram_id=user_id)
-    await execute_query(query)
+    query = (
+        update(UserData)
+        .values(admin=True)
+        .filter_by(telegram_id=user_id)
+        .returning(UserData)
+    )
+    return (await execute_query(query)).scalar_one_or_none()
 
 
 @async_speed_metric

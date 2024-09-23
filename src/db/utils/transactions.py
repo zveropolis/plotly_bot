@@ -5,7 +5,6 @@ from sqlalchemy import insert, select
 
 from db.database import execute_query, iter_redis_keys
 from db.models import Transactions
-
 from db.utils.redis import CashManager
 
 logger = logging.getLogger()

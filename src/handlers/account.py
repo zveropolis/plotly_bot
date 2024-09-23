@@ -30,6 +30,7 @@ async def start_bot(message: Message):
 
 
 @router.message(Command("account"))
+@router.message(Command("app"))
 @async_speed_metric
 async def account_actions(
     message: Message, user_data: UserData = None, usr_id: int = None

@@ -10,7 +10,7 @@ def async_speed_metric(func):
     async def wrapper(*args, **kwargs):
         start = time()
         result = await func(*args, **kwargs)
-        logger.info(
+        logger.debug(
             f"METRIC::{func.__module__}::{func.__name__}::[  {int((time()-start)*1000):d}  ]msec"
         )
 
