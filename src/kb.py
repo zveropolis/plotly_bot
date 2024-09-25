@@ -1,4 +1,9 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 from pandas import DataFrame
 from pytils.numeral import get_plural
 
@@ -13,6 +18,21 @@ static_pay_button = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Купить подписку", callback_data="user_payment")]
     ]
+)
+static_start_button = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text="Статус"),
+            KeyboardButton(text="Конфигурации"),
+            KeyboardButton(text="Подписка"),
+        ],
+        [
+            KeyboardButton(text="Помощь"),
+            KeyboardButton(text="Команды"),
+        ],
+    ],
+    resize_keyboard=True,
+    input_field_placeholder="Выберете действие или введите команду",
 )
 
 

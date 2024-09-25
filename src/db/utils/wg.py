@@ -40,11 +40,11 @@ async def get_wg_config(user_id, cfg_id: str):
 
 @async_speed_metric
 async def get_user_with_configs(user_id):
-    user_data = await get_user(user_id)
-    wg_data = await get_cash_wg_configs(user_id)
+    user_data: UserData = await get_user(user_id)
+    wg_data: list[WgConfig] = await get_cash_wg_configs(user_id)
     if wg_data:
         if user_data is not None:
-            user_data.configs = wg_data if isinstance(wg_data, list) else [wg_data]
+            user_data.configs = wg_data
 
         return user_data
 

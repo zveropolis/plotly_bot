@@ -10,7 +10,8 @@ compile.md
 
 *logs
 *.log
-.authorize.py
 src/db/dumps/*
 ssh
 poetry.lock
+src/wg/wg0.conf
+src/wg/wg1.conf

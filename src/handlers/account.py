@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import Router
+from aiogram import F, Router
 from aiogram.filters.command import Command
 from aiogram.types import Message
 from aiogram.utils.formatting import as_list
@@ -10,7 +10,7 @@ from core import exceptions as exc
 from core.metric import async_speed_metric
 from db import utils
 from db.models import UserData
-from kb import get_account_keyboard
+from kb import get_account_keyboard, static_start_button
 
 logger = logging.getLogger()
 router = Router()
@@ -19,7 +19,10 @@ router = Router()
 @router.message(Command("start"))
 @async_speed_metric
 async def start_bot(message: Message):
-    await message.answer(f"Добро пожаловать, {message.from_user.full_name}!")
+    await message.answer(
+        f"Добро пожаловать, {message.from_user.full_name}!",
+        reply_markup=static_start_button,
+    )
     try:
         await utils.clear_cash(message.from_user.id)
         user_data = await utils.get_user(message.from_user.id)
@@ -31,6 +34,7 @@ async def start_bot(message: Message):
 
 @router.message(Command("account"))
 @router.message(Command("app"))
+@router.message(F.text == 'Статус')
 @async_speed_metric
 async def account_actions(
     message: Message, user_data: UserData = None, usr_id: int = None

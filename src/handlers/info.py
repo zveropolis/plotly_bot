@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import Router
+from aiogram import F, Router
 from aiogram.filters.command import Command
 from aiogram.types import Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
@@ -10,6 +10,7 @@ router = Router()
 
 
 @router.message(Command("help"))
+@router.message(F.text == "Помощь")
 async def help_me(message: Message):
     help_t = as_list(
         "Сообщение вступительное",
@@ -34,6 +35,7 @@ async def started(message: Message, started_at):
 
 @router.message(Command("cmd"))
 @router.message(Command("commands"))
+@router.message(F.text == "Команды")
 async def commands_list(message: Message):
     help_t = as_list(
         Bold("Запуск:"),

@@ -1,6 +1,5 @@
 import logging
 
-from pandas import DataFrame
 from sqlalchemy import insert, select, update
 
 from core.metric import async_speed_metric
@@ -15,7 +14,7 @@ logger = logging.getLogger()
 async def get_user(user_id):
     result: UserData = await CashManager(UserData).get({user_id: ...})
     if result:
-        return result
+        return result[0]
 
     query = select(UserData).where(UserData.telegram_id == user_id)
     result = (await execute_query(query)).scalar_one_or_none()
@@ -35,7 +34,7 @@ async def add_user(user_id, user_name):
         telegram_name=user_name,
         admin=False,
         active=UserActivity.inactive,
-        stage=1,
+        stage=0,
         month=0,
     )
 

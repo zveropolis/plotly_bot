@@ -5,7 +5,6 @@ import fcntl
 import functools
 import logging
 import pathlib
-import sys
 from ipaddress import IPv4Interface
 from subprocess import Popen
 from time import time
@@ -146,14 +145,16 @@ class ConfigChanger:
                 self.config[n] = self.config[n].strip("# ")
 
 
-def create_parser():
+def parse():
     parser = argparse.ArgumentParser(
         prog="Python Wireguard Utils",
         description="Python tools for the wireguard server",
         epilog="Text at the bottom of help",
     )
 
-    parser.add_argument("pubkey", type=str, help="Public key of new(old) user")
+    parser.add_argument(
+        "pubkey", type=str, help="Public key of new(old) user", nargs="?"
+    )
     parser.add_argument(
         "-ips", "--allowed_ips", type=IPv4Interface, help="AllowedIPs for new peer"
     )
@@ -175,23 +176,45 @@ def create_parser():
         action="store_true",
         help="Interruption in case of an error",
     )
-    return parser
+    parser.add_argument(
+        "-l",
+        "--list",
+        action="store_true",
+        help="Print list of peers (banned too)",
+    )
+    args = parser.parse_args()
+
+    return args
 
 
 def main():
-    logger.info("Start")
+    args = parse()
 
-    parser = create_parser()
+    if args.list:
+        with open(WIREGUARD_CONF) as file:
+            peers = file.read().split("[Peer]")[1:]
+            for peer in peers:
+                print("\x1b[33m[Peer]\x1b[0m", end=" ")
 
-    args = parser.parse_args()
+                if "\n#" in peer.strip("#\n "):
+                    print("\x1b[31;1m(BAN)\x1b[0m")
+                else:
+                    print("")
+
+                print(peer.strip(" #\n").replace("# ", ""))
+
+        return
+
     cc = ConfigChanger(
         public_key=args.pubkey, allowed_ips=args.allowed_ips, raises=args.raises
     )
     if args.mode == "new":
-        if not args.allowed_ips:
+        if not args.pubkey:
+            logger.error("Argument PUBKEY: empty value")
+        elif not args.allowed_ips:
             logger.error("Argument ALLOWED_IPS: empty value")
-            sys.exit()
-        cc.register()
+        else:
+            cc.register()
     elif args.mode == "ban":
         cc.ban()
     elif args.mode == "unban":
@@ -199,13 +222,12 @@ def main():
     elif args.mode == "del":
         cc.delete()
 
-    logger.info("End")
-
 
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.DEBUG,
         format="[%(levelname)-8s] %(funcName)s(%(lineno)d): %(message)s",
     )
-
+    logger.info("Start")
     main()
+    logger.info("End")
