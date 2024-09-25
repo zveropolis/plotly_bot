@@ -1,22 +1,23 @@
 import logging
 
-from aiogram import Router
+from aiogram import F, Router
 from aiogram.filters.command import Command
 from aiogram.types import Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
-
 
 logger = logging.getLogger()
 router = Router()
 
 
 @router.message(Command("help"))
+@router.message(F.text == "Помощь")
 async def help_me(message: Message):
     help_t = as_list(
         "Сообщение вступительное",
         as_marked_section(
             Bold("Алгоритм работы с ботом:"),
-            "Данные об аккаунте + быстрый доступ к основным функциям  /account | /start",
+            "Запуск (перезагрузка) бота  /start",
+            "Данные об аккаунте + быстрый доступ к основным функциям  /account",
             "Список всех команд  /cmd | /commands",
             "/bug - Доложить о баге",
             marker="✅ ",
@@ -34,18 +35,14 @@ async def started(message: Message, started_at):
 
 @router.message(Command("cmd"))
 @router.message(Command("commands"))
+@router.message(F.text == "Команды")
 async def commands_list(message: Message):
     help_t = as_list(
         Bold("Запуск:"),
-        as_marked_section(
-            "/start - запуск бота",
-            "/reg - Регистрация в БД Бота",
-            "/account - Основной функционал аккаунта",
-            marker="~ ",
-        ),
+        "/start - запуск (перезагрузка) бота",
         Bold("Действия с аккаунтом:"),
         as_marked_section(
-            "/account - Основной функционал аккаунта",
+            "/account | /app - Основной функционал аккаунта",
             "/reg - Регистрация в БД Бота",
             "/delete - Удалить аккаунт",
             "/recover - Восстановить аккаунт",
@@ -70,6 +67,7 @@ async def commands_list(message: Message):
             "/help - Помощь",
             "/help_wg - Помощь по настройке wireguard конфигураций на устройствах",
             "/cmd - Список всех команд",
+            "/admin - функционал администратора (ЗАПАРОЛИНА)",
             "/bug - Доложить о баге",
             "/id - ХЗ пока что",
             "/time - время запуска бота",

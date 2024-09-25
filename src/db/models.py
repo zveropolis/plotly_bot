@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import CIDR, INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.config import Base
+from db import ddl  # TRIGGERS
 
 
 class UserActivity(enum.Enum):
@@ -33,7 +34,9 @@ class UserData(Base):
     stage: Mapped[int]
     month: Mapped[int]
 
-    configs: Mapped[list["WgConfig"]] = relationship(back_populates="conf_connect")
+    configs: Mapped[list["WgConfig"]] = relationship(
+        back_populates="conf_connect", lazy="subquery"
+    )
 
     class ValidationSchema(BaseModel):
         telegram_id: int
@@ -45,10 +48,13 @@ class UserData(Base):
 
         model_config = ConfigDict(extra="ignore")
 
-    def __init__(self, **kw):
-        validated_data = self.ValidationSchema(**kw).__dict__
+    def __init__(self, **kwargs):
+        if kwargs:
+            validated_data = self.ValidationSchema(**kwargs).__dict__
 
-        super().__init__(**(validated_data))
+            super().__init__(**(validated_data))
+        else:
+            super().__init__(**(kwargs))
 
 
 class Transactions(Base):
@@ -76,6 +82,29 @@ class Transactions(Base):
 
     # additionally
     transaction_reference: Mapped[str]
+
+    class ValidationSchema(BaseModel):
+        user_id: int
+        date: datetime
+        amount: float
+        label: UUID
+        transaction_stage: int
+        transaction_month: int
+
+        transaction_id: int | None
+        sha1_hash: str | None
+        sender: str | None
+        withdraw_amount: float | None
+
+        model_config = ConfigDict(extra="ignore")
+
+    def __init__(self, **kwargs):
+        if kwargs:
+            validated_data = self.ValidationSchema(**kwargs).__dict__
+
+            super().__init__(**(validated_data))
+        else:
+            super().__init__(**(kwargs))
 
 
 class WgConfig(Base):
@@ -114,6 +143,9 @@ class WgConfig(Base):
         model_config = ConfigDict(extra="ignore")
 
     def __init__(self, **kwargs):
-        validated_data = self.ValidationSchema(**kwargs).__dict__
+        if kwargs:
+            validated_data = self.ValidationSchema(**kwargs).__dict__
 
-        super().__init__(**(validated_data))
+            super().__init__(**(validated_data))
+        else:
+            super().__init__(**(kwargs))

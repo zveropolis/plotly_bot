@@ -9,7 +9,7 @@ sys.path.insert(1, os.path.dirname(sys.path[0]))
 
 from core.config import Base
 from db import models as _
-from db.database import async_engine, redis_engine, execute_redis_query
+from db.database import async_engine, execute_redis_query, redis_engine
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 logger = logging.getLogger()
@@ -46,4 +46,5 @@ if __name__ == "__main__":
                 logger.exception("Возникло исключение при подключении к БД")
                 raise
 
-    asyncio.run(start())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start())

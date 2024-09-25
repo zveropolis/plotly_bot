@@ -26,9 +26,9 @@ async def async_dump():
             for model in (UserData, WgConfig, Transactions):
                 query = select(model)
                 res = await execute_query(query)
-                DataFrame(data=res.mappings().all()).to_excel(
-                    writer, sheet_name=model.__tablename__, index=False
-                )
+                DataFrame(
+                    data=[line.__udict__ for line in res.scalars().all()]
+                ).to_excel(writer, sheet_name=model.__tablename__, index=False)
         except Exception:
             raise DumpError
         else:

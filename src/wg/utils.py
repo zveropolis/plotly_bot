@@ -1,7 +1,10 @@
 import asyncio
 import logging
+import logging.config
 import os
 import sys
+from re import escape
+from time import time
 from typing import Literal
 
 import asyncssh
@@ -12,7 +15,9 @@ sys.path.insert(1, os.path.join("C:\\code\\vpn_dan_bot\\src"))
 
 from core.config import settings
 from core.exceptions import WireguardError
+from core.metric import async_speed_metric
 
+logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 logger = logging.getLogger()
 
 
@@ -24,53 +29,46 @@ class WgConfigMaker:
         self.public_key: str = None
         self.countpeers: int = None
 
-    async def _create_keys(self, conn: SSHClientConnection):
+    async def _create_peer(self, conn: SSHClientConnection):
         try:
-            private_key = await conn.run("wg genkey", check=True)
-            self.private_key = private_key.stdout.strip("\n")
-
-            public_key = await conn.run(
-                f"echo {self.private_key} | wg pubkey", check=True
+            cmd = (
+                "tmp_private_key=$(wg genkey)",
+                "tmp_public_key=$(echo $tmp_private_key | wg pubkey)",
+                "echo $tmp_private_key",
+                "echo $tmp_public_key",
+                f'flock {self.peer_counter} --command \'printf "%d" "$(cat {self.peer_counter})"+1 > {self.peer_counter} && cat {self.peer_counter}\'',
+                f'tmp_allowed_ips="10.1.0.$(cat {self.peer_counter})/32"',
+                f"echo {escape(settings.WG_PASS.get_secret_value())} | sudo -S ~/Scripts/pywg.py $tmp_public_key -ips=$tmp_allowed_ips --raises",
             )
-            self.public_key = public_key.stdout.strip("\n")
+            completed_proc = await conn.run("\n" + "\n".join(cmd), check=True)
+            keys = completed_proc.stdout.strip("\n").split("\n")
+            self.private_key, self.public_key, self.countpeers, *_ = keys
+            logger.info(completed_proc.stderr)
+
         except (OSError, asyncssh.Error) as e:
             logger.exception(
-                "Сбой при получении приватного и публичного ключа wireguard"
+                "Сбой при добавлении пира в конфигурацию сервера wireguard"
             )
             raise WireguardError from e
 
-    async def _increment_counter(self, conn: SSHClientConnection):
+    async def _ban_peer(self, conn: SSHClientConnection, reverse=False):
+        if reverse:
+            ban = "unban"
+        else:
+            ban = "ban"
+
         try:
-            await conn.run(
-                f'echo "$(($(cat {self.peer_counter})+1))" > {self.peer_counter}',
-                check=True,
+            cmd = (
+                f"echo {escape(settings.WG_PASS.get_secret_value())} | sudo -S ~/Scripts/pywg.py -m {ban} {self.public_key} --raises",
             )
-            countpeers_future = await conn.run(f"cat {self.peer_counter}", check=True)
-            self.countpeers = int(countpeers_future.stdout.strip("\n"))
+            completed_proc = await conn.run("\n" + "\n".join(cmd), check=True)
+            keys = completed_proc.stdout.strip("\n").split("\n")
+            print(keys)
 
         except (OSError, asyncssh.Error) as e:
-            logger.exception("Сбой при инкрементировании счетчика пиров")
-            raise WireguardError from e
-
-    async def _add_server_wg_config(self, conn: SSHClientConnection, user_id):
-        try:
-            await conn.run("", check=True)  # TODO Команда на добавление пира на сервер
-        except (OSError, asyncssh.Error) as e:
-            logger.exception("Сбой при добавлении пира в конфигурацию сервера")
-            raise WireguardError from e
-
-    async def _ban_server_wg_config(self, conn: SSHClientConnection, user_id):
-        try:
-            await conn.run("", check=True)  # TODO Команда на бан пира на сервере
-        except (OSError, asyncssh.Error) as e:
-            logger.exception("Сбой бана пира на сервере")
-            raise WireguardError from e
-
-    async def _recover_server_wg_config(self, conn: SSHClientConnection, user_id):
-        try:
-            await conn.run("", check=True)  # TODO Команда на разбан пира на сервере
-        except (OSError, asyncssh.Error) as e:
-            logger.exception("Сбой разбана пира на сервере")
+            logger.exception(
+                "Сбой при добавлении пира в конфигурацию сервера wireguard"
+            )
             raise WireguardError from e
 
     def _create_db_wg_model(self, user_id, cfg_name):
@@ -78,7 +76,7 @@ class WgConfigMaker:
             user_id=user_id,
             name=cfg_name,
             user_private_key=self.private_key,
-            address=f"10.0.0.{self.countpeers}/32",
+            address=f"10.1.0.{self.countpeers}/32",
             dns="9.9.9.9",
             server_public_key=self.public_key,
             allowed_ips="0.0.0.0/0",
@@ -87,29 +85,59 @@ class WgConfigMaker:
         )
         return self.user_config
 
+    @async_speed_metric
     @validate_call
     async def move_user(
-        self, user_id: int, move: Literal["add", "ban", "unban"], cfg_name: str = None
+        self,
+        move: Literal["add", "ban", "unban"],
+        user_id: int = None,
+        cfg_name: str = None,
+        user_pubkey: str = None,
+        conn=None,
     ):
-        async with asyncssh.connect(
-            settings.WG_HOST,
-            username=settings.WG_USER,
-            client_keys=settings.WG_KEY.get_secret_value(),
-        ) as conn:
-            await self._create_keys(conn)
-            await self._increment_counter(conn)
+        match move:
+            case "add":
+                await self._create_peer(conn)
+                usr_cfg = self._create_db_wg_model(user_id, cfg_name)
+                logger.info(f"{usr_cfg['address']=}")
+                return usr_cfg
+            case "ban":
+                self.public_key = user_pubkey
+                await self._ban_peer(conn)
+            case "unban":
+                self.public_key = user_pubkey
+                await self._ban_peer(conn, reverse=True)
 
-            match move:
-                case "add":
-                    # self._add_server_wg_config(conn, user_id)
-                    return self._create_db_wg_model(user_id, cfg_name)
-                case "ban":
-                    pass  # self._ban_server_wg_config(conn, user_id)
-                case "unban":
-                    pass  # self._recover_server_wg_config(conn, user_id)
+
+async def test_100():
+    wg = WgConfigMaker()
+    start = time()
+    async with asyncssh.connect(
+        settings.WG_HOST,
+        username=settings.WG_USER,
+        client_keys=settings.WG_KEY.get_secret_value(),
+    ) as conn:
+        coros = [
+            wg.move_user(user_id=6987832296, move="add", conn=conn) for _ in range(1)
+        ]
+        # coros = [
+        #     wg.move_user(
+        #         user_pubkey="mKAB5YJSTdxsKcJvyDRw95kgFJWL4I/iRFEJLvfwrhA=",
+        #         move="unban",
+        #         conn=conn,
+        #     )
+        #     for _ in range(1)
+        # ]
+
+        coros_gen = time() - start
+
+        await asyncio.gather(*coros)
+
+        end = time() - start - coros_gen
+
+        print(f"{coros_gen=}  {end=}")
 
 
 if __name__ == "__main__":
-    wg = WgConfigMaker()
-
-    asyncio.run(wg.move_user(user_id=6987832296, move="add"))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(test_100())

@@ -1,8 +1,13 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 from pandas import DataFrame
 from pytils.numeral import get_plural
 
-from db.models import UserActivity
+from db.models import UserActivity, UserData
 
 static_reg_button = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -14,11 +19,26 @@ static_pay_button = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="Купить подписку", callback_data="user_payment")]
     ]
 )
+static_start_button = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text="Статус"),
+            KeyboardButton(text="Конфигурации"),
+            KeyboardButton(text="Подписка"),
+        ],
+        [
+            KeyboardButton(text="Помощь"),
+            KeyboardButton(text="Команды"),
+        ],
+    ],
+    resize_keyboard=True,
+    input_field_placeholder="Выберете действие или введите команду",
+)
 
 
-def get_account_keyboard(user_data: DataFrame):
+def get_account_keyboard(user_data: UserData):
     buttons = []
-    match user_data.get("active", ["new"])[0]:
+    match getattr(user_data, "active", None):
         case UserActivity.active | UserActivity.inactive:
             buttons.append(
                 [
