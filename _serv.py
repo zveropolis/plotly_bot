@@ -35,40 +35,40 @@ def get_all_students_course(name: str | None = None):
 
 @app.post("/bot/notice")
 def receive_data(
-    notification_type: str = Form(...),
-    operation_id: str = Form(...),
-    amount: float = Form(...),
-    withdraw_amount: float = Form(...),
-    currency: str = Form(...),
-    datetime: datetime = Form(...),
-    sender: str = Form(...),
-    codepro: bool = Form(...),
-    label: str = Form(...),
-    sha1_hash: str = Form(...),
-    test_notification: bool = Form(...),
-    unaccepted: bool = Form(...),
+    notification_type: str = Form(default=""),
+    operation_id: str = Form(default=""),
+    amount: float = Form(default=0.0),
+    withdraw_amount: float = Form(default=0.0),
+    currency: str = Form(default=""),
+    datetime: datetime = Form(default=datetime(1999, 30, 1, 0, 0, 0, 0)),
+    sender: str = Form(default=""),
+    codepro: bool = Form(default=False),
+    label: str = Form(default=""),
+    sha1_hash: str = Form(default=""),
+    test_notification: bool = Form(default=True),
+    unaccepted: bool = Form(default=False),
 ):
-    try:
-        data = {
-            "notification_type": notification_type,
-            "operation_id": operation_id,
-            "amount": amount,
-            "withdraw_amount": withdraw_amount,
-            "currency": currency,
-            "datetime": datetime,
-            "sender": sender,
-            "codepro": codepro,
-            "label": label,
-            "sha1_hash": sha1_hash,
-            "test_notification": test_notification,
-            "unaccepted": unaccepted,
-        }
-        pprint(data)
-        return {"status": "success"}
-    except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+    data = {
+        "notification_type": notification_type,
+        "operation_id": operation_id,
+        "amount": amount,
+        "withdraw_amount": withdraw_amount,
+        "currency": currency,
+        "datetime": datetime,
+        "sender": sender,
+        "codepro": codepro,
+        "label": label,
+        "sha1_hash": sha1_hash,
+        "test_notification": test_notification,
+        "unaccepted": unaccepted,
+    }
+    pprint(data)
+    return {"status": "success"}
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="172.17.0.1", port=5000)
+    try:
+        uvicorn.run(app, host="172.17.0.1", port=5000)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
     # uvicorn.run("_serv:app", host="127.0.0.1", port=5000, workers=2, reload=True)
