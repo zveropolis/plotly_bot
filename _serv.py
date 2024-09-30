@@ -8,7 +8,7 @@ import os
 from pprint import pprint
 import sys
 from typing import Annotated, List
-from fastapi import FastAPI, File, Form, Query, UploadFile, Request
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile, Request
 from pydantic import BaseModel
 import uvicorn
 
@@ -48,21 +48,25 @@ def receive_data(
     test_notification: bool = Form(...),
     unaccepted: bool = Form(...),
 ):
-    data = {
-        "notification_type": notification_type,
-        "operation_id": operation_id,
-        "amount": amount,
-        "withdraw_amount": withdraw_amount,
-        "currency": currency,
-        "datetime": datetime,
-        "sender": sender,
-        "codepro": codepro,
-        "label": label,
-        "sha1_hash": sha1_hash,
-        "test_notification": test_notification,
-        "unaccepted": unaccepted,
-    }
-    pprint(data)
+    try:
+        data = {
+            "notification_type": notification_type,
+            "operation_id": operation_id,
+            "amount": amount,
+            "withdraw_amount": withdraw_amount,
+            "currency": currency,
+            "datetime": datetime,
+            "sender": sender,
+            "codepro": codepro,
+            "label": label,
+            "sha1_hash": sha1_hash,
+            "test_notification": test_notification,
+            "unaccepted": unaccepted,
+        }
+        pprint(data)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 if __name__ == "__main__":
