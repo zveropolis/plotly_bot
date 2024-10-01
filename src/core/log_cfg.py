@@ -24,10 +24,11 @@ class ColoredConsoleHandler(logging.StreamHandler):
         myrecord.name = "\x1b[34m" + str(myrecord.name) + "\x1b[0m"
         myrecord.filename = "\x1b[36m" + str(myrecord.filename) + "\x1b[0m"
         myrecord.funcName = "\x1b[36m" + str(myrecord.funcName) + "\x1b[0m"
-
-        if "METRIC" in myrecord.msg:
-            myrecord.msg = myrecord.msg.replace("METRIC", "\x1b[31mMETRIC\x1b[0m")
-
+        try:
+            if "METRIC" in myrecord.msg:
+                myrecord.msg = myrecord.msg.replace("METRIC", "\x1b[31mMETRIC\x1b[0m")
+        except Exception:
+            pass
         logging.StreamHandler.emit(self, myrecord)
 
 

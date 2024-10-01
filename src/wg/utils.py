@@ -17,7 +17,6 @@ from core.config import settings
 from core.exceptions import WireguardError
 from core.metric import async_speed_metric
 
-logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 logger = logging.getLogger()
 
 
@@ -139,5 +138,7 @@ async def test_100():
 
 
 if __name__ == "__main__":
+    logging.config.fileConfig("log.ini", disable_existing_loggers=False)
+
     loop = asyncio.get_event_loop()
     loop.run_until_complete(test_100())
