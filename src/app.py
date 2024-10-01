@@ -34,7 +34,7 @@ def __create_bot():
         data_ttl=timedelta(hours=settings.cash_ttl),
     )
 
-    scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
+    scheduler = AsyncIOScheduler()
     scheduler.add_job(
         send_notice,
         # trigger="cron",
