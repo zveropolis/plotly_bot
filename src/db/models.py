@@ -84,17 +84,17 @@ class Transactions(Base):
     transaction_reference: Mapped[str]
 
     class ValidationSchema(BaseModel):
-        user_id: int
+        user_id: int | None = None
         date: datetime
         amount: float
         label: UUID
-        transaction_stage: int
-        transaction_month: int
+        transaction_stage: int | None = None
+        transaction_month: int | None = None
 
-        transaction_id: int | None
-        sha1_hash: str | None
-        sender: str | None
-        withdraw_amount: float | None
+        transaction_id: int | None = None
+        sha1_hash: str | None = None
+        sender: str | None = None
+        withdraw_amount: float | None = None
 
         model_config = ConfigDict(extra="ignore")
 
@@ -127,7 +127,9 @@ class WgConfig(Base):
     endpoint_ip: Mapped[IPv4Address] = mapped_column(type_=INET)
     endpoint_port: Mapped[int]
 
-    conf_connect: Mapped[list["UserData"]] = relationship(back_populates="configs")
+    conf_connect: Mapped[UserData] = relationship(
+        back_populates="configs", lazy="subquery"
+    )
 
     class ValidationSchema(BaseModel):
         user_id: int
