@@ -88,7 +88,7 @@ if __name__ == "__main__":
         # host="127.0.0.1",
         host="172.17.0.1",
         port=5000,
-        workers=2,
+        workers=4,
         # reload=True,
         log_config=server_log,
         log_level="info",

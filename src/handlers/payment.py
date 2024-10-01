@@ -1,6 +1,6 @@
 import logging
 from contextlib import suppress
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Union
 from uuid import uuid4
 
@@ -171,7 +171,7 @@ async def pay(callback: CallbackQuery, bot: Bot, state: FSMContext):
         await utils.insert_transaction(
             dict(
                 user_id=callback.from_user.id,
-                date=datetime.today(),
+                date=datetime.now(timezone.utc),
                 amount=SUM,
                 label=transaction_label,
                 transaction_stage=user_stage,

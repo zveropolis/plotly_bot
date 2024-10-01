@@ -4,7 +4,7 @@ from ipaddress import IPv4Address, IPv4Interface
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import BigInteger, Enum, ForeignKey, String
+from sqlalchemy import BigInteger, Enum, ForeignKey, String, DateTime
 from sqlalchemy.dialects.postgresql import CIDR, INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -68,7 +68,7 @@ class Transactions(Base):
         ),
         type_=BigInteger,
     )
-    date: Mapped[datetime]
+    date: Mapped[datetime] = mapped_column(type_=DateTime(timezone=True))
     amount: Mapped[float]
     label: Mapped[UUID]
     transaction_stage: Mapped[int]
