@@ -92,7 +92,7 @@ async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
 async def __test_subsystem():
     bases = await test_base()
     bases.extend(await test_redis_base())
-    # bases.append(await __test_subserver())
+    bases.append(await __test_subserver())
 
     for base in bases:
         try:
