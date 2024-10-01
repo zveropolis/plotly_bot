@@ -8,9 +8,8 @@ import os
 import sys
 
 import sentry_sdk
-from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
-
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
 

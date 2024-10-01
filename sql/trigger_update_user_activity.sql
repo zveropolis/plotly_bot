@@ -1,4 +1,4 @@
-CREATE OR REPLACE TRIGGER user_activity_trigger
+CREATE TRIGGER user_activity_trigger
     BEFORE UPDATE OF month, active
     ON public.userdata
     FOR EACH ROW

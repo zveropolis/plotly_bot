@@ -8,11 +8,13 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.utils.chat_action import ChatActionMiddleware
+from aiohttp import ClientSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 import handlers as hand
 from core.config import settings
 from core.err import exception_logging
+from db import models, utils
 from db.utils.tests import test_base, test_redis_base
 from notices.pay import send_notice
 
@@ -61,16 +63,7 @@ def __create_bot():
 
 
 async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
-    bases = await test_base()
-    bases.extend(await test_redis_base())
-
-    for base in bases:
-        try:
-            if isinstance(base, Exception):
-                raise base
-        except Exception:
-            logger.exception("Возникло исключение при подключении к БД")
-            raise
+    await __test_subsystem()
 
     async with asyncssh.connect(
         settings.WG_HOST,
@@ -96,12 +89,36 @@ async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
         return tasks
 
 
+async def __test_subsystem():
+    bases = await test_base()
+    bases.extend(await test_redis_base())
+    # bases.append(await __test_subserver())
+
+    for base in bases:
+        try:
+            if isinstance(base, Exception):
+                raise base
+        except Exception:
+            logger.exception("Возникло исключение при подключении к БД")
+            raise
+
+
+async def __test_subserver():
+    async with ClientSession() as session:
+        url = "http://assa.ddns.net/test"
+        params = {"name": "test"}
+
+        async with session.get(url=url, params=params) as response:
+            result: dict = await response.json()
+            assert result.get("message") == "Hello test"
+
+
 async def noncycle_start_bot():
     """Запуск бота"""
 
     bot, dp, scheduler = __create_bot()
 
-    # scheduler.start()
+    scheduler.start()
     return await __start_bot(bot, dp)
 
 

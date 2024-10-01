@@ -3,7 +3,7 @@
 
 *__pycache__
 *.venv
-*.env
+*.env*
 *polygon.ipynb
 *polygon.py
 compile.md
@@ -12,6 +12,6 @@ compile.md
 *.log
 src/db/dumps/*
 ssh
-poetry.lock
 src/wg/wg0.conf
 src/wg/wg1.conf
+*FastUI-demo

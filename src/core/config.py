@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     YOO_TOKEN: SecretStr
 
     BOT_URL: HttpUrl = "https://t.me/vpn_dan_bot"
+    subserver_url: HttpUrl = "http:/assa.ddns.net"
 
     DB_HOST: str
     DB_PORT: int

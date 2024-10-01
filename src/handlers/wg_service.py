@@ -7,9 +7,9 @@ from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, FSInputFile, Message
+from asyncssh import SSHClientConnection
 from pytils.numeral import get_plural
 from random_word import RandomWords
-from asyncssh import SSHClientConnection
 
 import text
 from core import exceptions as exc
