@@ -4,12 +4,15 @@ from ipaddress import IPv4Address, IPv4Interface
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
+from random_word import RandomWords
 from sqlalchemy import BigInteger, Enum, ForeignKey, String, DateTime
 from sqlalchemy.dialects.postgresql import CIDR, INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.config import Base
+from core.config import Base, settings
 from db import ddl  # TRIGGERS
+
+name_gen = RandomWords()
 
 
 class UserActivity(enum.Enum):
@@ -27,12 +30,14 @@ class UserData(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(type_=BigInteger, unique=True)
     telegram_name: Mapped[str]
-    admin: Mapped[bool]
+    admin: Mapped[bool] = mapped_column(default=False)
     active: Mapped[UserActivity] = mapped_column(
-        Enum(UserActivity, values_callable=lambda obj: [e.value for e in obj])
+        Enum(UserActivity, values_callable=lambda obj: [e.value for e in obj]),
+        default=UserActivity.inactive,
     )
-    stage: Mapped[int]
-    month: Mapped[int]
+    stage: Mapped[int] = mapped_column(default=0)
+    days: Mapped[int] = mapped_column(default=0)
+    free: Mapped[bool] = mapped_column(default=True)
 
     configs: Mapped[list["WgConfig"]] = relationship(
         back_populates="conf_connect", lazy="subquery"
@@ -44,7 +49,7 @@ class UserData(Base):
         admin: bool
         active: UserActivity
         stage: int
-        month: int
+        days: int
 
         model_config = ConfigDict(extra="ignore")
 
@@ -118,14 +123,16 @@ class WgConfig(Base):
         ),
         type_=BigInteger,
     )
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(default=name_gen.get_random_word)
     user_private_key: Mapped[str] = mapped_column(String(44))
     address: Mapped[IPv4Interface] = mapped_column(type_=CIDR)
-    dns: Mapped[IPv4Address] = mapped_column(type_=INET)
+    dns: Mapped[IPv4Address] = mapped_column(type_=INET, default="9.9.9.9")
     server_public_key: Mapped[str] = mapped_column(String(44))
-    allowed_ips: Mapped[IPv4Interface] = mapped_column(type_=CIDR)
-    endpoint_ip: Mapped[IPv4Address] = mapped_column(type_=INET)
-    endpoint_port: Mapped[int]
+    allowed_ips: Mapped[IPv4Interface] = mapped_column(type_=CIDR, default="0.0.0.0/0")
+    endpoint_ip: Mapped[IPv4Address] = mapped_column(
+        type_=INET, default=settings.WG_HOST
+    )
+    endpoint_port: Mapped[int] = mapped_column(default=settings.WG_PORT)
 
     conf_connect: Mapped[UserData] = relationship(
         back_populates="configs", lazy="subquery"

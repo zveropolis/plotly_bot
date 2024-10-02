@@ -70,17 +70,12 @@ class WgConfigMaker:
             )
             raise WireguardError from e
 
-    def _create_db_wg_model(self, user_id, cfg_name):
+    def _create_db_wg_model(self, user_id):
         self.user_config = dict(
             user_id=user_id,
-            name=cfg_name,
             user_private_key=self.private_key,
             address=f"10.1.0.{self.countpeers}/32",
-            dns="9.9.9.9",
             server_public_key=self.public_key,
-            allowed_ips="0.0.0.0/0",
-            endpoint_ip=settings.WG_HOST,
-            endpoint_port=settings.WG_PORT,
         )
         return self.user_config
 
@@ -90,14 +85,13 @@ class WgConfigMaker:
         self,
         move: Literal["add", "ban", "unban"],
         user_id: int = None,
-        cfg_name: str = None,
         user_pubkey: str = None,
         conn=None,
     ):
         match move:
             case "add":
                 await self._create_peer(conn)
-                usr_cfg = self._create_db_wg_model(user_id, cfg_name)
+                usr_cfg = self._create_db_wg_model(user_id)
                 logger.info(f"{usr_cfg['address']=}")
                 return usr_cfg
             case "ban":

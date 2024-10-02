@@ -29,14 +29,7 @@ async def get_user(user_id):
 async def add_user(user_id, user_name):
     await CashManager(UserData).delete(user_id)
 
-    user_data = dict(
-        telegram_id=user_id,
-        telegram_name=user_name,
-        admin=False,
-        active=UserActivity.inactive,
-        stage=0,
-        month=0,
-    )
+    user_data = dict(telegram_id=user_id, telegram_name=user_name)
 
     query = insert(UserData).values(user_data).returning(UserData)
     return (await execute_query(query)).scalar_one_or_none()

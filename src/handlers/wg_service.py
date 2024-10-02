@@ -9,7 +9,6 @@ from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, FSInputFile, Message
 from asyncssh import SSHClientConnection
 from pytils.numeral import get_plural
-from random_word import RandomWords
 
 import text
 from core import exceptions as exc
@@ -108,14 +107,14 @@ async def create_config_data(
         elif len(user_data.configs) < user_data.stage * settings.acceptable_config:
             # Create a new configuration if the limit is not reached
             wg = WgConfigMaker()
-            name_gen = RandomWords()
             conf = await wg.move_user(
                 move="add",
                 user_id=trigger.from_user.id,
-                cfg_name=name_gen.get_random_word(),
                 conn=wg_connection,
             )
-            await utils.add_wg_config(conf, user_id=trigger.from_user.id)
+            config: WgConfig = await utils.add_wg_config(
+                conf, user_id=trigger.from_user.id
+            )
 
         else:
             # Notify user if the maximum number of configurations is reached
@@ -148,7 +147,7 @@ async def create_config_data(
 
         await trigger.answer(text="Конфигурация успешно создана", show_alert=True)
         await getattr(trigger, "message", trigger).answer(
-            f"Конфигурация: {conf['name']} | id: {conf['user_private_key'][:4]}",
+            f"Конфигурация: {config.name} | id: {config.user_private_key[:4]}",
             reply_markup=create_output_cfg_btn,
         )
 

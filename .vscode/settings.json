@@ -1,6 +1,8 @@
 {
     "git.ignoreLimitWarning": true,
     "python.analysis.extraPaths": [
-        "./src"
-    ]
+        "./src",
+        "./server/serv_src"
+    ],
+    "CodeGPT.apiKey": "CodeGPT Plus Beta"
 }

@@ -14,9 +14,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import handlers as hand
 from core.config import settings
 from core.err import exception_logging
-from db import models, utils
+from db import models, utils  # NOTE for subserver
 from db.utils.tests import test_base, test_redis_base
-from notices.pay import send_notice
+from scheduler.pay import send_notice
 
 logger = logging.getLogger()
 

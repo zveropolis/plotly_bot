@@ -65,18 +65,18 @@ async def receive_pay_data(
     logger.info("Принято уведомление об оплате", extra=data)
 
     transaction: mod.Transactions = await confirm_success_pay(mod.Transactions(**data))
-
-    logger.info(f"Обновлены данные по транзакции {transaction}")
-    queue.info(
-        "Регистрация транзакции в очереди",
-        extra={
-            "type": "TRANSACTION",
-            "user_id": transaction.user_id,
-            "label": label,
-            "month": transaction.transaction_month,
-            "stage": transaction.transaction_stage,
-        },
-    )
+    if transaction:
+        logger.info(f"Обновлены данные по транзакции {transaction}")
+        queue.info(
+            "Регистрация транзакции в очереди",
+            extra={
+                "type": "TRANSACTION",
+                "user_id": transaction.user_id,
+                "label": label,
+                "month": transaction.transaction_month,
+                "stage": transaction.transaction_stage,
+            },
+        )
     return {"status": str(transaction)}
 
 
