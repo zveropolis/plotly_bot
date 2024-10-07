@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 
 import uvicorn
-from fastapi import FastAPI, Form
+from fastapi import FastAPI, Form, HTTPException
 
 sys.path.insert(1, os.path.join(sys.path[0], "server"))
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
@@ -62,22 +62,30 @@ async def receive_pay_data(
         "test_notification": test_notification,
         "unaccepted": unaccepted,
     }
-    logger.info("Принято уведомление об оплате", extra=data)
+    try:
+        logger.info("Принято уведомление об оплате", extra=data)
 
-    transaction: mod.Transactions = await confirm_success_pay(mod.Transactions(**data))
-    if transaction:
-        logger.info(f"Обновлены данные по транзакции {transaction}")
-        queue.info(
-            "Регистрация транзакции в очереди",
-            extra={
-                "type": "TRANSACTION",
-                "user_id": transaction.user_id,
-                "label": label,
-                "month": transaction.transaction_month,
-                "stage": transaction.transaction_stage,
-            },
+        transaction: mod.Transactions = await confirm_success_pay(
+            mod.Transactions(**data)
         )
-    return {"status": str(transaction)}
+        if transaction:
+            logger.info(f"Обновлены данные по транзакции {transaction}")
+            queue.info(
+                "Регистрация транзакции в очереди",
+                extra={
+                    "type": "TRANSACTION",
+                    "user_id": transaction.user_id,
+                    "label": label,
+                    "amount": transaction.amount,
+                },
+            )
+        else:
+            logger.warning(f"Транзакция {label} не найдена в базе")
+    except Exception as e:
+        logger.exception("Ошибка обработки уведомления")
+        raise HTTPException(status_code=500, detail=e)
+    else:
+        return {"status": str(transaction)}
 
 
 if __name__ == "__main__":

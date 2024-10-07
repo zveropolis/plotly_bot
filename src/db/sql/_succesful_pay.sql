@@ -6,9 +6,11 @@ CREATE OR REPLACE FUNCTION public.succesful_pay()
 AS $BODY$ 
 
 BEGIN
-    UPDATE public.userdata
-    SET days = days + OLD.transaction_month * 31, stage = stage + OLD.transaction_stage
-    WHERE telegram_id = OLD.user_id;
+    IF NEW.transaction_id IS NOT NULL THEN
+        UPDATE public.userdata
+        SET balance = balance + new.amount
+        WHERE telegram_id = NEW.user_id;
+    END IF;
 
 	RETURN NEW; 
 END;

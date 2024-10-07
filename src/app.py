@@ -57,6 +57,7 @@ def __create_bot():
         hand.info.router,
         hand.wg_service.router,
         hand.payment.router,
+        hand.bug.router,
     )
 
     return bot, dp, scheduler

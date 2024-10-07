@@ -78,7 +78,7 @@ class Settings(BaseSettings):
     REDIS_NAME: str
 
     cycle_duration: float
-    acceptable_config: int
+    acceptable_config: dict = {0: 0, 0.3: 1, 1: 3, 2.5: 8, 5: 15}
     cost: float
     cash_ttl: int
     transfer_fee: float

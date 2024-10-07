@@ -2,6 +2,7 @@ import logging
 
 from aiogram import F, Router
 from aiogram.filters.command import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram.utils.formatting import as_list
 
@@ -18,7 +19,10 @@ router = Router()
 
 @router.message(Command("start"))
 @async_speed_metric
-async def start_bot(message: Message):
+async def start_bot(message: Message, state: FSMContext):
+    await state.clear()
+    await state.set_state()
+
     await message.answer(
         f"Добро пожаловать, {message.from_user.full_name}!",
         reply_markup=static_start_button,
@@ -34,7 +38,7 @@ async def start_bot(message: Message):
 
 @router.message(Command("account"))
 @router.message(Command("app"))
-@router.message(F.text == 'Статус')
+@router.message(F.text == "Статус")
 @async_speed_metric
 async def account_actions(
     message: Message, user_data: UserData = None, usr_id: int = None

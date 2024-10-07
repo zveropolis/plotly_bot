@@ -68,7 +68,7 @@ async def get_user_with_configs(user_id):
 @async_speed_metric
 async def add_wg_config(conf: dict, user_id):
     query = insert(WgConfig).values(**conf).returning(WgConfig)
-    result: WgConfig = await execute_query(query)
+    result: WgConfig = (await execute_query(query)).scalar_one_or_none()
 
     rkeys = await iter_redis_keys(f"data:{WgConfig.__tablename__}:*:{user_id}")
     await CashManager(WgConfig).delete(

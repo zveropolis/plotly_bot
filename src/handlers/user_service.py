@@ -46,12 +46,12 @@ async def register_user(trigger: Union[Message, CallbackQuery], bot: Bot):
         )
 
 
-@router.message(Command("delete"))
-@router.callback_query(F.data == "delete_account")
-async def delete_user(trigger: Union[Message, CallbackQuery], bot: Bot):
+@router.message(Command("freeze"))
+@router.callback_query(F.data == "freeze_account")
+async def freeze_user(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
-        # Attempt to delete the user from the database using their ID
-        await utils.delete_user(trigger.from_user.id)
+        # Attempt to freeze the user from the database using their ID
+        await utils.freeze_user(trigger.from_user.id)
     except exc.DatabaseError:
         # Handle database errors during deletion
         await trigger.answer(text=text.DB_ERROR, show_alert=True)

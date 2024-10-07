@@ -36,12 +36,12 @@ async def add_user(user_id, user_name):
 
 
 @async_speed_metric
-async def delete_user(user_id):
+async def freeze_user(user_id):
     await CashManager(UserData).delete(user_id)
 
     query = (
         update(UserData)
-        .values(active=UserActivity.deleted)
+        .values(active=UserActivity.freezed)
         .filter_by(telegram_id=user_id)
     )
     await execute_query(query)
@@ -54,6 +54,24 @@ async def recover_user(user_id):
     query = (
         update(UserData)
         .values(active=UserActivity.inactive)
+        .filter_by(telegram_id=user_id)
+        .returning(UserData)
+    )
+    return (await execute_query(query)).scalar_one_or_none()
+
+
+@async_speed_metric
+async def update_rate_user(user_id, stage, tax=0, trial=False):
+    await CashManager(UserData).delete(user_id)
+
+    tax *= -1
+
+    if trial:
+        tax += 7
+
+    query = (
+        update(UserData)
+        .values(stage=stage, free=False, balance=UserData.balance + tax)
         .filter_by(telegram_id=user_id)
         .returning(UserData)
     )

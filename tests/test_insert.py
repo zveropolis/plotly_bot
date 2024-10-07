@@ -60,7 +60,7 @@ if __name__ == "__main__":
     loop.run_until_complete(main())
 
 # if __name__ == "__main__":
-#     query = update(UserData).where(UserData.id == 2616).values(month=1)
+#     query = update(UserData).where(UserData.id == 2616).values(balance=100)
 
 #     loop = asyncio.get_event_loop()
 #     loop.run_until_complete(execute_query(query))

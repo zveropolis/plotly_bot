@@ -28,8 +28,15 @@ async def get_all_users(my_id):
     query = select(UserData).where(
         and_(
             UserData.telegram_id != my_id,
-            UserData.active != UserActivity.deleted,
+            UserData.active != UserActivity.freezed,
         )
     )
+
+    return (await execute_query(query)).scalars().all()
+
+
+@async_speed_metric
+async def get_admins():
+    query = select(UserData).where(UserData.admin)
 
     return (await execute_query(query)).scalars().all()

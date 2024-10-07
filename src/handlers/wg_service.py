@@ -16,8 +16,8 @@ from core.config import settings
 from core.metric import async_speed_metric
 from db import utils
 from db.models import UserActivity, UserData, WgConfig
-from kb import get_config_keyboard, static_pay_button, static_reg_button
-from text import create_config_file, create_config_qr, get_config_data
+from handlers.utils import find_user, find_config
+from kb import get_config_keyboard, static_pay_button
 from wg.utils import WgConfigMaker
 
 logger = logging.getLogger()
@@ -30,26 +30,10 @@ router = Router()
 @router.message(F.text.lower().in_(text.me))
 @router.callback_query(F.data == "user_configurations")
 @async_speed_metric
-async def post_user_data(trigger: Union[Message, CallbackQuery], bot: Bot):
-    try:
-        # Retrieve user data along with their configurations
-        user_data: UserData = await utils.get_user_with_configs(trigger.from_user.id)
-
-        if user_data is None:
-            # Prompt user to register if no data is found
-            await getattr(trigger, "message", trigger).answer(
-                "Отсутсвуют данные пользователя. Зарегистрируйтесь",
-                reply_markup=static_reg_button,
-            )
-            return
-        elif user_data.active == UserActivity.deleted:
-            # Notify user if their account is deleted
-            await trigger.answer("Аккаунт удален", show_alert=True)
-            return
-
-    except exc.DatabaseError:
-        # Handle database errors
-        await trigger.answer(text=text.DB_ERROR, show_alert=True)
+async def post_user_data(trigger: Union[Message, CallbackQuery]):
+    user_data: UserData = await find_user(trigger, configs=True)
+    if not user_data:
+        return
     else:
         # Get keyboard buttons for creating configurations
         create_cfg_btn, create_output_cfg_btn = get_config_keyboard()
@@ -62,20 +46,20 @@ async def post_user_data(trigger: Union[Message, CallbackQuery], bot: Bot):
                 if config.user_private_key:
                     # Display each configuration with its name and ID
                     await getattr(trigger, "message", trigger).answer(
-                        f"({i}/{user_data.stage*settings.acceptable_config}) - Name: {config.name} | id: {config.user_private_key[:4]}",
+                        f"({i}/{settings.acceptable_config[user_data.stage]}) - Name: {config.name} | id: {config.user_private_key[:4]}",
                         reply_markup=create_output_cfg_btn,
                     )
 
         if user_data.active == UserActivity.active:
             # Calculate how many more configurations the user can create
             cfg_number = get_plural(
-                settings.acceptable_config * user_data.stage - len(user_data.configs),
+                settings.acceptable_config[user_data.stage] - len(user_data.configs),
                 "конфигурацию, конфигурации, конфигураций",
             )
             await getattr(trigger, "message", trigger).answer(
                 f"Вы можете создать еще {cfg_number}", reply_markup=create_cfg_btn
             )
-        else:
+        elif user_data.active == UserActivity.inactive:
             # Notify user to pay if their account is inactive
             await getattr(trigger, "message", trigger).answer(
                 text.UNPAY, reply_markup=static_pay_button
@@ -90,21 +74,14 @@ async def create_config_data(
     trigger: Union[Message, CallbackQuery], bot: Bot, wg_connection: SSHClientConnection
 ):
     try:
-        # Retrieve user data along with their configurations
-        user_data: UserData = await utils.get_user_with_configs(trigger.from_user.id)
-
-        if user_data is None:
-            # Prompt user to register if no data is found
-            await getattr(trigger, "message", trigger).answer(
-                "Отсутсвуют данные пользователя. Зарегистрируйтесь",
-                reply_markup=static_reg_button,
-            )
+        user_data: UserData = await find_user(trigger, configs=True)
+        if not user_data:
             return
         elif user_data.active != UserActivity.active:
             # Raise error if user is not active
             raise exc.PayError
 
-        elif len(user_data.configs) < user_data.stage * settings.acceptable_config:
+        elif len(user_data.configs) < settings.acceptable_config[user_data.stage]:
             # Create a new configuration if the limit is not reached
             wg = WgConfigMaker()
             conf = await wg.move_user(
@@ -117,12 +94,6 @@ async def create_config_data(
             )
 
         else:
-            # Notify user if the maximum number of configurations is reached
-            await getattr(trigger, "message", trigger).answer(
-                "Достигнуто максимальное количество конфигураций. Повысьте уровень подписки, чтобы создать еще.",
-                reply_markup=static_pay_button,
-            )
-
             raise exc.StagePayError
 
     except exc.DatabaseError:
@@ -132,6 +103,11 @@ async def create_config_data(
         # Handle Wireguard-related errors
         await trigger.answer(text=text.WG_ERROR, show_alert=True)
     except exc.StagePayError:
+        # Notify user if the maximum number of configurations is reached
+        await getattr(trigger, "message", trigger).answer(
+            "Достигнуто максимальное количество конфигураций для данного тарифа.",
+            reply_markup=static_pay_button,
+        )
         # Delete the message if the stage payment error occurs
         await bot.delete_message(
             trigger.from_user.id, getattr(trigger, "message", trigger).message_id
@@ -154,7 +130,7 @@ async def create_config_data(
         with suppress(TelegramBadRequest):
             # Update the message to show how many more configurations can be created
             cfg_number = get_plural(
-                settings.acceptable_config * user_data.stage
+                settings.acceptable_config[user_data.stage]
                 - len(user_data.configs)
                 - 1,
                 "конфигурацию, конфигурации, конфигураций",
@@ -162,76 +138,59 @@ async def create_config_data(
             await getattr(trigger, "message", trigger).edit_text(
                 f"Вы можете создать еще {cfg_number}", reply_markup=create_cfg_btn
             )
-    # finally:
-    #     await bot.delete_message(
-    #         trigger.from_user.id, getattr(trigger, "message", trigger).message_id
-    #     )
+
+        if cfg_number.startswith("0"):
+            await bot.delete_message(
+                trigger.from_user.id, getattr(trigger, "message", trigger).message_id
+            )
 
 
 # This function retrieves and sends the configuration text to the user.
 @router.callback_query(F.data == "create_conf_text")
 @async_speed_metric
 async def get_config_text(callback: CallbackQuery):
-    *_, cfg_id = callback.message.text.partition("| id: ")
-    try:
-        # Retrieve the user's configuration from the database
-        user_config = await utils.get_wg_config(callback.from_user.id, cfg_id)
-    except exc.DatabaseError:
-        # Handle database errors
-        await callback.answer(text=text.DB_ERROR, show_alert=True)
-    else:
-        # Get the configuration data and send it to the user
-        config = get_config_data(user_config)
+    user_config: WgConfig = await find_config(callback)
 
-        await callback.message.answer("Конфигурация " + callback.message.text)
-        await callback.message.answer(config)
+    # Get the configuration data and send it to the user
+    config = text.get_config_data(user_config)
+
+    await callback.message.answer("Конфигурация " + callback.message.text)
+    await callback.message.answer(config)
 
 
 # This function retrieves and sends the configuration file to the user.
 @router.callback_query(F.data == "create_conf_file")
 @async_speed_metric
 async def get_config_file(callback: CallbackQuery):
-    *_, cfg_id = callback.message.text.partition("| id: ")
-    try:
-        # Retrieve the user's configuration from the database
-        user_config: WgConfig = await utils.get_wg_config(callback.from_user.id, cfg_id)
-    except exc.DatabaseError:
-        # Handle database errors
-        await callback.answer(text=text.DB_ERROR, show_alert=True)
-    else:
-        # Get the configuration data and create a config file
-        config = get_config_data(user_config)
-        config_file = await create_config_file(config)
+    user_config: WgConfig = await find_config(callback)
 
-        # Send the configuration file to the user
-        await callback.message.answer("Конфигурация " + callback.message.text)
-        await callback.message.answer_document(
-            FSInputFile(config_file, f"{user_config.name}_wg.conf")
-        )
-        # Remove the temporary config file
-        os.remove(config_file)
+    # Get the configuration data and create a config file
+    config = text.get_config_data(user_config)
+    config_file = await text.create_config_file(config)
+
+    # Send the configuration file to the user
+    await callback.message.answer("Конфигурация " + callback.message.text)
+    await callback.message.answer_document(
+        FSInputFile(config_file, f"{user_config.name}_wg.conf")
+    )
+    # Remove the temporary config file
+    os.remove(config_file)
 
 
 # This function retrieves and sends the configuration QR code to the user.
 @router.callback_query(F.data == "create_conf_qr")
 @async_speed_metric
 async def get_config_qr(callback: CallbackQuery):
-    *_, cfg_id = callback.message.text.partition("| id: ")
-    try:
-        # Retrieve the user's configuration from the database
-        user_config: WgConfig = await utils.get_wg_config(callback.from_user.id, cfg_id)
-    except exc.DatabaseError:
-        # Handle database errors
-        await callback.answer(text=text.DB_ERROR, show_alert=True)
-    else:
-        # Get the configuration data and create a QR code
-        config = get_config_data(user_config)
-        config_qr = create_config_qr(config)
+    user_config: WgConfig = await find_config(callback)
 
-        # Send the QR code to the user
-        await callback.message.answer("Конфигурация " + callback.message.text)
-        await callback.message.answer_photo(
-            FSInputFile(config_qr, f"{user_config.name}_wg.conf")
-        )
-        # Remove the temporary QR code file
-        os.remove(config_qr)
+    # Get the configuration data and create a QR code
+    config = text.get_config_data(user_config)
+    config_qr = text.create_config_qr(config)
+
+    # Send the QR code to the user
+    await callback.message.answer("Конфигурация " + callback.message.text)
+    await callback.message.answer_photo(
+        FSInputFile(config_qr, f"{user_config.name}_wg.conf")
+    )
+    # Remove the temporary QR code file
+    os.remove(config_qr)

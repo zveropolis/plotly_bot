@@ -6,16 +6,19 @@ CREATE OR REPLACE FUNCTION public.update_user_activity()
 AS $BODY$ 
 
 BEGIN
-    IF (NEW.days != OLD.days) THEN
-        IF (NEW.days > 0) AND (OLD.active = 'inactive') THEN
+    IF (NEW.balance != OLD.balance) THEN
+        IF (NEW.balance > 0) AND (OLD.active = 'inactive') THEN
             NEW.active := 'active';
-        ELSEIF (NEW.days < 1) AND (OLD.active = 'active') THEN
+        ELSEIF (NEW.balance <= 0) AND (OLD.active = 'active') THEN
             NEW.active := 'inactive';
+            IF OLD.stage = 0.3 THEN
+                NEW.stage := 0;
+            END IF;
         END IF;
     ELSE
-        IF (OLD.days > 0) AND (NEW.active = 'inactive') THEN
+        IF (OLD.balance > 0) AND (NEW.active = 'inactive') THEN
             NEW.active := 'active';
-        ELSEIF (OLD.days < 1) AND (NEW.active = 'active') THEN
+        ELSEIF (OLD.balance <= 0) AND (NEW.active = 'active') THEN
             NEW.active := 'inactive';
         END IF;
 

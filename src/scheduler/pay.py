@@ -6,7 +6,8 @@ from aiogram import Bot
 from pytils.numeral import get_plural
 
 from core.path import PATH
-
+from db.utils import close_free_trial, get_admins
+from db.models import UserData
 
 logger = logging.getLogger("apscheduler")
 logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
@@ -18,19 +19,31 @@ async def send_notice(bot: Bot):
         notices = (await file.read()).splitlines()
 
     for notice in notices.copy():
-        date, _type, user_id, label, month, stage, *extra = notice.strip("\n#|").split(
-            "||"
-        )
+        date, _type, user_id, label, amount, *extra = notice.strip("\n#|").split("||")
 
         match _type:
             case "TRANSACTION":
                 try:
-                    assert int(user_id)
+                    user_id = int(user_id)
+                    admin_ids: list[UserData] = await get_admins()
 
                     await bot.send_message(
                         user_id,
-                        f"<b>УСПЕШНО!</b> Подписка {stage} уровня на {get_plural(int(month), 'месяц, месяца, месяцев')} оплачена!",
+                        f"<b>УСПЕШНО!</b> Ваш баланс пополнен на {get_plural(float(amount), 'рубль, рубля, рублей')}!",
                     )
+                    for admin in admin_ids:
+                        await bot.send_message(
+                            admin.telegram_id,
+                            f"Казна пополнена на {get_plural(float(amount), 'рубль, рубля, рублей')} пользователем {user_id}!",
+                        )
+
+                    user_data: UserData = await close_free_trial(user_id)
+                    if user_data:
+                        await bot.send_message(
+                            user_id,
+                            "Ваш <b>Пробный тариф</b> автоматически сменен на <b>Базовый</b>",
+                        )
+
                     logger.info(
                         "Отправлено сообщение об успешной оплате",
                         extra={"user_id": user_id},

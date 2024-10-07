@@ -44,7 +44,7 @@ async def commands_list(message: Message):
         as_marked_section(
             "/account | /app - Основной функционал аккаунта",
             "/reg - Регистрация в БД Бота",
-            "/delete - Удалить аккаунт",
+            "/freeze - Заморозить аккаунт",
             "/recover - Восстановить аккаунт",
             marker="~ ",
         ),
@@ -73,6 +73,7 @@ async def commands_list(message: Message):
             "/time - время запуска бота",
             marker="~ ",
         ),
+        Bold("Расширенные возможности (тарифы от расширенного и выше):"),
     )
 
     await message.answer(**help_t.as_kwargs())

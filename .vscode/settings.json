@@ -4,5 +4,9 @@
         "./src",
         "./server/serv_src"
     ],
-    "CodeGPT.apiKey": "CodeGPT Plus Beta"
+    "CodeGPT.apiKey": "CodeGPT Plus Beta",
+    "cSpell.enableFiletypes": [
+        "ini",
+        "kivy"
+    ]
 }

@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 from random_word import RandomWords
-from sqlalchemy import BigInteger, Enum, ForeignKey, String, DateTime
+from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import CIDR, INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -18,7 +18,9 @@ name_gen = RandomWords()
 class UserActivity(enum.Enum):
     active = "active"
     inactive = "inactive"
+    freezed = "freezed"
     deleted = "deleted"
+    banned = "banned"
 
     def __str__(self) -> str:
         return self.value
@@ -35,8 +37,8 @@ class UserData(Base):
         Enum(UserActivity, values_callable=lambda obj: [e.value for e in obj]),
         default=UserActivity.inactive,
     )
-    stage: Mapped[int] = mapped_column(default=0)
-    days: Mapped[int] = mapped_column(default=0)
+    stage: Mapped[float] = mapped_column(default=0)
+    balance: Mapped[float] = mapped_column(default=0)
     free: Mapped[bool] = mapped_column(default=True)
 
     configs: Mapped[list["WgConfig"]] = relationship(
@@ -48,8 +50,9 @@ class UserData(Base):
         telegram_name: str
         admin: bool
         active: UserActivity
-        stage: int
-        days: int
+        stage: float
+        balance: float
+        free: bool
 
         model_config = ConfigDict(extra="ignore")
 
@@ -76,8 +79,6 @@ class Transactions(Base):
     date: Mapped[datetime] = mapped_column(type_=DateTime(timezone=True))
     amount: Mapped[float]
     label: Mapped[UUID]
-    transaction_stage: Mapped[int]
-    transaction_month: Mapped[int]
 
     # PAYED
     transaction_id: Mapped[int | None] = mapped_column(type_=BigInteger)
@@ -93,8 +94,6 @@ class Transactions(Base):
         date: datetime
         amount: float
         label: UUID
-        transaction_stage: int | None = None
-        transaction_month: int | None = None
 
         transaction_id: int | None = None
         sha1_hash: str | None = None
@@ -124,6 +123,7 @@ class WgConfig(Base):
         type_=BigInteger,
     )
     name: Mapped[str] = mapped_column(default=name_gen.get_random_word)
+    freeze: Mapped[bool] = mapped_column(default=False)
     user_private_key: Mapped[str] = mapped_column(String(44))
     address: Mapped[IPv4Interface] = mapped_column(type_=CIDR)
     dns: Mapped[IPv4Address] = mapped_column(type_=INET, default="9.9.9.9")
@@ -141,6 +141,7 @@ class WgConfig(Base):
     class ValidationSchema(BaseModel):
         user_id: int
         name: str
+        freeze: bool
         user_private_key: str
         address: IPv4Interface
         dns: IPv4Address
