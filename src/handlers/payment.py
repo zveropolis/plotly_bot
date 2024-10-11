@@ -20,7 +20,7 @@ from core import exceptions as exc
 from core.config import settings
 from core.metric import async_speed_metric
 from db import utils
-from db.models import UserActivity, UserData
+from db.models import UserData
 from handlers.utils import find_user
 from states import Service
 
@@ -29,7 +29,6 @@ router = Router()
 pay_keyboard = kb.get_pay_keyboard()
 
 
-# This function manages the subscription process for users.
 @router.message(Command("sub"))
 @router.callback_query(F.data == "user_payment")
 @router.message(F.text == "Подписка")
@@ -39,17 +38,15 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
     if not user_data:
         return
 
-    # Get the subscription status for the user
     sub_status = text.get_sub_status(user_data)
 
     if sub_status:
-        # Send subscription details to the user
         await getattr(trigger, "message", trigger).answer(
             "\n".join(
                 (
                     f"Ваша подписка: <b>{sub_status}</b>",
-                    f"Ваш баланс: <b>{user_data.balance} руб</b>",
-                    f"Вам осталось <b>{text.get_end_sub(user_data)}</b>",
+                    f"Ваш баланс: <b>{user_data.fbalance} руб</b>",
+                    f"Вам осталось <b>{get_plural(text.get_end_sub(user_data), 'день, дня, дней')}</b>",
                 )
             ),
             reply_markup=kb.get_subscr_buttons(user_data),
@@ -128,7 +125,6 @@ async def change_rate(callback: CallbackQuery, bot: Bot):
         else:
             await utils.update_rate_user(callback.from_user.id, stage=rate_id)
     except exc.DatabaseError:
-        # Handle database errors
         await callback.answer(text=text.DB_ERROR, show_alert=True)
     else:
         await callback.answer(
@@ -167,19 +163,15 @@ async def change_balance(callback: CallbackQuery, bot: Bot):
             await callback.message.edit_text("0", reply_markup=pay_keyboard)
 
 
-# This function handles the payment process for the subscription.
 @router.callback_query(F.data == "pay_sub")
 @router.message(Service.balance)
 @async_speed_metric
 async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContext):
     try:
-        # Retrieve subscription details from state
         client = Client(settings.YOO_TOKEN.get_secret_value())
         transaction_label = uuid4()
         SUM = float(getattr(trigger, "message", trigger).text) * settings.transfer_fee
-        # SUM = settings.cost * user_stage * user_month * settings.transfer_fee
 
-        # Create a Quickpay instance for payment processing
         quickpay = Quickpay(
             receiver=client.account_info().account,
             quickpay_form="shop",
@@ -189,7 +181,6 @@ async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContex
             label=transaction_label,
         )
 
-        # Insert transaction details into the database
         await utils.insert_transaction(
             dict(
                 user_id=trigger.from_user.id,
@@ -200,7 +191,6 @@ async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContex
             )
         )
 
-        # Send payment links to the user
         await getattr(trigger, "message", trigger).answer(
             hlink(
                 f"Многоразовая ссылка на пополнение счета на {get_plural(SUM, 'рубль, рубля, рублей')} (Ссылка №1)",
@@ -218,22 +208,15 @@ async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContex
             reply_markup=kb.static_support_button,
         )
 
-        # Clear the state after payment
-        await state.clear()
-        await state.set_state()
-
     except KeyError:
-        # Handle expired message errors
         await getattr(trigger, "message", trigger).answer(
             "Истек срок давности сообщения"
         )
     except exc.DatabaseError:
-        # Handle database errors
         await getattr(trigger, "message", trigger).answer(
             text=text.DB_ERROR, show_alert=True
         )
     except ConnectionError:
-        # Handle connection errors
         await getattr(trigger, "message", trigger).answer(
             text=text.YOO_ERROR, show_alert=True
         )
@@ -241,8 +224,10 @@ async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContex
         await getattr(trigger, "message", trigger).answer(
             text="Сумма должна быть числом", show_alert=True
         )
+    else:
+        await state.clear()
+        await state.set_state()
     finally:
-        # Delete the original message after processing
         await bot.delete_message(
             trigger.from_user.id, getattr(trigger, "message", trigger).message_id
         )

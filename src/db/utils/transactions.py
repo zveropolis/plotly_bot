@@ -2,7 +2,7 @@ import logging
 from uuid import UUID
 
 from pandas import DataFrame
-from sqlalchemy import insert, select, update, and_
+from sqlalchemy import and_, insert, select, update
 
 from db.database import execute_query, iter_redis_keys
 from db.models import Transactions, UserData

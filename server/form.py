@@ -1,6 +1,6 @@
-from datetime import date
 import logging
 import os
+from datetime import date
 from typing import Annotated
 
 import aiofiles
@@ -11,8 +11,8 @@ from fastui.events import GoToEvent, PageEvent
 from fastui.forms import FormFile, Textarea  # , fastui_form
 from pydantic import BaseModel, Field, field_validator
 from pydantic_core import PydanticCustomError
-
 from shared import bot_page, patched_fastui_form
+
 from core.path import PATH
 
 router = APIRouter()

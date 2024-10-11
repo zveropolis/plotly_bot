@@ -16,10 +16,10 @@ from fastui.auth import fastapi_auth_exception_handling
 sys.path.insert(1, os.path.join(sys.path[0], "server"))
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
 
+from server.form import router as form_router
+from server.main import router as main_router
 from src.app import models as mod
 from src.db.utils import confirm_success_pay
-from server.main import router as main_router
-from server.form import router as form_router
 
 server_log = "./server/log.ini"
 logging.config.fileConfig(server_log, disable_existing_loggers=False)

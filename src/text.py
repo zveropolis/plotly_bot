@@ -83,14 +83,14 @@ def create_config_qr(config: str):
 
 def get_end_sub(user_data: UserData):
     try:
-        end = round(user_data.balance / (user_data.stage * settings.cost))
+        end = round(user_data.fbalance / (user_data.stage * settings.cost))
     except ZeroDivisionError:
         end = 0
     else:
         if end < 0:
             end = 0
 
-    return get_plural(end, "день, дня, дней")
+    return end
 
 
 def get_rate_descr(rate: int):

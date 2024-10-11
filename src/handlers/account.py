@@ -18,6 +18,7 @@ router = Router()
 
 
 @router.message(Command("start"))
+@router.message(F.text == "🔄")
 @async_speed_metric
 async def start_bot(message: Message, state: FSMContext):
     await state.clear()

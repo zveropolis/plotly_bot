@@ -5,12 +5,13 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 from random_word import RandomWords
-from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey, String
+from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey, Numeric, String, func
 from sqlalchemy.dialects.postgresql import CIDR, INET
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.config import Base, settings
-from db import ddl  # TRIGGERS
+from db import ddl as _  # NOTE TRIGGERS
 
 name_gen = RandomWords()
 
@@ -21,6 +22,16 @@ class UserActivity(enum.Enum):
     freezed = "freezed"
     deleted = "deleted"
     banned = "banned"
+
+    def __str__(self) -> str:
+        return self.value
+
+
+class FreezeSteps(enum.Enum):
+    yes = "yes"
+    wait_yes = "wait_yes"
+    no = "no"
+    wait_no = "wait_no"
 
     def __str__(self) -> str:
         return self.value
@@ -38,14 +49,24 @@ class UserData(Base):
         default=UserActivity.inactive,
     )
     stage: Mapped[float] = mapped_column(default=0)
-    balance: Mapped[float] = mapped_column(default=0)
+    balance: Mapped[float] = mapped_column(type_=Numeric(scale=2), default=0)
     free: Mapped[bool] = mapped_column(default=True)
+    updated: Mapped[datetime] = mapped_column(
+        type_=DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.current_timestamp(),
+    )
 
     configs: Mapped[list["WgConfig"]] = relationship(
         back_populates="conf_connect", lazy="subquery"
     )
 
+    @hybrid_property
+    def fbalance(self):
+        return round(float(self.balance), 2)
+
     class ValidationSchema(BaseModel):
+        id: int | None = None
         telegram_id: int
         telegram_name: str
         admin: bool
@@ -53,6 +74,7 @@ class UserData(Base):
         stage: float
         balance: float
         free: bool
+        updated: datetime
 
         model_config = ConfigDict(extra="ignore")
 
@@ -90,6 +112,7 @@ class Transactions(Base):
     transaction_reference: Mapped[str]
 
     class ValidationSchema(BaseModel):
+        id: int | None = None
         user_id: int | None = None
         date: datetime
         amount: float
@@ -123,7 +146,10 @@ class WgConfig(Base):
         type_=BigInteger,
     )
     name: Mapped[str] = mapped_column(default=name_gen.get_random_word)
-    freeze: Mapped[bool] = mapped_column(default=False)
+    freeze: Mapped[FreezeSteps] = mapped_column(
+        Enum(FreezeSteps, values_callable=lambda obj: [e.value for e in obj]),
+        default=FreezeSteps.no,
+    )
     user_private_key: Mapped[str] = mapped_column(String(44))
     address: Mapped[IPv4Interface] = mapped_column(type_=CIDR)
     dns: Mapped[IPv4Address] = mapped_column(type_=INET, default="9.9.9.9")
@@ -139,9 +165,10 @@ class WgConfig(Base):
     )
 
     class ValidationSchema(BaseModel):
+        id: int | None = None
         user_id: int
         name: str
-        freeze: bool
+        freeze: FreezeSteps
         user_private_key: str
         address: IPv4Interface
         dns: IPv4Address

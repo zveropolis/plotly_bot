@@ -6,15 +6,15 @@ from aiogram import Bot
 from pytils.numeral import get_plural
 
 from core.path import PATH
-from db.utils import close_free_trial, get_admins
 from db.models import UserData
+from db.utils import close_free_trial, get_admins
 
 logger = logging.getLogger("apscheduler")
 logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
 queue = os.path.join(PATH, "logs", "queue.log")
 
 
-async def send_notice(bot: Bot):
+async def accept_pay(bot: Bot):
     async with aiofiles.open(queue) as file:
         notices = (await file.read()).splitlines()
 

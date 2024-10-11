@@ -2,8 +2,10 @@ import logging
 
 from aiogram import F, Router
 from aiogram.filters.command import Command
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
+
+from kb import freeze_user_button
 
 logger = logging.getLogger()
 router = Router()
@@ -45,7 +47,7 @@ async def commands_list(message: Message):
             "/account | /app - Основной функционал аккаунта",
             "/reg - Регистрация в БД Бота",
             "/freeze - Заморозить аккаунт",
-            "/recover - Восстановить аккаунт",
+            "/recover - Разморозить аккаунт",
             marker="~ ",
         ),
         Bold("Действия с конфигурациями:"),
@@ -77,3 +79,24 @@ async def commands_list(message: Message):
     )
 
     await message.answer(**help_t.as_kwargs())
+
+
+@router.callback_query(F.data == "freeze_info")
+async def freeze_config_info(callback: CallbackQuery):
+    await callback.message.answer(
+        "Конфигурации замораживаются, когда становятся недоступными. "
+        "Проверьте, достаточно ли средств на вашем счете? Соответсвует ли количество ваших конфигураций вашему тарифу? "
+        "Если вам все равно не понятно, почему ваша конфигурация заблокирована, воспользуйтесь командой /bug и сообщите о вашей проблеме."
+    )
+
+
+@router.callback_query(F.data == "freeze_account_info")
+async def freeze_user_info(callback: CallbackQuery):
+    await callback.message.answer(
+        "Заморозка аккаунта подразумевает приостановку ежедневных списаний "
+        "и, соответственно, блокировку всех созданных конфигураций."
+        "\nРазморозить свой аккаунт можно в меню /app. После разморозки восстановление конфигураций произойдет в течение 1 минуты."
+        "\n<b>Стоимость услуги равна одному ежедневному списанию вашего тарифа!</b>"
+        "\n<b>Разблокировка бесплатна.</b>",
+        reply_markup=freeze_user_button,
+    )

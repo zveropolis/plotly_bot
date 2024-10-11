@@ -16,7 +16,9 @@ from core.config import settings
 from core.err import exception_logging
 from db import models, utils  # NOTE for subserver
 from db.utils.tests import test_base, test_redis_base
-from scheduler.pay import send_notice
+from scheduler.balance import balance_decrement, users_notice
+from scheduler.config_freezer import check_freeze_configs
+from scheduler.pay import accept_pay
 
 logger = logging.getLogger()
 
@@ -34,19 +36,6 @@ def __create_bot():
         data_ttl=timedelta(hours=settings.cash_ttl),
     )
 
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-        send_notice,
-        # trigger="cron",
-        trigger="interval",
-        seconds=3,
-        # hour=00,
-        # minute=00,
-        # second=2,
-        start_date=datetime.now() + timedelta(seconds=10),
-        kwargs={"bot": bot},
-    )
-
     # dp = Dispatcher(storage=MemoryStorage())  # Данные бота стираются при перезапуске
     dp = Dispatcher(storage=storage)
     dp.message.middleware(ChatActionMiddleware())
@@ -60,7 +49,44 @@ def __create_bot():
         hand.bug.router,
     )
 
-    return bot, dp, scheduler
+    return bot, dp
+
+
+def __create_scheduler(bot, conn):
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        accept_pay,
+        # trigger="cron",
+        trigger="interval",
+        seconds=3,
+        # hour=00,
+        # minute=00,
+        # second=2,
+        start_date=datetime.now() + timedelta(seconds=10),
+        kwargs={"bot": bot},
+    )
+    scheduler.add_job(
+        balance_decrement,
+        trigger="interval",
+        seconds=3600,
+        start_date=datetime.now() + timedelta(seconds=20),
+    )
+    scheduler.add_job(
+        users_notice,
+        trigger="interval",
+        seconds=3600,
+        start_date=datetime.now() + timedelta(seconds=30),
+        kwargs={"bot": bot},
+    )
+    scheduler.add_job(
+        check_freeze_configs,
+        trigger="interval",
+        seconds=60,
+        start_date=datetime.now() + timedelta(seconds=15),
+        kwargs={"conn": conn},
+    )
+
+    return scheduler
 
 
 async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
@@ -71,6 +97,11 @@ async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
         username=settings.WG_USER,
         client_keys=settings.WG_KEY.get_secret_value(),
     ) as conn:
+        conn.set_keepalive(interval=120)
+
+        scheduler = __create_scheduler(bot, conn)
+        scheduler.start()
+
         tasks = await asyncio.wait(
             [
                 bot.delete_webhook(drop_pending_updates=True),
@@ -117,17 +148,13 @@ async def __test_subserver():
 async def noncycle_start_bot():
     """Запуск бота"""
 
-    bot, dp, scheduler = __create_bot()
-
-    scheduler.start()
+    bot, dp = __create_bot()
     return await __start_bot(bot, dp)
 
 
 async def cycle_start_bot():
-    bot, dp, scheduler = __create_bot()
-
+    bot, dp = __create_bot()
     while True:
-        scheduler.start()
         done, pending = await __start_bot(bot, dp, timeout=settings.cycle_duration)
 
         for task in pending:

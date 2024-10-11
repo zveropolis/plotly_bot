@@ -3,7 +3,6 @@ import logging
 from fastapi import APIRouter
 from fastui import AnyComponent, FastUI
 from fastui import components as c
-
 from shared import bot_page
 
 router = APIRouter()

@@ -15,9 +15,9 @@ from core import exceptions as exc
 from core.config import settings
 from core.metric import async_speed_metric
 from db import utils
-from db.models import UserActivity, UserData, WgConfig
-from handlers.utils import find_user, find_config
-from kb import get_config_keyboard, static_pay_button
+from db.models import FreezeSteps, UserActivity, UserData, WgConfig
+from handlers.utils import find_config, find_user
+from kb import get_config_keyboard, static_pay_button, why_freezed_button
 from wg.utils import WgConfigMaker
 
 logger = logging.getLogger()
@@ -42,13 +42,22 @@ async def post_user_data(trigger: Union[Message, CallbackQuery]):
             # Notify user of their existing configurations
             await getattr(trigger, "message", trigger).answer("Ваши конфигурации:")
 
+            user_data.configs.sort(key=lambda conf: conf.id)
             for i, config in enumerate(user_data.configs, 1):
                 if config.user_private_key:
-                    # Display each configuration with its name and ID
-                    await getattr(trigger, "message", trigger).answer(
-                        f"({i}/{settings.acceptable_config[user_data.stage]}) - Name: {config.name} | id: {config.user_private_key[:4]}",
-                        reply_markup=create_output_cfg_btn,
-                    )
+                    config_text = f"({i}/{settings.acceptable_config[user_data.stage]}) - Name: {config.name} | id: {config.user_private_key[:4]}"
+
+                    if config.freeze != FreezeSteps.no:
+                        config_text = f'🥶<b>FREEZED</b>❄️\n<span class="tg-spoiler">{config_text}</span>'
+
+                        await getattr(trigger, "message", trigger).answer(
+                            config_text, reply_markup=why_freezed_button
+                        )
+                    else:
+                        # Display each configuration with its name and ID
+                        await getattr(trigger, "message", trigger).answer(
+                            config_text, reply_markup=create_output_cfg_btn
+                        )
 
         if user_data.active == UserActivity.active:
             # Calculate how many more configurations the user can create

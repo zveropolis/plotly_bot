@@ -7,24 +7,18 @@ from multiprocessing import Pool
 from random import randint
 from time import time
 
-from pandas import DataFrame
 from random_word import RandomWords
-from sqlalchemy import insert, update
 
-sys.path.insert(1, os.path.join("C:\\code\\vpn_dan_bot\\src"))
+sys.path.insert(1, os.path.join("/home/bot/code/vpn_dan_bot/src"))
 
 
-from core.metric import async_speed_metric
-from core.path import PATH
-from db.database import execute_query
-from db.models import UserActivity, UserData
 from db.utils import add_user
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=True)
 logger = logging.getLogger()
 # logging.disable()
 
-RETRIES = 100
+RETRIES = 4
 
 
 def gen_input(null):

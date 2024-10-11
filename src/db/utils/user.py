@@ -2,6 +2,7 @@ import logging
 
 from sqlalchemy import insert, select, update
 
+from core.config import settings
 from core.metric import async_speed_metric
 from db.database import execute_query
 from db.models import UserActivity, UserData
@@ -37,11 +38,14 @@ async def add_user(user_id, user_name):
 
 @async_speed_metric
 async def freeze_user(user_id):
-    await CashManager(UserData).delete(user_id)
+    await clear_cash(user_id)
 
     query = (
         update(UserData)
-        .values(active=UserActivity.freezed)
+        .values(
+            active=UserActivity.freezed,
+            balance=UserData.balance - UserData.stage * settings.cost,
+        )
         .filter_by(telegram_id=user_id)
     )
     await execute_query(query)
@@ -49,7 +53,7 @@ async def freeze_user(user_id):
 
 @async_speed_metric
 async def recover_user(user_id):
-    await CashManager(UserData).delete(user_id)
+    await clear_cash(user_id)
 
     query = (
         update(UserData)
@@ -57,12 +61,13 @@ async def recover_user(user_id):
         .filter_by(telegram_id=user_id)
         .returning(UserData)
     )
-    return (await execute_query(query)).scalar_one_or_none()
+    result: UserData = (await execute_query(query)).scalar_one_or_none()
+    return result
 
 
 @async_speed_metric
 async def update_rate_user(user_id, stage, tax=0, trial=False):
-    await CashManager(UserData).delete(user_id)
+    await clear_cash(user_id)
 
     tax *= -1
 
@@ -75,7 +80,23 @@ async def update_rate_user(user_id, stage, tax=0, trial=False):
         .filter_by(telegram_id=user_id)
         .returning(UserData)
     )
-    return (await execute_query(query)).scalar_one_or_none()
+    result: UserData = (await execute_query(query)).scalar_one_or_none()
+    return result
+
+
+async def raise_money():
+    query = (
+        update(UserData)
+        .values(balance=UserData.balance - UserData.stage * settings.cost)
+        .filter_by(active=UserActivity.active)
+        .returning(UserData)
+    )
+    results: list[UserData] = (await execute_query(query)).scalars().all()
+
+    for result in results:
+        await CashManager(UserData).delete(result.telegram_id)
+
+    return results
 
 
 @async_speed_metric

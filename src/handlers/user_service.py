@@ -33,16 +33,16 @@ async def register_user(trigger: Union[Message, CallbackQuery], bot: Bot):
     else:
         # Notify the user of successful registration
         await trigger.answer(text="Поздравляю, регистрация успешна!", show_alert=True)
-    finally:
-        # Delete the original message after processing to keep the chat clean
-        await bot.delete_message(
-            trigger.from_user.id, getattr(trigger, "message", trigger).message_id
-        )
         # Perform additional account actions after registration
         await account_actions(
             getattr(trigger, "message", trigger),
             user_data=user_data,
             usr_id=trigger.from_user.id,
+        )
+    finally:
+        # Delete the original message after processing to keep the chat clean
+        await bot.delete_message(
+            trigger.from_user.id, getattr(trigger, "message", trigger).message_id
         )
 
 
@@ -57,7 +57,7 @@ async def freeze_user(trigger: Union[Message, CallbackQuery], bot: Bot):
         await trigger.answer(text=text.DB_ERROR, show_alert=True)
     else:
         # Notify the user that a deletion request is being processed
-        await trigger.answer(text="Посылаю запрос на удаление учетной записи...")
+        await trigger.answer(text="Посылаю запрос на заморозку учетной записи...")
     finally:
         # Delete the original message after processing to keep the chat clean
         await bot.delete_message(
@@ -76,15 +76,15 @@ async def recover_user(trigger: Union[Message, CallbackQuery], bot: Bot):
         await trigger.answer(text=text.DB_ERROR, show_alert=True)
     else:
         # Notify the user that a recovery request is being processed
-        await trigger.answer(text="Посылаю запрос на восстановление учетной записи...")
-    finally:
-        # Delete the original message after processing to keep the chat clean
-        await bot.delete_message(
-            trigger.from_user.id, getattr(trigger, "message", trigger).message_id
-        )
+        await trigger.answer(text="Посылаю запрос на разморозку учетной записи...")
         # Perform additional account actions after recovery
         await account_actions(
             getattr(trigger, "message", trigger),
             user_data=user_data,
             usr_id=trigger.from_user.id,
+        )
+    finally:
+        # Delete the original message after processing to keep the chat clean
+        await bot.delete_message(
+            trigger.from_user.id, getattr(trigger, "message", trigger).message_id
         )

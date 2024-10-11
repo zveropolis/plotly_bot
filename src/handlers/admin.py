@@ -125,7 +125,7 @@ async def admin_mailing_finish(message: Message, bot: Bot, state: FSMContext):
         if getattr(user_data, "admin", False):
             mailing_message = (await state.get_data())["mailing_message"]
 
-            all_users_data: list[UserData] = await utils.get_all_users(
+            all_users_data: list[UserData] = await utils.get_valid_users(
                 message.from_user.id
             )
 

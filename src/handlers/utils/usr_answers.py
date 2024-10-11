@@ -31,7 +31,7 @@ async def find_user(trigger: Union[Message, CallbackQuery], configs=False):
             )
         elif user_data.active == UserActivity.freezed:
             # Notify user if their account is freezed
-            await trigger.answer("Аккаунт удален", show_alert=True)
+            await trigger.answer("Аккаунт заморожен", show_alert=True)
             return None
     except exc.DatabaseError:
         # Handle database errors

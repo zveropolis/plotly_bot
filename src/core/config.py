@@ -1,5 +1,7 @@
 import logging
 import os
+import pickle
+from datetime import datetime
 
 from pandas import DataFrame
 from pydantic import HttpUrl, SecretStr
@@ -24,7 +26,7 @@ class Base(DeclarativeBase):
     @property
     def __udict__(self):
         model_data = {col: getattr(self, col) for col in self.__table__.columns.keys()}
-        model_data.pop("id")
+        # model_data.pop("id")
         return model_data
 
     @property
@@ -32,7 +34,7 @@ class Base(DeclarativeBase):
         model_data = {
             col: str(getattr(self, col)) for col in self.__table__.columns.keys()
         }
-        model_data.pop("id")
+        # model_data.pop("id")
         return model_data
 
     @property
@@ -114,3 +116,12 @@ try:
 except ValueError:
     logger.exception("Ошибка загрузки входных параметров")
     raise
+
+
+last_updated = datetime.today()
+decr_time = os.path.join(PATH, "src", "scheduler", "last_decremented.pickle")
+noticed_time = os.path.join(PATH, "src", "scheduler", "last_noticed.pickle")
+
+for timefile in (decr_time, noticed_time):
+    with open(timefile, "wb") as file:
+        pickle.dump(last_updated, file)

@@ -16,3 +16,5 @@ src/wg/wg0.conf
 src/wg/wg1.conf
 *FastUI-demo
 *test*
+src/scheduler/last_decremented.pickle
+src/scheduler/last_noticed.pickle

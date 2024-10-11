@@ -1,10 +1,10 @@
-from fastui import AnyComponent
-from fastui import components as c
-from fastui.events import GoToEvent
 import fastapi
 import fastui.forms
 import pydantic
 from fastapi import params as fastapi_params
+from fastui import AnyComponent
+from fastui import components as c
+from fastui.events import GoToEvent
 
 
 def bot_page(*components: AnyComponent, title: str | None = None) -> list[AnyComponent]:
