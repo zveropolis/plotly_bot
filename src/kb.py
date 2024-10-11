@@ -4,7 +4,6 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
 )
-from pytils.numeral import get_plural
 
 from db.models import UserActivity, UserData
 from text import rates
@@ -20,9 +19,11 @@ static_pay_button = InlineKeyboardMarkup(
     ]
 )
 
+
 static_start_button = ReplyKeyboardMarkup(
     keyboard=[
         [
+            KeyboardButton(text="🔄"),
             KeyboardButton(text="Статус"),
             KeyboardButton(text="Конфигурации"),
             KeyboardButton(text="Подписка"),
@@ -41,6 +42,30 @@ static_support_button = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="Доложить о проблеме", callback_data="call_support")]
     ]
 )
+static_balance_button = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Пополнить баланс", callback_data="top_up_balance")]
+    ]
+)
+
+why_freezed_button = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Почему моя конфигурация заморожена?", callback_data="freeze_info"
+            )
+        ]
+    ]
+)
+freeze_user_button = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Заморозить аккаунт", callback_data="freeze_account"
+            )
+        ]
+    ]
+)
 
 
 def get_account_keyboard(user_data: UserData):
@@ -50,7 +75,7 @@ def get_account_keyboard(user_data: UserData):
             buttons.append(
                 [
                     InlineKeyboardButton(
-                        text="Заморозить аккаунт", callback_data="freeze_account"
+                        text="Заморозить аккаунт", callback_data="freeze_account_info"
                     )
                 ]
             )
@@ -58,7 +83,7 @@ def get_account_keyboard(user_data: UserData):
             buttons.append(
                 [
                     InlineKeyboardButton(
-                        text="Восстановить аккаунт", callback_data="recover_account"
+                        text="Разморозить аккаунт", callback_data="recover_account"
                     )
                 ]
             )
@@ -220,3 +245,16 @@ def get_pay_keyboard():
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def get_bug_report_url(name, user_id):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Заполнить форму обращения",
+                    url=f"http://assa.ddns.net/bot/bug/create?name={name}&telegram_id={user_id}",
+                )
+            ]
+        ]
+    )

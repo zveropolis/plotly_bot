@@ -5,10 +5,7 @@ from aiogram import Bot, F, Router
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, Message
 
-import text
-from core import exceptions as exc
-from db import utils
-from src.handlers.account import account_actions
+from kb import get_bug_report_url
 
 logger = logging.getLogger()
 router = Router()
@@ -20,8 +17,11 @@ async def call_support(trigger: Union[Message, CallbackQuery], bot: Bot):
     await getattr(trigger, "message", trigger).answer(
         "Сообщите о вашей проблеме. "
         "Желательно приложить скриншоты проблемы. "
-        "Если у вас проблемы с оплатой обязательно приложите скриншот совершенной транзакции (чек)."
+        "Если у вас проблемы с оплатой обязательно приложите скриншот совершенной транзакции (чек).",
+        reply_markup=get_bug_report_url(
+            trigger.from_user.full_name, trigger.from_user.id
+        ),
     )
-    await getattr(trigger, "message", trigger).answer(
-        "Как только закончите, введите команду /send_bug"
-    )
+    # await getattr(trigger, "message", trigger).answer(
+    #     "Как только закончите, введите команду /send_bug"
+    # )

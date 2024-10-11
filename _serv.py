@@ -9,18 +9,27 @@ from datetime import datetime
 
 import uvicorn
 from fastapi import FastAPI, Form, HTTPException
+from fastapi.responses import HTMLResponse
+from fastui import prebuilt_html
+from fastui.auth import fastapi_auth_exception_handling
 
 sys.path.insert(1, os.path.join(sys.path[0], "server"))
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
 
 from src.app import models as mod
 from src.db.utils import confirm_success_pay
+from server.main import router as main_router
+from server.form import router as form_router
 
 server_log = "./server/log.ini"
 logging.config.fileConfig(server_log, disable_existing_loggers=False)
 logger = logging.getLogger()
 queue = logging.getLogger("queue")
 app = FastAPI()
+
+fastapi_auth_exception_handling(app)
+app.include_router(form_router, prefix="/api/bot/bug")
+app.include_router(main_router, prefix="/api/bot")
 
 
 @app.get("/")
@@ -36,7 +45,7 @@ def test_message(name: str | None = None):
 @app.post("/bot/notice")
 async def receive_pay_data(
     notification_type: str = Form(default=""),
-    operation_id: str = Form(default=""),
+    operation_id: str = Form(default=0),
     amount: float = Form(default=0.0),
     withdraw_amount: float = Form(default=0.0),
     currency: str = Form(default=""),
@@ -86,6 +95,11 @@ async def receive_pay_data(
         raise HTTPException(status_code=500, detail=e)
     else:
         return {"status": str(transaction)}
+
+
+@app.get("/bot/{path:path}")
+async def html_landing() -> HTMLResponse:
+    return HTMLResponse(prebuilt_html(title="Dan VPN"))
 
 
 if __name__ == "__main__":
