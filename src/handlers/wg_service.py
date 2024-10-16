@@ -180,7 +180,7 @@ async def get_config_file(callback: CallbackQuery):
     # Send the configuration file to the user
     await callback.message.answer("Конфигурация " + callback.message.text)
     await callback.message.answer_document(
-        FSInputFile(config_file, f"{user_config.name}_wg.conf")
+        FSInputFile(config_file, f"{user_config.name}.conf")
     )
     # Remove the temporary config file
     os.remove(config_file)

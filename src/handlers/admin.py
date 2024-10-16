@@ -28,7 +28,7 @@ async def admin_actions(message: Message):
             help_t = as_marked_section(
                 Bold("Функционал администратора телеграмм бота"),
                 "/admin - список команд администратора",
-                "/dump - выгрузить дамп БД в виде excel таблицы",
+                "/backup - выгрузить дамп БД в виде excel таблицы",
                 "/send - рассылка сообщения всем зарегистрированным пользователям",
                 "/server_status",
                 "/reboot",
@@ -66,17 +66,17 @@ async def become_an_admin(message: Message, bot: Bot):
         await bot.delete_message(message.from_user.id, message.message_id)
 
 
-@router.message(Command("dump"))
+@router.message(Command("backup"))
 @async_speed_metric
-async def get_dump(message: Message):
+async def get_backup(message: Message):
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
         if getattr(user_data, "admin", False):
-            dump = await utils.async_dump()
-            await message.answer_document(FSInputFile(dump))
+            backup = await utils.async_backup()
+            await message.answer_document(FSInputFile(backup))
         else:
             await message.answer(text.only_admin)
-    except exc.DumpError as e:
+    except exc.BackupError as e:
         await message.answer(e.args[0])
     except exc.DatabaseError:
         await message.answer(text.DB_ERROR)

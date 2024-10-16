@@ -79,7 +79,6 @@ class Settings(BaseSettings):
     REDIS_PASS: SecretStr
     REDIS_NAME: str
 
-    cycle_duration: float
     acceptable_config: dict = {0: 0, 0.3: 1, 1: 3, 2.5: 8, 5: 15}
     cost: float
     cash_ttl: int

@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 
 from core.metric import async_speed_metric
 from db.database import execute_query, iter_redis_keys
-from db.models import UserData, WgConfig, FreezeSteps
+from db.models import FreezeSteps, UserData, WgConfig
 from db.utils import get_user
 from db.utils.redis import CashManager
 
@@ -104,5 +104,5 @@ async def freeze_config(configs: list[WgConfig], freeze: FreezeSteps):
 async def get_all_wg_configs():
     query = select(WgConfig)
 
-    result: list[WgConfig] = (await execute_query(query)).scalars().all()
+    result: list[WgConfig] = (await execute_query(query, echo=False)).scalars().all()
     return result

@@ -12,6 +12,7 @@ from db import models as _
 from db.database import async_engine, execute_redis_query, redis_engine
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
+logging.getLogger("sqlalchemy.engine.Engine").setLevel(logging.INFO)
 logger = logging.getLogger()
 
 

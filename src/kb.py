@@ -1,5 +1,11 @@
-from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, ReplyKeyboardMarkup)
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
+
+from pytils.numeral import get_plural
 
 from db.models import UserActivity, UserData
 from text import rates
@@ -215,28 +221,11 @@ def get_rate_button(rate: int):
 def get_pay_keyboard():
     buttons = [
         [
-            InlineKeyboardButton(text="1", callback_data="balance_1"),
-            InlineKeyboardButton(text="2", callback_data="balance_2"),
-            InlineKeyboardButton(text="3", callback_data="balance_3"),
-        ],
-        [
-            InlineKeyboardButton(text="4", callback_data="balance_4"),
-            InlineKeyboardButton(text="5", callback_data="balance_5"),
-            InlineKeyboardButton(text="6", callback_data="balance_6"),
-        ],
-        [
-            InlineKeyboardButton(text="7", callback_data="balance_7"),
-            InlineKeyboardButton(text="8", callback_data="balance_8"),
-            InlineKeyboardButton(text="9", callback_data="balance_9"),
-        ],
-        [
-            InlineKeyboardButton(text="0", callback_data="balance_0"),
-            InlineKeyboardButton(text="<", callback_data="balance_incr"),
-            InlineKeyboardButton(text="<<<", callback_data="balance_clear"),
-        ],
-        [
-            InlineKeyboardButton(text="Пополнить", callback_data="pay_sub"),
-        ],
+            InlineKeyboardButton(text="100", callback_data="pay_sub_100"),
+            InlineKeyboardButton(text="250", callback_data="pay_sub_250"),
+            InlineKeyboardButton(text="500", callback_data="pay_sub_500"),
+            InlineKeyboardButton(text="1000", callback_data="pay_sub_1000"),
+        ]
     ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -250,6 +239,19 @@ def get_bug_report_url(name, user_id):
                 InlineKeyboardButton(
                     text="Заполнить форму обращения",
                     url=f"http://assa.ddns.net/bot/bug/create?name={name}&telegram_id={user_id}",
+                )
+            ]
+        ]
+    )
+
+
+def get_pay_url(sum, url):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"Пополнить на {get_plural(sum, 'рубль, рубля, рублей')}",
+                    url=url,
                 )
             ]
         ]

@@ -17,7 +17,7 @@ from core.config import settings
 from core.exceptions import WireguardError
 from core.metric import async_speed_metric
 
-logger = logging.getLogger()
+logger = logging.getLogger("asyncssh")
 
 
 class WgConfigMaker:

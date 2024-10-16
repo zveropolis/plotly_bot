@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from asyncpg.exceptions import UniqueViolationError
@@ -11,7 +10,7 @@ from core.config import settings
 from core.err import redis_exceptor
 from core.exceptions import DatabaseError, UniquenessError
 
-logger = logging.getLogger()
+logger = logging.getLogger("sqlalchemy")
 rlogger = logging.getLogger("redis")
 
 
@@ -27,10 +26,17 @@ __pool = ConnectionPool.from_url(settings.CASHBASE_URL, decode_responses=True)
 redis_engine = Redis.from_pool(__pool)
 
 
-async def execute_query(query):
+async def execute_query(query, echo=True):
     async with async_session_factory() as session:
         async with session.begin():
             try:
+                if echo:
+                    q = query.compile()
+                    if q.params:
+                        logger.info(f"{q}\nQuery PARAMS: {q.params}")
+                    else:
+                        logger.info(str(q))
+
                 res = await session.execute(query)
                 session.expunge_all()
 
@@ -55,24 +61,6 @@ async def execute_redis_query(pipeline: Pipeline):
             rlogger.info("REDIS QUERY COMPLETED")
             return result
     return []
-
-    # except rexc.AuthenticationError:
-    #     rlogger.exception(
-    #         f"Ошибка аутентификации при подключении к Redis :: {logquery}"
-    #     )
-    #     raise DatabaseError
-    # except rexc.ConnectionError:
-    #     rlogger.exception(f"Ошибка подключения к Redis :: {logquery}")
-    #     raise DatabaseError
-    # except rexc.TimeoutError:
-    #     rlogger.exception(f"Превышено время ожидания при работе с Redis :: {logquery}")
-    #     raise DatabaseError
-    # except IndexError:
-    #     rlogger.exception("Command Stack is empty")
-    #     raise DatabaseError
-    # except rexc.RedisError:
-    #     rlogger.exception(f"Произошла неизвестная ошибка c Redis :: {logquery}")
-    #     raise DatabaseError
 
 
 @redis_exceptor

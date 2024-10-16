@@ -22,6 +22,3 @@ async def call_support(trigger: Union[Message, CallbackQuery], bot: Bot):
             trigger.from_user.full_name, trigger.from_user.id
         ),
     )
-    # await getattr(trigger, "message", trigger).answer(
-    #     "Как только закончите, введите команду /send_bug"
-    # )

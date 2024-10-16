@@ -1,14 +1,11 @@
 import logging
 from datetime import timedelta
-from itertools import cycle
 from types import NoneType
 from typing import Union
 
-from pandas import DataFrame
-from redis import exceptions as rexc
 
 from core.config import settings
-from core.exceptions import DatabaseError, RedisTypeError
+from core.exceptions import RedisTypeError
 from db.database import execute_redis_query, iter_redis_keys, redis_engine
 from db.models import Transactions, UserData, WgConfig
 
@@ -92,9 +89,6 @@ class CashManager:
             self.pipe.expire(key, timedelta(hours=settings.cash_ttl))
         await execute_redis_query(self.pipe)
 
-        # for unique_id in set(_id.split(":")[-1] for _id in user_id):
-        #     await self.update_ttl(unique_id)
-
     async def get(self, *id_obj: dict | list | tuple | set | str | int | float):
         for key in id_obj:
             match key:
@@ -129,36 +123,3 @@ class CashManager:
         if rkeys:
             self.pipe.delete(*rkeys)
             return await self.__call__()
-
-    async def update_ttl(self, user_id):
-        pass
-        # try:
-        #     with sentry_sdk.start_transaction(name=f"Update ttl user: {user_id}"):
-        #         async with redis_engine.pipeline() as pipe:
-        #             async for item in redis_engine.scan_iter(f"*:{user_id}"):
-        #                 pipe.expire(item, timedelta(hours=settings.cash_ttl))
-
-        #             logquery = pipe.command_stack
-        #             logger.info(f"TRYING TO REDIS QUERY :: {logquery}")
-        #             await pipe.execute()
-        #             logger.info("REDIS QUERY COMPLETED")
-
-        # except rexc.AuthenticationError:
-        #     logger.exception(
-        #         f"Ошибка аутентификации при подключении к Redis :: {logquery}"
-        #     )
-        #     raise DatabaseError
-        # except rexc.ConnectionError:
-        #     logger.exception(f"Ошибка подключения к Redis :: {logquery}")
-        #     raise DatabaseError
-        # except rexc.TimeoutError:
-        #     logger.exception(
-        #         f"Превышено время ожидания при работе с Redis :: {logquery}"
-        #     )
-        #     raise DatabaseError
-        # except IndexError:
-        #     logger.exception("Command Stack is empty")
-        #     raise DatabaseError
-        # except rexc.RedisError:
-        #     logger.exception(f"Произошла неизвестная ошибка c Redis :: {logquery}")
-        #     raise DatabaseError

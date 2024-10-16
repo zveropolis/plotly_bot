@@ -22,7 +22,7 @@ logger = logging.getLogger()
 
 sentry_sdk.init(
     dsn="https://34c9143c835da94d4353ab25d53697c1@o4507927167631360.ingest.de.sentry.io/4508013489619024",
-    release="dan-vpn-0.1.0",  # Релизная версия приложения
+    release="dan-vpn-0.2.0",  # Релизная версия приложения
     environment="dev",  # Возможность добавить среду выполнения
     traces_sample_rate=1.0,
     # send_default_pii=True,

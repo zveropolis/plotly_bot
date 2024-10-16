@@ -13,7 +13,7 @@ class UniquenessError(DatabaseError):
         super().__init__(text)
 
 
-class DumpError(DatabaseError):
+class BackupError(DatabaseError):
     def __init__(self, text="Ошибка создания дампа базы") -> None:
         super().__init__(text)
 

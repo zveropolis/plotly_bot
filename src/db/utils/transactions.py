@@ -1,7 +1,5 @@
 import logging
-from uuid import UUID
 
-from pandas import DataFrame
 from sqlalchemy import and_, insert, select, update
 
 from db.database import execute_query, iter_redis_keys

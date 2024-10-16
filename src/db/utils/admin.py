@@ -1,7 +1,6 @@
 import logging
 
 from sqlalchemy import and_, select, update
-from sqlalchemy.orm import joinedload
 
 from core.metric import async_speed_metric
 from db.database import execute_query
@@ -35,6 +34,13 @@ async def get_valid_users(my_id):
             UserData.stage != 0,
         )
     )
+    results: list[UserData] = (await execute_query(query)).scalars().all()
+    return results
+
+
+@async_speed_metric
+async def get_all_users():
+    query = select(UserData)
     results: list[UserData] = (await execute_query(query)).scalars().all()
     return results
 
