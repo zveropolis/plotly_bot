@@ -136,7 +136,7 @@ class Transactions(Base):
 
     class ValidationSchema(BaseModel):
         id: int | None = Field(default=None, title="ID")
-        user_id: int = Field(title="Telegram ID")
+        user_id: int | None = Field(default=None, title="Telegram ID")  # FROM YOOMONEY
         date: datetime = Field(title="Transaction date")
         amount: float = Field(title="Amount")
         label: UUID = Field(title="Label")
