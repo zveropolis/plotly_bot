@@ -42,18 +42,13 @@ def main(args):
     """Точка входа"""
 
     logger.info("BOT START", extra=args.__dict__)
-    asyncio.run(
-        {
-            "main": noncycle_start_bot,
-            "cycle": cycle_start_bot,
-        }[args.mode]()
-    )
+    asyncio.run(start_bot())
     logger.info("BOT CLOSE")
 
 
 if __name__ == "__main__":
     args = parse_args()
 
-    from src.app import cycle_start_bot, noncycle_start_bot
+    from src.app import start_bot
 
     main(args)

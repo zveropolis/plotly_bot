@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vpn_dan_bot"
-version = "0.2.0"
+version = "0.2.1"
 description = ""
 authors = ["zveropolis <zadira-era@yandex.ru>"]
 readme = "README.md"

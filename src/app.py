@@ -2,7 +2,6 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
-import asyncssh
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -18,7 +17,8 @@ from db import models, utils  # NOTE for subserver
 from db.utils.tests import test_base, test_redis_base
 from scheduler.balance import balance_decrement, users_notice
 from scheduler.config_freezer import check_freeze_configs
-from scheduler.pay import accept_pay
+from scheduler.notices import send_notice
+from wg.utils import SSH
 
 logger = logging.getLogger()
 
@@ -52,10 +52,10 @@ def __create_bot():
     return bot, dp
 
 
-def __create_scheduler(bot, conn):
+def __create_scheduler(bot):
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
-        accept_pay,
+        send_notice,
         # trigger="cron",
         trigger="interval",
         seconds=3,
@@ -83,42 +83,34 @@ def __create_scheduler(bot, conn):
         trigger="interval",
         seconds=60,
         start_date=datetime.now() + timedelta(seconds=15),
-        kwargs={"conn": conn},
     )
 
     return scheduler
 
 
-async def __start_bot(bot: Bot, dp: Dispatcher, timeout: float = None):
+async def __start_bot(
+    bot: Bot, dp: Dispatcher, scheduler: AsyncIOScheduler, timeout: float = None
+):
     await __test_subsystem()
 
-    async with asyncssh.connect(
-        settings.WG_HOST,
-        username=settings.WG_USER,
-        client_keys=settings.WG_KEY.get_secret_value(),
-    ) as conn:
-        conn.set_keepalive(interval=120)
+    scheduler.start()
 
-        scheduler = __create_scheduler(bot, conn)
-        scheduler.start()
-
-        tasks = await asyncio.wait(
-            [
-                bot.delete_webhook(drop_pending_updates=True),
-                dp.start_polling(
-                    bot,
-                    allowed_updates=dp.resolve_used_update_types(),
-                    started_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
-                    wg_connection=conn,
-                ),
-            ],
-            timeout=timeout,
-        )
-        try:
-            await dp.stop_polling()
-        except RuntimeError:
-            pass
-        return tasks
+    tasks = await asyncio.wait(
+        [
+            bot.delete_webhook(drop_pending_updates=True),
+            dp.start_polling(
+                bot,
+                allowed_updates=dp.resolve_used_update_types(),
+                started_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
+            ),
+        ],
+        timeout=timeout,
+    )
+    try:
+        await dp.stop_polling()
+    except RuntimeError:
+        pass
+    return tasks
 
 
 async def __test_subsystem():
@@ -137,7 +129,8 @@ async def __test_subsystem():
 
 async def __test_subserver():
     async with ClientSession() as session:
-        url = "http://assa.ddns.net/test"
+        # url = "http://assa.ddns.net/test"
+        url = "http://127.0.0.1:5000/test"
         params = {"name": "test"}
 
         async with session.get(url=url, params=params) as response:
@@ -145,20 +138,12 @@ async def __test_subserver():
             assert result.get("message") == "Hello test"
 
 
-async def noncycle_start_bot():
+async def start_bot():
     """Запуск бота"""
 
+    await SSH.connect()
+
     bot, dp = __create_bot()
-    return await __start_bot(bot, dp)
+    scheduler = __create_scheduler(bot)
 
-
-async def cycle_start_bot():
-    bot, dp = __create_bot()
-    while True:
-        done, pending = await __start_bot(bot, dp, timeout=settings.cycle_duration)
-
-        for task in pending:
-            task.cancel()
-        pending.clear()
-
-        logger.warning("Перезагрузка")
+    return await __start_bot(bot, dp, scheduler)

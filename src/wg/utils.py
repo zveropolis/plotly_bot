@@ -11,13 +11,14 @@ import asyncssh
 from asyncssh import SSHClientConnection
 from pydantic import validate_call
 
-sys.path.insert(1, os.path.join("C:\\code\\vpn_dan_bot\\src"))
-
 from core.config import settings
 from core.exceptions import WireguardError
 from core.metric import async_speed_metric
+from wg.connect import WgConnection
 
 logger = logging.getLogger("asyncssh")
+
+SSH = WgConnection()
 
 
 class WgConfigMaker:
@@ -61,8 +62,7 @@ class WgConfigMaker:
                 f"echo {escape(settings.WG_PASS.get_secret_value())} | sudo -S ~/Scripts/pywg.py -m {ban} {self.public_key} --raises",
             )
             completed_proc = await conn.run("\n" + "\n".join(cmd), check=True)
-            keys = completed_proc.stdout.strip("\n").split("\n")
-            print(keys)
+            logger.info(completed_proc.stderr)
 
         except (OSError, asyncssh.Error) as e:
             logger.exception(
@@ -86,8 +86,18 @@ class WgConfigMaker:
         move: Literal["add", "ban", "unban"],
         user_id: int = None,
         user_pubkey: str = None,
-        conn=None,
     ):
+        conn = SSH.connection
+
+        if conn.is_closed():
+            await SSH.connect()
+            conn = SSH.connection
+            try:
+                assert conn is SSH.connection
+                assert not conn.is_closed()
+            except AssertionError as e:
+                raise WireguardError from e
+
         match move:
             case "add":
                 await self._create_peer(conn)
@@ -110,17 +120,21 @@ async def test_100():
         username=settings.WG_USER,
         client_keys=settings.WG_KEY.get_secret_value(),
     ) as conn:
-        coros = [
-            wg.move_user(user_id=6987832296, move="add", conn=conn) for _ in range(1)
-        ]
         # coros = [
-        #     wg.move_user(
-        #         user_pubkey="mKAB5YJSTdxsKcJvyDRw95kgFJWL4I/iRFEJLvfwrhA=",
-        #         move="unban",
-        #         conn=conn,
-        #     )
-        #     for _ in range(1)
+        #     wg.move_user(user_id=6987832296, move="add", conn=conn) for _ in range(1)
         # ]
+        conn.close()
+        await asyncio.sleep(1)
+        if conn.is_closed():
+            await conn.open_session()
+        coros = [
+            wg.move_user(
+                user_pubkey="CkMG0Cx+T4IQzpN8q7D02Nq15om8OGPDWEB1wlpkkjs=",
+                move="unban",
+                conn=conn,
+            )
+            for _ in range(1)
+        ]
 
         coros_gen = time() - start
 
@@ -132,6 +146,7 @@ async def test_100():
 
 
 if __name__ == "__main__":
+    sys.path.insert(1, os.path.join("C:\\code\\vpn_dan_bot\\src"))
     logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 
     loop = asyncio.get_event_loop()

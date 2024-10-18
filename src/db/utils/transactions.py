@@ -26,7 +26,7 @@ async def insert_transaction(conf: dict):
 
 async def confirm_success_pay(transaction: Transactions):
     query = select(Transactions).where(Transactions.label == transaction.label)
-    prev_result: Transactions = (await execute_query(query)).scalar_one_or_none()
+    prev_result: Transactions = (await execute_query(query)).scalars().first()
 
     if getattr(prev_result, "transaction_id", None):
         query = (

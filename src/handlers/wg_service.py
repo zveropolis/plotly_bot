@@ -7,7 +7,6 @@ from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, FSInputFile, Message
-from asyncssh import SSHClientConnection
 from pytils.numeral import get_plural
 
 import text
@@ -79,9 +78,7 @@ async def post_user_data(trigger: Union[Message, CallbackQuery]):
 @router.message(Command("create"))
 @router.callback_query(F.data == "create_configuration")
 @async_speed_metric
-async def create_config_data(
-    trigger: Union[Message, CallbackQuery], bot: Bot, wg_connection: SSHClientConnection
-):
+async def create_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
         user_data: UserData = await find_user(trigger, configs=True)
         if not user_data:
@@ -93,11 +90,7 @@ async def create_config_data(
         elif len(user_data.configs) < settings.acceptable_config[user_data.stage]:
             # Create a new configuration if the limit is not reached
             wg = WgConfigMaker()
-            conf = await wg.move_user(
-                move="add",
-                user_id=trigger.from_user.id,
-                conn=wg_connection,
-            )
+            conf = await wg.move_user(move="add", user_id=trigger.from_user.id)
             config: WgConfig = await utils.add_wg_config(
                 conf, user_id=trigger.from_user.id
             )

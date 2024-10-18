@@ -14,14 +14,6 @@ def parse_args():
     )
 
     parser.add_argument(
-        "-m",
-        "--mode",
-        type=str,
-        choices=["main", "cycle"],
-        default="main",
-        help="Bot launch mode",
-    )
-    parser.add_argument(
         "--nolog",
         nargs="?",
         const="all",

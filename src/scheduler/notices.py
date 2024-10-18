@@ -14,16 +14,15 @@ logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
 queue = os.path.join(PATH, "logs", "queue.log")
 
 
-async def accept_pay(bot: Bot):
+async def send_notice(bot: Bot):
     async with aiofiles.open(queue) as file:
         notices = (await file.read()).splitlines()
 
     for notice in notices.copy():
         date, _type, user_id, label, amount, *extra = notice.strip("\n#|").split("||")
-
-        match _type:
-            case "TRANSACTION":
-                try:
+        try:
+            match _type:
+                case "TRANSACTION":
                     user_id = int(user_id)
                     admin_ids: list[UserData] = await get_admins()
 
@@ -48,11 +47,20 @@ async def accept_pay(bot: Bot):
                         "Отправлено сообщение об успешной оплате",
                         extra={"user_id": user_id},
                     )
-                except Exception:
-                    logger.exception("Ошибка планировщика событий")
-                    continue
-                else:
-                    notices.pop(notice.index(notice))
+
+                case "REPORT":
+                    admin_ids: list[UserData] = await get_admins()
+
+                    for admin in admin_ids:
+                        await bot.send_message(
+                            admin.telegram_id,
+                            f"Поступило обращение от пользователя {user_id}. Номер обращения: {label}",
+                        )
+        except Exception:
+            logger.exception("Ошибка планировщика событий")
+            continue
+        else:
+            notices.pop(notice.index(notice))
 
     async with aiofiles.open(queue, "w") as file:
         await file.write("\n".join(notices))

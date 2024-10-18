@@ -8,8 +8,8 @@ from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from pytils.numeral import get_plural
-from requests.exceptions import ConnectionError
 from yoomoney import Client, Quickpay
+from yoomoney.exceptions import YooMoneyError
 
 import kb
 import text
@@ -19,8 +19,8 @@ from core.metric import async_speed_metric
 from db import utils
 from db.models import UserData
 from handlers.utils import find_user
-from states import Service
 from handlers.wg_service import post_user_data
+from states import Service
 
 logger = logging.getLogger()
 router = Router()
@@ -195,7 +195,7 @@ async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContex
         await getattr(trigger, "message", trigger).answer(
             text=text.DB_ERROR, show_alert=True
         )
-    except ConnectionError:
+    except YooMoneyError:
         await getattr(trigger, "message", trigger).answer(
             text=text.YOO_ERROR, show_alert=True
         )

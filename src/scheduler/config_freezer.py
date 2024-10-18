@@ -1,7 +1,5 @@
 import logging
 
-from asyncssh import SSHClientConnection
-
 from core.exceptions import DatabaseError, WireguardError
 from db.models import FreezeSteps
 from db.utils import freeze_config, get_all_wg_configs
@@ -11,14 +9,14 @@ logger = logging.getLogger("apscheduler")
 logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
 
 
-async def check_freeze_configs(conn: SSHClientConnection):
+async def check_freeze_configs():
     try:
         configs = await get_all_wg_configs()
 
         wait_no_cfg = [cfg for cfg in configs if cfg.freeze == FreezeSteps.wait_no]
         for config in wait_no_cfg:
             await WgConfigMaker().move_user(
-                move="unban", user_pubkey=config.server_public_key, conn=conn
+                move="unban", user_pubkey=config.server_public_key
             )
         if wait_no_cfg:
             await freeze_config(wait_no_cfg, freeze=FreezeSteps.no)
@@ -26,7 +24,7 @@ async def check_freeze_configs(conn: SSHClientConnection):
         wait_yes_cfg = [cfg for cfg in configs if cfg.freeze == FreezeSteps.wait_yes]
         for config in wait_yes_cfg:
             await WgConfigMaker().move_user(
-                move="ban", user_pubkey=config.server_public_key, conn=conn
+                move="ban", user_pubkey=config.server_public_key
             )
         if wait_yes_cfg:
             await freeze_config(wait_yes_cfg, freeze=FreezeSteps.yes)

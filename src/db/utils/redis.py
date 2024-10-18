@@ -3,7 +3,6 @@ from datetime import timedelta
 from types import NoneType
 from typing import Union
 
-
 from core.config import settings
 from core.exceptions import RedisTypeError
 from db.database import execute_redis_query, iter_redis_keys, redis_engine
