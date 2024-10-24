@@ -20,3 +20,4 @@ src/scheduler/last_decremented.pickle
 src/scheduler/last_noticed.pickle
 src/db/backups/backup*
 bugs/*
+3.10/*

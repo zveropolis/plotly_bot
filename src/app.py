@@ -97,12 +97,15 @@ async def __start_bot(
 
     tasks = await asyncio.wait(
         [
-            bot.delete_webhook(drop_pending_updates=True),
-            dp.start_polling(
-                bot,
-                allowed_updates=dp.resolve_used_update_types(),
-                started_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
-            ),
+            asyncio.create_task(job)
+            for job in [
+                bot.delete_webhook(drop_pending_updates=True),
+                dp.start_polling(
+                    bot,
+                    allowed_updates=dp.resolve_used_update_types(),
+                    started_at=datetime.now().strftime("%Y-%m-%d %H:%M"),
+                ),
+            ]
         ],
         timeout=timeout,
     )
@@ -129,8 +132,8 @@ async def __test_subsystem():
 
 async def __test_subserver():
     async with ClientSession() as session:
-        # url = "http://assa.ddns.net/test"
-        url = "http://127.0.0.1:5000/test"
+        url = "http://assa.ddns.net/test"
+        # url = "http://127.0.0.1:5000/test"
         params = {"name": "test"}
 
         async with session.get(url=url, params=params) as response:

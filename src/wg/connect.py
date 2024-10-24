@@ -14,7 +14,7 @@ class WgConnection:
     connection: SSHClientConnection
 
     async def connect(self):
-        await asyncio.wait([self.__create_connection()])
+        await asyncio.wait([asyncio.create_task(self.__create_connection())])
 
         self.connection.set_keepalive(interval=120)
 

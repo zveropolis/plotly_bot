@@ -90,7 +90,7 @@ async def users_notice(bot: Bot):
                         "Отправлено уведомление о блокировке",
                         extra={"user_id": user.telegram_id, "end": end},
                     )
-                elif end <= 3:
+                elif end <= 2:
                     await bot.send_message(
                         user.telegram_id,
                         "Здравствуйте, ваши средства на балансе в скором времени закончатся."
