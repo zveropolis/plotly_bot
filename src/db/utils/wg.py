@@ -3,6 +3,7 @@ import logging
 from sqlalchemy import and_, insert, select, update
 from sqlalchemy.orm import joinedload
 
+from core.exceptions import DatabaseError, UniquenessError
 from core.metric import async_speed_metric
 from db.database import execute_query, iter_redis_keys
 from db.models import FreezeSteps, UserData, WgConfig
@@ -77,9 +78,19 @@ async def get_user_with_configs(user_id):
 @async_speed_metric
 async def add_wg_config(conf: dict, user_id):
     query = insert(WgConfig).values(**conf).returning(WgConfig)
-    result: WgConfig = (await execute_query(query)).scalar_one_or_none()
+    for _ in range(10):
+        try:
+            result: WgConfig = (await execute_query(query)).scalar_one_or_none()
+        except UniquenessError:
+            result = None
+            continue
+        else:
+            break
 
     await delete_cash_configs(user_id)
+
+    if not result:
+        raise DatabaseError
 
     return result
 

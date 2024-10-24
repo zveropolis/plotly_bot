@@ -1,14 +1,16 @@
 import enum
+from datetime import date as date_cls
 from datetime import datetime
 from ipaddress import IPv4Address, IPv4Interface
 from uuid import UUID
 
 from fastui.components.display import DisplayLookup, DisplayMode
 from fastui.events import GoToEvent
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from random_word import RandomWords
-from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey, Numeric, String, func
-from sqlalchemy.dialects.postgresql import CIDR, INET
+from sqlalchemy import (BigInteger, Date, DateTime, Enum, ForeignKey, Numeric,
+                        String, func)
+from sqlalchemy.dialects.postgresql import CIDR, INET, JSONB
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -34,6 +36,16 @@ class FreezeSteps(enum.Enum):
     wait_yes = "wait_yes"
     no = "no"
     wait_no = "wait_no"
+
+    def __str__(self) -> str:
+        return self.value
+
+
+class ReportStatus(enum.Enum):
+    created = "created"
+    at_work = "at_work"
+    decided = "decided"
+    cancelled = "cancelled"
 
     def __str__(self) -> str:
         return self.value
@@ -126,7 +138,7 @@ class Transactions(Base):
     label: Mapped[UUID]
 
     # PAYED
-    transaction_id: Mapped[int | None] = mapped_column(type_=BigInteger)
+    transaction_id: Mapped[str | None]
     sha1_hash: Mapped[str | None]
     sender: Mapped[str | None]
     withdraw_amount: Mapped[float | None]
@@ -141,7 +153,7 @@ class Transactions(Base):
         amount: float = Field(title="Amount")
         label: UUID = Field(title="Label")
 
-        transaction_id: int | None = Field(default=None, title="Transaction ID")
+        transaction_id: str | None = Field(default=None, title="Transaction ID")
         sha1_hash: str | None = Field(default=None, title="Hash")
         sender: str | None = Field(default=None, title="Sender")
         withdraw_amount: float | None = Field(default=None, title="Withdraw_amount")
@@ -191,14 +203,14 @@ class WgConfig(Base):
         ),
         type_=BigInteger,
     )
-    name: Mapped[str] = mapped_column(default=name_gen.get_random_word)
+    name: Mapped[str] = mapped_column(default=name_gen.get_random_word, unique=True)
     freeze: Mapped[FreezeSteps] = mapped_column(
         Enum(FreezeSteps, values_callable=lambda obj: [e.value for e in obj]),
         default=FreezeSteps.no,
     )
     user_private_key: Mapped[str] = mapped_column(String(44))
     address: Mapped[IPv4Interface] = mapped_column(type_=CIDR)
-    dns: Mapped[IPv4Address] = mapped_column(type_=INET, default="9.9.9.9")
+    dns: Mapped[str] = mapped_column(default="10.0.0.1,9.9.9.9")
     server_public_key: Mapped[str] = mapped_column(String(44))
     allowed_ips: Mapped[IPv4Interface] = mapped_column(type_=CIDR, default="0.0.0.0/0")
     endpoint_ip: Mapped[IPv4Address] = mapped_column(
@@ -217,7 +229,7 @@ class WgConfig(Base):
         freeze: FreezeSteps = Field(default=FreezeSteps.no, title="Freeze")
         user_private_key: str = Field(title="User Priv Key")
         address: IPv4Interface = Field(title="Address")
-        dns: IPv4Address = Field(default="9.9.9.9", title="DNS")
+        dns: str = Field(default="10.0.0.1,9.9.9.9", title="DNS")
         server_public_key: str = Field(title="Server Pub Key")
         allowed_ips: IPv4Interface = Field(default="0.0.0.0/0", title="Allowed IPs")
         endpoint_ip: IPv4Address = Field(default=settings.WG_HOST, title="Endpoint IP")
@@ -239,12 +251,12 @@ class WgConfig(Base):
             on_click=GoToEvent(url="/bot/tables/wg_config/{name}/"),
         ),
         DisplayLookup(field="freeze"),
+        DisplayLookup(field="address"),
     ]
     site_display_all = site_display + [
         DisplayLookup(field="user_private_key", mode=DisplayMode.inline_code),
-        DisplayLookup(field="address"),
-        DisplayLookup(field="dns"),
         DisplayLookup(field="server_public_key", mode=DisplayMode.inline_code),
+        DisplayLookup(field="dns"),
         DisplayLookup(field="allowed_ips"),
         DisplayLookup(field="endpoint_ip"),
         DisplayLookup(field="endpoint_port"),
@@ -259,8 +271,138 @@ class WgConfig(Base):
             super().__init__(**(kwargs))
 
 
+class Reports(Base):
+    __tablename__ = "reports"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            UserData.telegram_id,  # "userdata.id",
+            ondelete="CASCADE",
+        ),
+        type_=BigInteger,
+    )
+    user_name: Mapped[str | None] = mapped_column(default=None)
+    info: Mapped[str]
+    pictures: Mapped[dict | None] = mapped_column(type_=JSONB, default=None)
+    status: Mapped[ReportStatus] = mapped_column(
+        Enum(ReportStatus, values_callable=lambda obj: [e.value for e in obj]),
+        default=ReportStatus.created,
+    )
+    create_date: Mapped[date_cls] = mapped_column(type_=Date, server_default=func.now())
+    updated: Mapped[datetime] = mapped_column(
+        type_=DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.current_timestamp(),
+    )
+
+    class ValidationSchema(BaseModel):
+        id: int | None = Field(default=None, title="ID")
+        user_id: int = Field(title="Telegram ID")
+        user_name: str | None = Field(default=None, title="Name")
+        info: str = Field(title="Info")
+        pictures: dict | None = Field(default={}, title="Pictures")
+        status: ReportStatus = Field(default=ReportStatus.created, title="Status")
+        create_date: date_cls = Field(title="Create date")
+        updated: datetime | None = Field(
+            default=None, title="Last update"
+        )  # None def big_form_post
+
+        model_config = ConfigDict(extra="ignore")
+
+    # INTERFACE (fastui)
+    site_display = [
+        DisplayLookup(
+            field="id",
+            on_click=GoToEvent(
+                url="/bot/tables/reports/report?report_id={id}&telegram_id={user_id}"
+            ),
+        ),
+        DisplayLookup(
+            field="user_id",
+            mode=DisplayMode.plain,
+            on_click=GoToEvent(url="/bot/tables/userdata/{user_id}/"),
+        ),
+        DisplayLookup(field="user_name", mode=DisplayMode.as_title),
+        DisplayLookup(field="status"),
+        DisplayLookup(field="create_date", mode=DisplayMode.date),
+    ]
+    site_display_all = site_display + [
+        DisplayLookup(field="updated", mode=DisplayMode.datetime),
+        DisplayLookup(field="info"),
+    ]
+
+    def __init__(self, **kwargs):
+        if kwargs:
+            validated_data = self.ValidationSchema(**kwargs).__dict__
+
+            super().__init__(**(validated_data))
+        else:
+            super().__init__(**(kwargs))
+
+
+class YoomoneyOperation(BaseModel):
+    __tablename__ = "yoomoney"
+
+    operation_id: str
+    status: str
+    datetime: datetime
+    title: str
+    pattern_id: str | None = None
+    direction: str
+    amount: float
+    label: str
+    type: str
+
+
+class YoomoneyOperationDetails(BaseModel):
+    operation_id: str
+    status: str
+    pattern_id: str | None = None
+    direction: str
+    amount: float
+    amount_due: str | None = None
+    fee: float | None = None
+    answer_datetime: datetime | None = None
+    datetime: datetime
+    title: str
+    sender: str | None = None
+    recipient: str | None = None
+    recipient_type: str | None = None
+    message: str | None = None
+    comment: str | None = None
+    codepro: bool | None = None
+    protection_code: str | None = None
+    expires: str | None = None
+    label: str
+    details: str | None = None
+    type: str
+    digital_goods: str | None = None
+
+    @model_validator(mode="before")
+    def convert_ints_to_str(cls, values):
+        return {
+            k: str(v) if isinstance(v, int) else v for k, v in values.__dict__.items()
+        }
+
+
+yoomoney_site_display: list = [
+    DisplayLookup(
+        field="operation_id",
+        on_click=GoToEvent(url="/bot/tables/yoomoney/{operation_id}/"),
+    ),
+    DisplayLookup(field="status"),
+    DisplayLookup(field="datetime", mode=DisplayMode.datetime),
+    DisplayLookup(field="title"),
+    DisplayLookup(field="amount"),
+    DisplayLookup(field="label"),
+]
+
+
 TABLES_SCHEMA = {
     UserData.__tablename__: UserData,
     Transactions.__tablename__: Transactions,
     WgConfig.__tablename__: WgConfig,
+    Reports.__tablename__: Reports,
+    YoomoneyOperation.__tablename__: YoomoneyOperation,
 }

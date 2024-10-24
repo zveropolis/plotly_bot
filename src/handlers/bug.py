@@ -12,6 +12,7 @@ router = Router()
 
 
 @router.message(Command("bug"))
+@router.message(Command("refund"))
 @router.callback_query(F.data == "call_support")
 async def call_support(trigger: Union[Message, CallbackQuery], bot: Bot):
     await getattr(trigger, "message", trigger).answer(
