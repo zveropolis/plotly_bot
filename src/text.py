@@ -60,6 +60,7 @@ DNS = {user_config.dns}
 PublicKey = {settings.WG_SERVER_KEY}
 AllowedIPs = {user_config.allowed_ips}
 Endpoint = {user_config.endpoint_ip}:{user_config.endpoint_port}
+PersistentKeepalive = 25
 """
 
 

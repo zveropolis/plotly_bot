@@ -11,6 +11,8 @@ import asyncssh
 from asyncssh import SSHClientConnection
 from pydantic import validate_call
 
+sys.path.insert(1, os.path.join("C:\\code\\vpn_dan_bot\\src"))
+
 from core.config import settings
 from core.exceptions import WireguardError
 from core.metric import async_speed_metric
@@ -22,7 +24,7 @@ SSH = WgConnection()
 
 
 class WgConfigMaker:
-    peer_counter = "~/Scripts/test"
+    peer_counter = "~/Scripts/LastPeerAddress"
 
     def __init__(self) -> None:
         self.private_key: str = None
@@ -36,8 +38,9 @@ class WgConfigMaker:
                 "tmp_public_key=$(echo $tmp_private_key | wg pubkey)",
                 "echo $tmp_private_key",
                 "echo $tmp_public_key",
-                f'flock {self.peer_counter} --command \'printf "%d" "$(cat {self.peer_counter})"+1 > {self.peer_counter} && cat {self.peer_counter}\'',
-                f'tmp_allowed_ips="10.1.0.$(cat {self.peer_counter})/32"',
+                # f'flock {self.peer_counter} --command \'printf "%d" "$(cat {self.peer_counter})"+1 > {self.peer_counter} && cat {self.peer_counter}\'',
+                f"flock {self.peer_counter} --command '~/Scripts/IPgen.py --file={self.peer_counter} && cat {self.peer_counter}' ",
+                f'tmp_allowed_ips="$(cat {self.peer_counter})/32"',
                 f"echo {escape(settings.WG_PASS.get_secret_value())} | sudo -S ~/Scripts/pywg.py $tmp_public_key -ips=$tmp_allowed_ips --raises",
             )
             completed_proc = await conn.run("\n" + "\n".join(cmd), check=True)
@@ -74,7 +77,7 @@ class WgConfigMaker:
         self.user_config = dict(
             user_id=user_id,
             user_private_key=self.private_key,
-            address=f"10.1.0.{self.countpeers}/32",
+            address=f"{self.countpeers}/32",
             server_public_key=self.public_key,
         )
         return self.user_config
@@ -115,38 +118,29 @@ class WgConfigMaker:
 async def test_100():
     wg = WgConfigMaker()
     start = time()
-    async with asyncssh.connect(
-        settings.WG_HOST,
-        username=settings.WG_USER,
-        client_keys=settings.WG_KEY.get_secret_value(),
-    ) as conn:
-        # coros = [
-        #     wg.move_user(user_id=6987832296, move="add", conn=conn) for _ in range(1)
-        # ]
-        conn.close()
-        await asyncio.sleep(1)
-        if conn.is_closed():
-            await conn.open_session()
-        coros = [
-            wg.move_user(
-                user_pubkey="CkMG0Cx+T4IQzpN8q7D02Nq15om8OGPDWEB1wlpkkjs=",
-                move="unban",
-                conn=conn,
-            )
-            for _ in range(1)
-        ]
 
-        coros_gen = time() - start
+    await SSH.connect()
 
-        await asyncio.gather(*coros)
+    coros = [wg.move_user(user_id=6987832296, move="add") for _ in range(15)]
+    # coros = [
+    #     wg.move_user(
+    #         user_pubkey="CkMG0Cx+T4IQzpN8q7D02Nq15om8OGPDWEB1wlpkkjs=",
+    #         move="unban",
+    #         conn=conn,
+    #     )
+    #     for _ in range(1)
+    # ]
 
-        end = time() - start - coros_gen
+    coros_gen = time() - start
 
-        print(f"{coros_gen=}  {end=}")
+    await asyncio.gather(*coros)
+
+    end = time() - start - coros_gen
+
+    print(f"{coros_gen=}  {end=}")
 
 
 if __name__ == "__main__":
-    sys.path.insert(1, os.path.join("C:\\code\\vpn_dan_bot\\src"))
     logging.config.fileConfig("log.ini", disable_existing_loggers=False)
 
     loop = asyncio.get_event_loop()

@@ -37,15 +37,19 @@ class ConfigChanger:
             assert "peer" in self.config[i - 1].lower()
             validated_lines.extend((i - 1, i))
 
-            assert "allowedips" in self.config[i + 1].lower()
-            validated_lines.append(i + 1)
-
-            try:
-                assert "endpoint" in self.config[i + 2].lower()
-            except (AssertionError, IndexError):
-                pass
-            else:
-                validated_lines.append(i + 2)
+            extra = 1
+            while extra:
+                try:
+                    if (
+                        "peer" in self.config[i + extra].lower()
+                        or not self.config[i + extra]
+                    ):
+                        break
+                except IndexError:
+                    break
+                else:
+                    validated_lines.append(i + extra)
+                    extra += 1
 
         for i in validated_lines:
             yield i
@@ -110,6 +114,7 @@ class ConfigChanger:
             "[Peer]",
             f"PublicKey = {self.public_key}",
             f"AllowedIPs = {self.allowed_ips}",
+            "PersistentKeepalive = 25",
         )
         config = "\n".join(self.config)
         if self.public_key in config:
