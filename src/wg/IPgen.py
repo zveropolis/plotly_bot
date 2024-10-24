@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
 import argparse
-from pathlib import Path
 from ipaddress import IPv4Address
+from pathlib import Path
 
 START_IP = "10.1.0.1"
 FILE = Path("INCREMENTED_IP")

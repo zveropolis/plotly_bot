@@ -64,7 +64,10 @@ class Settings(BaseSettings):
     DB_PASS: SecretStr
     DB_NAME: str
 
+    ADMIN_LOGIN: str
     ADMIN_PASS: SecretStr
+    ADMIN_HASH: SecretStr
+    JWT_SECRET: SecretStr
 
     WG_HOST: str
     WG_PORT: int

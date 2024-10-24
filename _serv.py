@@ -9,16 +9,21 @@ from datetime import datetime
 
 import uvicorn
 from fastapi import FastAPI, Form, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastui import prebuilt_html
 from fastui.auth import fastapi_auth_exception_handling
 
 sys.path.insert(1, os.path.join(sys.path[0], "server"))
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
 
-from server.form import router as form_router
-from server.main import router as main_router
+from server.pages.auth import router as auth_router
+from server.pages.form import router as form_router
+from server.pages.main import router as main_router
+from server.pages.reports import router as reports_router
+from server.pages.tables import router as tables_router
 from src.app import models as mod
+from src.core.path import PATH
 from src.db.utils import confirm_success_pay
 
 server_log = "./server/log.ini"
@@ -26,10 +31,23 @@ logging.config.fileConfig(server_log, disable_existing_loggers=False)
 logger = logging.getLogger()
 queue = logging.getLogger("queue")
 app = FastAPI()
+static = StaticFiles(directory=os.path.join(PATH, "server", "static"))
+bugs = StaticFiles(directory=os.path.join(PATH, "bugs"))
+favicon_path = os.path.join(PATH, "server", "static", "favicon.ico")
 
 fastapi_auth_exception_handling(app)
 app.include_router(form_router, prefix="/api/bot/bug")
+app.include_router(auth_router, prefix="/api/bot/auth")
+app.include_router(tables_router, prefix="/api/bot/tables")
+app.include_router(reports_router, prefix="/api/bot/tables/reports")
 app.include_router(main_router, prefix="/api/bot")
+app.mount("/static", static, name="static")
+app.mount("/bugs", bugs, name="bugs")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse(favicon_path)
 
 
 @app.get("/")
@@ -107,11 +125,11 @@ if __name__ == "__main__":
         ...
     uvicorn.run(
         "_serv:app",
-        # host="127.0.0.1",
-        host="172.17.0.1",
+        host="127.0.0.1",
+        # host="172.17.0.1",
         port=5000,
-        # workers=4,
-        # reload=True,
+        workers=4,
+        reload=True,
         log_config=server_log,
         log_level="info",
         use_colors=False,

@@ -29,5 +29,12 @@
             "program": "./tests/polygon.py",
             "console": "integratedTerminal"
         },
+        {
+            "name": "Шаблон запуска сабсервера",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "./_serv.py",
+            "console": "integratedTerminal",
+        },
     ]
 }
