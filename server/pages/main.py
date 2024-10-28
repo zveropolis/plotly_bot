@@ -31,15 +31,15 @@ def api_index(
                         c.Image(
                             src="/static/Logo_no_back.png",
                             alt="DanVPN Logo",
-                            width=300,
-                            height=300,
+                            width=200,
+                            height=200,
                         ),
                         c.Div(
                             components=[
                                 c.Heading(text="DanVPN"),
                                 c.Markdown(text="""# **ПРОСТО** *БЫСТРО* `АНОНИМНО`"""),
                             ],
-                            class_name="ml-3",  # Отступ слева от изображения
+                            class_name="ml-1",  # Отступ слева от изображения
                         ),
                     ],
                     class_name="d-flex align-items-center",  # Используем Flexbox для горизонтального выравнивания
@@ -56,22 +56,27 @@ def api_index(
             on_click=GoToEvent(url="https://t.me/vpn_dan_bot"),
         ),
         c.Button(
+            text="QR",
+            on_click=GoToEvent(url="https://t.me/vpn_dan_bot"),
+            class_name="+ ms-1",
+        ),
+        c.Button(
             text="Связаться с нами",
             on_click=GoToEvent(url="/bot/bug/create"),
             named_style="secondary",
             class_name="+ ms-2",
         ),
-        c.Div(
-            components=[
-                c.Image(
-                    src="/static/qr.png",
-                    alt="DanVPN QR",
-                    width=200,
-                    height=240,
-                )
-            ],
-            class_name="mt-3 pt-1",
-        ),
+        # c.Div(
+        #     components=[
+        #         c.Image(
+        #             src="/static/qr.png",
+        #             alt="DanVPN QR",
+        #             width=200,
+        #             height=240,
+        #         )
+        #     ],
+        #     class_name="mt-3 pt-1",
+        # ),
         *get_news(),
         user=user,
     )
