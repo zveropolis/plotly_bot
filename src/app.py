@@ -16,7 +16,7 @@ from core.err import exception_logging
 from db import models, utils  # NOTE for subserver
 from db.utils.tests import test_base, test_redis_base
 from scheduler.balance import balance_decrement, users_notice
-from scheduler.config_freezer import check_freeze_configs
+from scheduler.config_freezer import check_freeze_configs, validate_configs
 from scheduler.notices import send_notice
 from scheduler.dump import regular_dump
 from wg.utils import SSH
@@ -83,6 +83,12 @@ def __create_scheduler(bot):
         check_freeze_configs,
         trigger="interval",
         seconds=60,
+        start_date=datetime.now() + timedelta(seconds=15),
+    )
+    scheduler.add_job(
+        validate_configs,
+        trigger="interval",
+        seconds=3600,
         start_date=datetime.now() + timedelta(seconds=15),
     )
     scheduler.add_job(

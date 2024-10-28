@@ -44,3 +44,44 @@ async def check_freeze_configs():
                 "Заморожены конфигурации",
                 extra={"configs.ids": [config.id for config in wait_yes_cfg]},
             )
+
+
+async def validate_configs():
+    try:
+        server_peers = await WgConfigMaker().get_peer_list()
+        server_peers = {peer["publickey"]: peer for peer in server_peers}
+
+        local_configs = await get_all_wg_configs()
+
+        to_freeze = []
+        to_unfreeze = []
+
+        for config in local_configs:
+            peer = server_peers.get(config.server_public_key, None)
+
+            if peer:
+                assert str(config.address) == peer["allowedips"]
+
+                if peer["ban"] and config.freeze in (
+                    FreezeSteps.no,
+                    FreezeSteps.wait_yes,
+                ):
+                    to_freeze.append(config)
+
+                elif not peer["ban"] and config.freeze in (
+                    FreezeSteps.yes,
+                    FreezeSteps.wait_no,
+                ):
+                    to_unfreeze.append(config)
+
+        if to_freeze:
+            await freeze_config(to_freeze, freeze=FreezeSteps.yes)
+        if to_unfreeze:
+            await freeze_config(to_unfreeze, freeze=FreezeSteps.no)
+
+    except DatabaseError:
+        logger.exception("Ошибка связи с БД при заморозке конфигураций")
+    except WireguardError:
+        logger.exception("Ошибка связи с wireguard сервером при заморозке конфигураций")
+    except AssertionError:
+        logger.error("Адрес полученного пира не соответствует имеющемуся в БД")
