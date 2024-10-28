@@ -2,7 +2,7 @@ from db.utils.admin import (get_admins, get_all_users, get_valid_users,
                             set_admin)
 from db.utils.reports import add_report
 # from db.utils.redis import CashManager
-from db.utils.save import async_backup
+from db.utils.save import async_backup, dump
 from db.utils.transactions import (close_free_trial, confirm_success_pay,
                                    insert_transaction)
 from db.utils.user import (add_user, clear_cash, freeze_user, get_user,

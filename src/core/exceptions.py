@@ -14,6 +14,11 @@ class UniquenessError(DatabaseError):
 
 
 class BackupError(DatabaseError):
+    def __init__(self, text="Ошибка создания бэкапа базы") -> None:
+        super().__init__(text)
+
+
+class DumpError(DatabaseError):
     def __init__(self, text="Ошибка создания дампа базы") -> None:
         super().__init__(text)
 

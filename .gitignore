@@ -10,7 +10,6 @@ compile.md
 
 *logs
 *.log
-src/db/dumps/*
 ssh
 src/wg/wg0.conf
 src/wg/wg1.conf
@@ -19,5 +18,6 @@ src/wg/wg1.conf
 src/scheduler/last_decremented.pickle
 src/scheduler/last_noticed.pickle
 src/db/backups/backup*
+src/db/dumps/*dump*
 bugs/*
 3.10/*

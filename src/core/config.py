@@ -86,6 +86,7 @@ class Settings(BaseSettings):
     cost: float
     cash_ttl: int
     transfer_fee: float
+    max_dumps: int
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(PATH, ".env"),

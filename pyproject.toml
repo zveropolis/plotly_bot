@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vpn-dan-bot"
-version = "0.2.2"
+version = "0.2.3"
 description = "test python 3.12"
 authors = ["daniil-mazurov"]
 readme = "README.md"

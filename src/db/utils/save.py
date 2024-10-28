@@ -1,12 +1,15 @@
 import logging
 import os
 from datetime import datetime, timedelta
+import subprocess as sub
+import asyncio
 
 from pandas import DataFrame, ExcelWriter
 from sqlalchemy import select
 
-from core.exceptions import BackupError
+from core.exceptions import BackupError, DumpError
 from core.path import PATH
+from core.config import settings
 from db.database import execute_query
 from db.models import Transactions, UserData, WgConfig
 
@@ -40,3 +43,35 @@ async def async_backup():
             raise BackupError
         else:
             return filename
+
+
+async def dump(regular=False):
+    filename = os.path.join(
+        PATH,
+        "src",
+        "db",
+        "dumps",
+        f"{'regular_' if regular else ''}dump_{datetime.today().strftime('%d_%m_%Y-%H_%M')}.sql",
+    )
+
+    cmd = (
+        f"PGPASSWORD={settings.DB_PASS.get_secret_value()} "
+        f"pg_dump -U {settings.DB_USER} {settings.DB_NAME} "
+        f"-p {settings.DB_PORT} -h {settings.DB_HOST} > {filename}"
+    )
+
+    logger.info("Создание дампа БД", extra={"dumpname": filename})
+
+    proc = await asyncio.create_subprocess_shell(
+        cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+
+    stdout, stderr = await proc.communicate()
+
+    logger.info(f"pg_dump exited with {proc.returncode}")
+    try:
+        ERROR = stderr.decode()
+        assert not ERROR, "Ошибка создания дампа БД"
+    except AssertionError:
+        logger.exception(ERROR)
+        raise DumpError(ERROR)
