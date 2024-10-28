@@ -8,8 +8,16 @@ from fastui.components.display import DisplayLookup, DisplayMode
 from fastui.events import GoToEvent
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from random_word import RandomWords
-from sqlalchemy import (BigInteger, Date, DateTime, Enum, ForeignKey, Numeric,
-                        String, func)
+from sqlalchemy import (
+    BigInteger,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Numeric,
+    String,
+    func,
+)
 from sqlalchemy.dialects.postgresql import CIDR, INET, JSONB
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -102,7 +110,7 @@ class UserData(Base):
         DisplayLookup(
             field="telegram_id",
             mode=DisplayMode.plain,
-            on_click=GoToEvent(url="/bot/tables/userdata/{telegram_id}/"),
+            on_click=GoToEvent(url="/bot/tables/userdata/?telegram_id={telegram_id}"),
         ),
         DisplayLookup(field="telegram_name", mode=DisplayMode.as_title),
         DisplayLookup(field="admin"),
@@ -166,13 +174,13 @@ class Transactions(Base):
         DisplayLookup(
             field="user_id",
             mode=DisplayMode.plain,
-            on_click=GoToEvent(url="/bot/tables/userdata/{user_id}/"),
+            on_click=GoToEvent(url="/bot/tables/userdata/?telegram_id={user_id}"),
         ),
         DisplayLookup(field="date", mode=DisplayMode.datetime),
         DisplayLookup(field="amount"),
         DisplayLookup(
             field="label",
-            on_click=GoToEvent(url="/bot/tables/transactions/{label}/"),
+            on_click=GoToEvent(url="/bot/tables/transactions/?label={label}"),
         ),
         DisplayLookup(field="sender"),
     ]
@@ -243,12 +251,12 @@ class WgConfig(Base):
         DisplayLookup(
             field="user_id",
             mode=DisplayMode.plain,
-            on_click=GoToEvent(url="/bot/tables/userdata/{user_id}/"),
+            on_click=GoToEvent(url="/bot/tables/userdata/?telegram_id={user_id}"),
         ),
         DisplayLookup(
             field="name",
             mode=DisplayMode.as_title,
-            on_click=GoToEvent(url="/bot/tables/wg_config/{name}/"),
+            on_click=GoToEvent(url="/bot/tables/wg_config/?name={name}"),
         ),
         DisplayLookup(field="freeze"),
         DisplayLookup(field="address"),
@@ -315,13 +323,13 @@ class Reports(Base):
         DisplayLookup(
             field="id",
             on_click=GoToEvent(
-                url="/bot/tables/reports/report?report_id={id}&telegram_id={user_id}"
+                url="/bot/tables/reports/?report_id={id}&telegram_id={user_id}"
             ),
         ),
         DisplayLookup(
             field="user_id",
             mode=DisplayMode.plain,
-            on_click=GoToEvent(url="/bot/tables/userdata/{user_id}/"),
+            on_click=GoToEvent(url="/bot/tables/userdata/?telegram_id={user_id}"),
         ),
         DisplayLookup(field="user_name", mode=DisplayMode.as_title),
         DisplayLookup(field="status"),
@@ -389,7 +397,7 @@ class YoomoneyOperationDetails(BaseModel):
 yoomoney_site_display: list = [
     DisplayLookup(
         field="operation_id",
-        on_click=GoToEvent(url="/bot/tables/yoomoney/{operation_id}/"),
+        on_click=GoToEvent(url="/bot/tables/yoomoney/?operation_id={operation_id}"),
     ),
     DisplayLookup(field="status"),
     DisplayLookup(field="datetime", mode=DisplayMode.datetime),

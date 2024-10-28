@@ -22,12 +22,14 @@ router = APIRouter()
 @router.get("/yoomoney", response_model=FastUI, response_model_exclude_none=True)
 async def yoomoney_view(
     user: Annotated[User, Depends(User.from_request)],
+    page: int = 1,
 ) -> list[AnyComponent]:
     try:
         _table = mod.YoomoneyOperation
         client = Client(settings.YOO_TOKEN.get_secret_value())
 
         history = client.operation_history()
+        size = user.page_size
 
         data = [
             _table.model_validate(operation, from_attributes=True)
@@ -40,22 +42,21 @@ async def yoomoney_view(
         return bot_page(
             *tabs(),
             c.Table(
-                data=data,
+                data=data[(page - 1) * size : page * size],
                 columns=mod.yoomoney_site_display,
             )
             if data
             else c.Paragraph(text="Empty table"),
+            c.Pagination(page=page, page_size=size, total=len(data)),
             user=user,
             title=_table.__tablename__.capitalize(),
         )
 
 
-@router.get(
-    "/yoomoney/{operation_id}/", response_model=FastUI, response_model_exclude_none=True
-)
+@router.get("/yoomoney/", response_model=FastUI, response_model_exclude_none=True)
 async def yoomoney_operation_profile(
-    operation_id: str,
     user: Annotated[User, Depends(User.from_request)],
+    operation_id: str,
 ) -> list[AnyComponent]:
     try:
         client = Client(settings.YOO_TOKEN.get_secret_value())
@@ -86,13 +87,15 @@ async def yoomoney_operation_profile(
 
 @router.get("/{table}", response_model=FastUI, response_model_exclude_none=True)
 async def tables_view(
-    table: str,
     user: Annotated[User, Depends(User.from_request)],
+    table: str,
+    page: int = 1,
 ) -> list[AnyComponent]:
     try:
         _table = mod.TABLES_SCHEMA.get(table)
         assert _table
         schema: BaseModel = _table.ValidationSchema
+        size = user.page_size
 
         query = select(_table).order_by(_table.id)
         raw: list = (await execute_query(query)).scalars().all()
@@ -107,20 +110,21 @@ async def tables_view(
     else:
         return bot_page(
             *tabs(),
-            c.Table(data=data, columns=_table.site_display)
+            c.Table(
+                data=data[(page - 1) * size : page * size], columns=_table.site_display
+            )
             if data
             else c.Paragraph(text="Empty table"),
+            c.Pagination(page=page, page_size=size, total=len(data)),
             user=user,
             title=table.capitalize(),
         )
 
 
-@router.get(
-    "/userdata/{telegram_id}/", response_model=FastUI, response_model_exclude_none=True
-)
+@router.get("/userdata/", response_model=FastUI, response_model_exclude_none=True)
 async def user_profile(
-    telegram_id: int,
     user: Annotated[User, Depends(User.from_request)],
+    telegram_id: int,
 ) -> list[AnyComponent]:
     try:
         _table = mod.UserData
@@ -181,12 +185,10 @@ async def user_profile(
         )
 
 
-@router.get(
-    "/wg_config/{name}/", response_model=FastUI, response_model_exclude_none=True
-)
+@router.get("/wg_config/", response_model=FastUI, response_model_exclude_none=True)
 async def config_profile(
-    name: str,
     user: Annotated[User, Depends(User.from_request)],
+    name: str,
 ) -> list[AnyComponent]:
     try:
         _table = mod.WgConfig
@@ -220,12 +222,10 @@ async def config_profile(
         )
 
 
-@router.get(
-    "/transactions/{label}/", response_model=FastUI, response_model_exclude_none=True
-)
+@router.get("/transactions/", response_model=FastUI, response_model_exclude_none=True)
 async def transaction_profile(
-    label: str,
     user: Annotated[User, Depends(User.from_request)],
+    label: str,
 ) -> list[AnyComponent]:
     try:
         _table = mod.Transactions

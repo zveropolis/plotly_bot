@@ -24,11 +24,11 @@ class ReportStatus(BaseModel):
     status: mod.ReportStatus = Field(title="New Status")
 
 
-@router.get("/report", response_model=FastUI, response_model_exclude_none=True)
+@router.get("/", response_model=FastUI, response_model_exclude_none=True)
 async def report_profile(
+    user: Annotated[User, Depends(User.from_request)],
     report_id: int,
     telegram_id: int,
-    user: Annotated[User, Depends(User.from_request)],
 ) -> list[AnyComponent]:
     try:
         _table = mod.Reports
@@ -99,7 +99,7 @@ async def report_profile(
                     width=360,
                     height=640,
                     on_click=GoToEvent(
-                        url=f"/bot/tables/reports/report/{report.id}/{folder}/{image}"
+                        url=f"/bot/tables/reports/report/image/?id={report.id}&folder={folder}&image={image}"
                     ),
                     class_name="border rounded mt-3 pt-1",
                 )
@@ -150,15 +150,15 @@ async def change_report_status(
 
 
 @router.get(
-    "/report/{id}/{folder}/{image}",
+    "/report/image/",
     response_model=FastUI,
     response_model_exclude_none=True,
 )
 async def report_image(
+    user: Annotated[User, Depends(User.from_request)],
     id: int,
     folder: str,
     image: str,
-    user: Annotated[User, Depends(User.from_request)],
 ):
     return bot_page(
         c.Button(
