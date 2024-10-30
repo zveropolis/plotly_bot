@@ -179,7 +179,8 @@ async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContex
         )
 
         await getattr(trigger, "message", trigger).answer(
-            "Многоразовая ссылка на пополнение счета",
+            "Многоразовая ссылка на пополнение счета."
+            "\n<b>(Действительна в течение 3х месяцев)</b>",
             reply_markup=kb.get_pay_url(SUM, quickpay.redirected_url),
         )
         await getattr(trigger, "message", trigger).answer(
