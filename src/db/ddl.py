@@ -17,9 +17,15 @@ with open(os.path.join(sql_path, "trigger_succesful_pay.sql")) as sql:
     trigger_succesful_pay = DDL(sql.read())
 with open(os.path.join(sql_path, "_unfreeze_configs.sql")) as sql:
     unfreeze_configs = DDL(sql.read())
+with open(os.path.join(sql_path, "_delete_old_transactions.sql")) as sql:
+    delete_old_transactions = DDL(sql.read())
+with open(os.path.join(sql_path, "trigger_old_transactions.sql")) as sql:
+    trigger_old_transactions = DDL(sql.read())
 
 event.listen(Base.metadata, "after_create", update_user_status)
 event.listen(Base.metadata, "after_create", trigger_update_user_status)
 event.listen(Base.metadata, "after_create", succesful_pay)
 event.listen(Base.metadata, "after_create", trigger_succesful_pay)
 event.listen(Base.metadata, "after_create", unfreeze_configs)
+event.listen(Base.metadata, "after_create", delete_old_transactions)
+event.listen(Base.metadata, "after_create", trigger_old_transactions)
