@@ -38,7 +38,9 @@ class ExtraFormatter(logging.Formatter):
 
         default_attrs = logging.LogRecord(*[None] * 7).__dict__.keys()
         extras = (
-            set(record.__dict__.keys()) - default_attrs - {"message", "color_message"}
+            set(record.__dict__.keys())
+            - default_attrs
+            - {"message", "color_message", "asctime"}
         )
         if extras:
             format_str = "\n" + "\n".join(f"{val}: %({val})s" for val in sorted(extras))
