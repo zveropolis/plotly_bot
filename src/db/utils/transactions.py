@@ -1,15 +1,31 @@
 import logging
+from datetime import datetime, timezone
+from uuid import uuid4
 
 from sqlalchemy import and_, insert, select, update
 
 from db.database import execute_query, iter_redis_keys
-from db.models import Transactions, UserData
+from db.models import Transactions, UserData, UserActivity
 from db.utils.redis import CashManager
+from core.config import settings
+from core.metric import async_speed_metric
 
 logger = logging.getLogger()
 
 
-async def __clear_transactions(user_id):
+@async_speed_metric
+async def get_cash_wg_transactions(user_id):
+    cash = CashManager(Transactions)
+
+    tr_keys = await iter_redis_keys(f"data:{Transactions.__tablename__}:*:{user_id}")
+    async for trans_key in tr_keys:
+        cash.cmd.hgetall(trans_key)
+
+    return await cash()
+
+
+@async_speed_metric
+async def delete_cash_transactions(user_id):
     rkeys = await iter_redis_keys(f"data:{Transactions.__tablename__}:*:{user_id}")
     await CashManager(Transactions).delete(
         *[key async for key in rkeys],
@@ -17,8 +33,9 @@ async def __clear_transactions(user_id):
     )
 
 
+@async_speed_metric
 async def insert_transaction(conf: dict):
-    await __clear_transactions(conf["user_id"])
+    await delete_cash_transactions(conf["user_id"])
 
     query = insert(Transactions).values(**conf)
     await execute_query(query)
@@ -63,7 +80,7 @@ async def confirm_success_pay(transaction: Transactions):
     result: Transactions = (await execute_query(query)).scalar_one_or_none()
 
     if result:
-        await __clear_transactions(result.user_id)
+        await delete_cash_transactions(result.user_id)
         await CashManager(UserData).delete(result.user_id)
 
     return result
@@ -78,21 +95,49 @@ async def close_free_trial(user_id):
     )
 
     result: UserData = (await execute_query(query)).scalar_one_or_none()
+    # NOTE не удаляется из кеша потому что кеш чистится после пополнения баланса
     return result
 
 
-# async def get_user_transactions(user_id):
-#     result = await CashManager(Transactions).get({user_id: ...})
+@async_speed_metric
+async def raise_money():
+    query = select(UserData).filter_by(active=UserActivity.active)
+    users: list[UserData] = (await execute_query(query)).scalars().all()
 
-#     if not result.empty:
-#         return result
+    data = [
+        dict(
+            user_id=user.telegram_id,
+            date=datetime.now(timezone.utc),
+            amount=-1 * user.stage * settings.cost,
+            withdraw_amount=-1 * user.stage * settings.cost,
+            label=uuid4(),
+            transaction_id="Ежедневное списание",
+            transaction_reference="",
+        )
+        for user in users
+    ]
 
-#     query = select(Transactions).where(Transactions.user_id == user_id)
+    query = insert(Transactions).values(data)
+    await execute_query(query)
 
-#     result = (await execute_query(query)).mappings().all()
+    for user in users:
+        await delete_cash_transactions(user.telegram_id)
+        await CashManager(UserData).delete(user.telegram_id)
 
-#     await CashManager(Transactions).add(
-#         {f'{line["label"]}:{line["user_id"]}': line} for line in map(dict, result)
-#     )
 
-#     return DataFrame(result)
+async def get_user_transactions(user_id):
+    trans: list[Transactions] = await get_cash_wg_transactions(user_id)
+
+    if trans:
+        return trans
+
+    query = select(Transactions).where(Transactions.user_id == user_id)
+
+    result: list[Transactions] = (await execute_query(query)).scalars().all()
+
+    if result:
+        await CashManager(Transactions).add(
+            **{f"{trans.id}:{user_id}": trans.__ustr_dict__ for trans in result}
+        )
+
+    return result

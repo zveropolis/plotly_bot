@@ -3,6 +3,7 @@ from datetime import date as date_cls
 from datetime import datetime
 from ipaddress import IPv4Address, IPv4Interface
 from uuid import UUID
+from collections.abc import Iterable
 
 from fastui.components.display import DisplayLookup, DisplayMode
 from fastui.events import GoToEvent
@@ -165,6 +166,16 @@ class Transactions(Base):
         sha1_hash: str | None = Field(default=None, title="Hash")
         sender: str | None = Field(default=None, title="Sender")
         withdraw_amount: float | None = Field(default=None, title="Withdraw_amount")
+
+        transaction_reference: str | None = Field(
+            default=None, title="Transaction Reference"
+        )
+
+        @model_validator(mode="before")
+        def convert_str_to_none(cls, values):
+            if isinstance(values, Iterable):
+                return {k: None if v == "None" else v for k, v in dict(values).items()}
+            return values
 
         model_config = ConfigDict(extra="ignore")
 

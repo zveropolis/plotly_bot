@@ -84,21 +84,6 @@ async def update_rate_user(user_id, stage, tax=0, trial=False):
     return result
 
 
-async def raise_money():
-    query = (
-        update(UserData)
-        .values(balance=UserData.balance - UserData.stage * settings.cost)
-        .filter_by(active=UserActivity.active)
-        .returning(UserData)
-    )
-    results: list[UserData] = (await execute_query(query)).scalars().all()
-
-    for result in results:
-        await CashManager(UserData).delete(result.telegram_id)
-
-    return results
-
-
 @async_speed_metric
 async def clear_cash(user_id):
     await CashManager(None).clear(user_id)

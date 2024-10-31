@@ -21,7 +21,7 @@ async def get_cash_wg_configs(user_id):
     async for wg_conf_key in wg_keys:
         cash.cmd.hgetall(wg_conf_key)
 
-    return await cash(user_id)
+    return await cash()
 
 
 @async_speed_metric

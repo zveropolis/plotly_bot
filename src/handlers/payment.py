@@ -17,7 +17,7 @@ from core import exceptions as exc
 from core.config import settings
 from core.metric import async_speed_metric
 from db import utils
-from db.models import UserData
+from db.models import UserData, Transactions
 from handlers.utils import find_user
 from handlers.wg_service import post_user_data
 from states import Service
@@ -48,6 +48,50 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
                 )
             ),
             reply_markup=kb.get_subscr_buttons(user_data),
+        )
+
+
+@router.message(Command("history"))
+@async_speed_metric
+async def get_user_transact(trigger: Union[Message, CallbackQuery]):
+    transactions: list[Transactions] = await utils.get_user_transactions(
+        trigger.from_user.id
+    )
+    if transactions:
+        await getattr(trigger, "message", trigger).answer("Список ваших транзакций")
+    else:
+        await getattr(trigger, "message", trigger).answer(
+            "У вас не было еще ни одной транзакции"
+        )
+
+    for transact in sorted(transactions, key=lambda x: x.date):
+        params = transact.__udict__
+        view_params = {"id", "date", "amount", "withdraw_amount"}
+
+        post_params = {key: params[key] for key in sorted(params.keys() & view_params)}
+
+        if transact.transaction_reference:
+            pay_but = kb.get_pay_url(transact.amount, transact.transaction_reference)
+        else:
+            pay_but = None
+
+        if transact.amount > 0:
+            if transact.transaction_id:
+                post_params["success"] = True
+            else:
+                post_params["success"] = False
+        else:
+            post_params["tip"] = params.get("transaction_id", None)
+
+        if transact.date:
+            post_params["date"] = post_params["date"].astimezone().ctime()
+
+        if not post_params["withdraw_amount"]:
+            post_params.pop("withdraw_amount")
+
+        await getattr(trigger, "message", trigger).answer(
+            "\n".join((f"<b>{key}</b>:  {val}" for key, val in post_params.items())),
+            reply_markup=pay_but,
         )
 
 

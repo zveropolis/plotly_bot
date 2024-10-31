@@ -30,10 +30,9 @@ class CashManager:
     def cmd(self):
         return self.pipe
 
-    async def __call__(self, *user_id):
+    async def __call__(self):
         results = await execute_redis_query(self.pipe)
 
-        # await self.update_ttl(user_id)
         validated_results = [
             self.model(**result)
             for result in results
@@ -103,7 +102,7 @@ class CashManager:
                 case _:
                     raise RedisTypeError
 
-        return await self.__call__(*id_obj)
+        return await self.__call__()
 
     async def delete(self, *keys, fullkey=False):
         if not fullkey:
