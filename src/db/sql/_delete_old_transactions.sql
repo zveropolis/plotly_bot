@@ -8,7 +8,7 @@ AS $BODY$
 BEGIN
     DELETE FROM public.transactions
     WHERE transaction_id IS NULL
-    AND date < NOW() - INTERVAL '3 MONTH';
+    AND date < NOW() - INTERVAL '12 HOURS';
 
 	RETURN NEW;
 END;

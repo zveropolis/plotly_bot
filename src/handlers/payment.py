@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Union
 from uuid import uuid4
 
@@ -52,46 +52,75 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
 
 
 @router.message(Command("history"))
+@router.callback_query(F.data == "transact_history")
 @async_speed_metric
 async def get_user_transact(trigger: Union[Message, CallbackQuery]):
-    transactions: list[Transactions] = await utils.get_user_transactions(
-        trigger.from_user.id
-    )
-    if transactions:
-        await getattr(trigger, "message", trigger).answer("Список ваших транзакций")
-    else:
-        await getattr(trigger, "message", trigger).answer(
-            "У вас не было еще ни одной транзакции"
+    try:
+        transactions: list[Transactions] = await utils.get_user_transactions(
+            trigger.from_user.id
         )
 
-    for transact in sorted(transactions, key=lambda x: x.date):
-        params = transact.__udict__
-        view_params = {"id", "date", "amount", "withdraw_amount"}
-
-        post_params = {key: params[key] for key in sorted(params.keys() & view_params)}
-
-        if transact.transaction_reference:
-            pay_but = kb.get_pay_url(transact.amount, transact.transaction_reference)
+        if transactions:
+            await getattr(trigger, "message", trigger).answer("Список ваших транзакций")
         else:
-            pay_but = None
+            await getattr(trigger, "message", trigger).answer(
+                "У вас не было еще ни одной транзакции"
+            )
 
-        if transact.amount > 0:
-            if transact.transaction_id:
-                post_params["success"] = True
+        for transact in sorted(transactions, key=lambda x: x.date):
+            params = transact.__udict__
+            view_params = {"id", "date", "amount", "withdraw_amount"}
+
+            post_params = {key: params[key] for key in params.keys() & view_params}
+
+            if transact.date:
+                post_params["date"] = post_params["date"].astimezone().ctime()
+                post_params["Дата"] = post_params.pop("date")
+
+                if not transact.transaction_id and datetime.now(
+                    transact.date.tzinfo
+                ) - transact.date > timedelta(hours=12):
+                    continue
+
+            if transact.amount > 0:
+                if transact.transaction_id:
+                    post_params["Статус"] = "Исполнена"
+                else:
+                    post_params["Статус"] = "Не исполнена"
+                post_params["Описание"] = "Пополнение"
             else:
-                post_params["success"] = False
-        else:
-            post_params["tip"] = params.get("transaction_id", None)
+                post_params["Описание"] = params.get("transaction_id", None)
 
-        if transact.date:
-            post_params["date"] = post_params["date"].astimezone().ctime()
+            if not post_params["withdraw_amount"]:
+                post_params.pop("withdraw_amount")
+            else:
+                post_params["Комиссия"] = (
+                    post_params.pop("withdraw_amount") - post_params["amount"]
+                )
 
-        if not post_params["withdraw_amount"]:
-            post_params.pop("withdraw_amount")
+            post_params["Сумма"] = post_params.pop("amount")
 
-        await getattr(trigger, "message", trigger).answer(
-            "\n".join((f"<b>{key}</b>:  {val}" for key, val in post_params.items())),
-            reply_markup=pay_but,
+            await getattr(trigger, "message", trigger).answer(
+                "<pre>"
+                + "\n".join(
+                    sorted(
+                        (
+                            f"<b>{key}</b>:{' '*(10-len(key))}{val}"
+                            for key, val in post_params.items()
+                        ),
+                        key=lambda x: len(x.split(":")[0]),
+                    )
+                )
+                + "</pre>"
+            )
+    except exc.DatabaseError:
+        await trigger.answer(text=text.DB_ERROR, show_alert=True)
+    except Exception:
+        logger.exception("Ошибка при отображении истории транзакций")
+        await trigger.answer(
+            text="К сожалению, сейчас мы не можем отобразить вашу историю. "
+            "Попробуйте позже.",
+            show_alert=True,
         )
 
 
@@ -224,7 +253,7 @@ async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContex
 
         await getattr(trigger, "message", trigger).answer(
             "Многоразовая ссылка на пополнение счета."
-            "\n<b>(Действительна в течение 3х месяцев)</b>",
+            "\n<b>(Действительна в течение 12 часов)</b>",
             reply_markup=kb.get_pay_url(SUM, quickpay.redirected_url),
         )
         await getattr(trigger, "message", trigger).answer(
