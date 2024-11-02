@@ -55,13 +55,20 @@ async def post_user_data(trigger: Union[Message, CallbackQuery]):
                         )
 
         if user_data.active == UserActivity.active:
-            cfg_number = get_plural(
-                settings.acceptable_config[user_data.stage] - len(user_data.configs),
-                "конфигурацию, конфигурации, конфигураций",
+            cfg_number = settings.acceptable_config[user_data.stage] - len(
+                user_data.configs
             )
-            await getattr(trigger, "message", trigger).answer(
-                f"Вы можете создать еще {cfg_number}", reply_markup=create_cfg_btn
-            )
+
+            if cfg_number <= 0:
+                await getattr(trigger, "message", trigger).answer(
+                    "Достигнуто максимальное количество конфигураций для данного тарифа.",
+                    reply_markup=static_pay_button,
+                )
+            else:
+                await getattr(trigger, "message", trigger).answer(
+                    f"Вы можете создать еще {get_plural(cfg_number,"конфигурацию, конфигурации, конфигураций")}",
+                    reply_markup=create_cfg_btn,
+                )
         elif user_data.active == UserActivity.inactive:
             await getattr(trigger, "message", trigger).answer(
                 text.UNPAY, reply_markup=static_pay_button

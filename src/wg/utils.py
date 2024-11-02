@@ -67,7 +67,7 @@ class WgConfigMaker:
 
         except (OSError, asyncssh.Error) as e:
             logger.exception(
-                "Сбой при добавлении пира в конфигурацию сервера wireguard"
+                "Сбой при изменении пира в конфигурации сервера wireguard"
             )
             raise WireguardError from e
 
