@@ -17,8 +17,8 @@ from db import models, utils  # NOTE for subserver
 from db.utils.tests import test_base, test_redis_base
 from scheduler.balance import balance_decrement, users_notice
 from scheduler.config_freezer import check_freeze_configs, validate_configs
-from scheduler.notices import send_notice
 from scheduler.dump import regular_dump
+from scheduler.notices import send_notice
 from wg.utils import SSH
 
 logger = logging.getLogger()

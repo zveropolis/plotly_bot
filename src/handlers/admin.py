@@ -4,7 +4,7 @@ from aiogram import Bot, F, Router
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile, Message
-from aiogram.utils.formatting import Bold, as_list, as_marked_section
+from aiogram.utils.formatting import Bold, as_marked_section
 from pytils.numeral import get_plural
 
 import text
@@ -28,15 +28,9 @@ async def admin_actions(message: Message):
             help_t = as_marked_section(
                 Bold("Функционал администратора телеграмм бота"),
                 "/admin - список команд администратора",
-                "/backup - выгрузить дамп БД в виде excel таблицы",
+                "/backup - выгрузить бэкап БД в виде excel таблицы",
                 "/send - рассылка сообщения всем зарегистрированным пользователям",
-                "/server_status",
-                "/reboot",
-                "/wg_reboot",
-                "/ban",
-                "/admin_history",
                 "/close | /sorry",
-                "/clear",
                 marker="~ ",
             )
 

@@ -139,7 +139,7 @@ async def get_config_text(callback: CallbackQuery):
     config = text.get_config_data(user_config)
 
     await callback.message.answer("Конфигурация " + callback.message.text)
-    await callback.message.answer(config)
+    await callback.message.answer(f"<pre>{config}</pre>")
 
 
 @router.callback_query(F.data == "create_conf_file")

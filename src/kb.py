@@ -1,9 +1,51 @@
-from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, ReplyKeyboardMarkup)
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 from pytils.numeral import get_plural
 
 from db.models import UserActivity, UserData
 from text import rates
+
+
+static_join_button = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Присоединиться!", callback_data="start_app")]
+    ]
+)
+
+static_wg_url = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Скачать WireGuard", url="https://www.wireguard.com/install/"
+            )
+        ]
+    ]
+)
+static_wg_platform_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Windows", callback_data="wg_help_info_Windows_start"
+            ),
+            InlineKeyboardButton(
+                text="Linux", callback_data="wg_help_info_Linux_start"
+            ),
+            InlineKeyboardButton(
+                text="macOS", callback_data="wg_help_info_macOS_start"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="Android", callback_data="wg_help_info_Android_start"
+            ),
+            InlineKeyboardButton(text="iOS", callback_data="wg_help_info_iOS_start"),
+        ],
+    ]
+)
 
 static_reg_button = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -20,14 +62,13 @@ static_pay_button = InlineKeyboardMarkup(
 static_start_button = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text="🔄"),
+            KeyboardButton(text="Перезагрузка"),
             KeyboardButton(text="Статус"),
-            KeyboardButton(text="Конфигурации"),
-            KeyboardButton(text="Подписка"),
         ],
         [
+            KeyboardButton(text="Подключения"),
+            KeyboardButton(text="Подписка"),
             KeyboardButton(text="Помощь"),
-            KeyboardButton(text="Команды"),
         ],
     ],
     resize_keyboard=True,
@@ -63,6 +104,85 @@ freeze_user_button = InlineKeyboardMarkup(
         ]
     ]
 )
+
+
+def get_help_menu(name, user_id):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Что это за сервис?", callback_data="bot_info")],
+            [
+                InlineKeyboardButton(
+                    text="Я первый раз. Что мне делать?",
+                    callback_data="first_help_info_start",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="Как мне настроить WireGuard?", callback_data="wg_help_info"
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="У меня тормозит или не работает VPN",
+                    callback_data="error_help_info_start",
+                )
+            ],
+            [InlineKeyboardButton(text="Команды", callback_data="cmd_help_info")],
+            [
+                InlineKeyboardButton(
+                    text="Задать свой вопрос",
+                    url=f"http://assa.ddns.net/bot/bug/create?name={name}&telegram_id={user_id}",
+                )
+            ],
+        ]
+    )
+
+
+def get_help_book_keyboard(pages: list, page: int, prefix: str):
+    prev_page = page - 1
+    next_page = page + 1
+
+    if page == 0:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="Следующий шаг",
+                        callback_data=f"{prefix}_{next_page}",
+                    )
+                ]
+            ]
+        )
+
+    if page == len(pages) - 1:
+        return InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="Предыдущий шаг",
+                        callback_data=f"{prefix}_{prev_page}",
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="Покажи весь алгоритм", callback_data=f"{prefix}_all"
+                    )
+                ],
+            ]
+        )
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Предыдущий шаг", callback_data=f"{prefix}_{prev_page}"
+                ),
+                InlineKeyboardButton(
+                    text="Следующий шаг", callback_data=f"{prefix}_{next_page}"
+                ),
+            ],
+        ]
+    )
 
 
 def get_account_keyboard(user_data: UserData):
@@ -102,6 +222,10 @@ def get_account_keyboard(user_data: UserData):
                 )
             ],
             [InlineKeyboardButton(text="Подписка", callback_data="user_payment")],
+            [
+                InlineKeyboardButton(text="Мой ID", callback_data="user_id_info"),
+                InlineKeyboardButton(text="Помощь", callback_data="main_help"),
+            ],
         ]
     )
 
@@ -133,27 +257,6 @@ def get_config_keyboard():
     )
 
 
-# def get_pay_keyboard(month, stage):
-#     buttons = [
-#         [
-#             InlineKeyboardButton(text="-1 мес.", callback_data="month_decr"),
-#             InlineKeyboardButton(text="+1 мес.", callback_data="month_incr"),
-#         ],
-#         [
-#             InlineKeyboardButton(text="-1 ур.", callback_data="stage_decr"),
-#             InlineKeyboardButton(text="+1 ур.", callback_data="stage_incr"),
-#         ],
-#         [
-#             InlineKeyboardButton(
-#                 text=f"Оплатить {get_plural(stage, 'уровень, уровня, уровней')} подписки на {get_plural(month, 'месяц, месяца, месяцев')}",
-#                 callback_data="pay_sub",
-#             )
-#         ],
-#     ]
-#     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-# return keyboard
-
-
 def get_subscr_buttons(user_data: UserData, force_rates=False):
     buttons = []
     my_rate = rates.get(user_data.stage, None)
@@ -179,6 +282,9 @@ def get_subscr_buttons(user_data: UserData, force_rates=False):
                     InlineKeyboardButton(
                         text="Пополнить баланс", callback_data="top_up_balance"
                     ),
+                    InlineKeyboardButton(
+                        text="История операций", callback_data="transact_history"
+                    ),
                 ],
             )
     else:
@@ -192,6 +298,9 @@ def get_subscr_buttons(user_data: UserData, force_rates=False):
                 [
                     InlineKeyboardButton(
                         text="Пополнить баланс", callback_data="top_up_balance"
+                    ),
+                    InlineKeyboardButton(
+                        text="История операций", callback_data="transact_history"
                     ),
                 ],
             ]

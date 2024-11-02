@@ -4,11 +4,11 @@ from uuid import uuid4
 
 from sqlalchemy import and_, insert, select, update
 
-from db.database import execute_query, iter_redis_keys
-from db.models import Transactions, UserData, UserActivity
-from db.utils.redis import CashManager
 from core.config import settings
 from core.metric import async_speed_metric
+from db.database import execute_query, iter_redis_keys
+from db.models import Transactions, UserActivity, UserData
+from db.utils.redis import CashManager
 
 logger = logging.getLogger()
 

@@ -17,7 +17,7 @@ from core import exceptions as exc
 from core.config import settings
 from core.metric import async_speed_metric
 from db import utils
-from db.models import UserData, Transactions
+from db.models import Transactions, UserData
 from handlers.utils import find_user
 from handlers.wg_service import post_user_data
 from states import Service

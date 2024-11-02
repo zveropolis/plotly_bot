@@ -1,24 +1,16 @@
 import enum
+from collections.abc import Iterable
 from datetime import date as date_cls
 from datetime import datetime
 from ipaddress import IPv4Address, IPv4Interface
 from uuid import UUID
-from collections.abc import Iterable
 
 from fastui.components.display import DisplayLookup, DisplayMode
 from fastui.events import GoToEvent
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from random_word import RandomWords
-from sqlalchemy import (
-    BigInteger,
-    Date,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Numeric,
-    String,
-    func,
-)
+from sqlalchemy import (BigInteger, Date, DateTime, Enum, ForeignKey, Numeric,
+                        String, func)
 from sqlalchemy.dialects.postgresql import CIDR, INET, JSONB
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship

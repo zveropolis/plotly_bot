@@ -1,33 +1,119 @@
 import logging
+from contextlib import suppress
+from typing import Union
 
 from aiogram import F, Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
 
-from kb import freeze_user_button
+import kb
+from text import BOT_INFO, BOT_STEPS, WG_STEPS, BOT_ERROR_STEP
 
 logger = logging.getLogger()
 router = Router()
 
 
-@router.message(Command("help"))
-@router.message(F.text == "Помощь")
-async def help_me(message: Message):
-    help_t = as_list(
-        "Сообщение вступительное",
-        as_marked_section(
-            Bold("Алгоритм работы с ботом:"),
-            "Запуск (перезагрузка) бота  /start",
-            "Данные об аккаунте + быстрый доступ к основным функциям  /account",
-            "Список всех команд  /cmd | /commands",
-            "/bug - Доложить о баге",
-            marker="✅ ",
+async def more_help_info(callback: CallbackQuery):
+    await callback.message.answer(
+        "Если у вас есть дополнительные вопросы, не стесняйтесь спрашивать! Мы здесь, чтобы помочь вам. 🚀",
+        reply_markup=kb.get_help_menu(
+            callback.from_user.full_name, callback.from_user.id
         ),
-        "Готово!",
     )
 
-    await message.answer(**help_t.as_kwargs())
+
+async def change_help_page(message: Message, pages: list, page: int, prefix: str):
+    with suppress(TelegramBadRequest):
+        await message.edit_text(
+            pages[page], reply_markup=kb.get_help_book_keyboard(pages, page, prefix)
+        )
+
+
+async def post_help_book(
+    callback: CallbackQuery, book: list, step: str, start_message: str, prefix: str
+):
+    if step == "start":
+        await callback.message.answer(start_message)
+
+        await callback.message.answer(
+            book[0],
+            reply_markup=kb.get_help_book_keyboard(pages=book, page=0, prefix=prefix),
+        )
+    elif step.isdigit():
+        await change_help_page(
+            callback.message, pages=book, page=int(step), prefix=prefix
+        )
+    else:
+        for step in book:
+            await callback.message.answer(step)
+        await more_help_info(callback)
+
+
+@router.message(Command("help"))
+@router.message(F.text == "Помощь")
+@router.callback_query(F.data == "main_help")
+async def help_me(trigger: Union[Message, CallbackQuery]):
+    await getattr(trigger, "message", trigger).answer(
+        "Чем вам помочь?",
+        reply_markup=kb.get_help_menu(
+            trigger.from_user.full_name, trigger.from_user.id
+        ),
+    )
+
+
+@router.callback_query(F.data == "bot_info")
+async def bot_info(callback: CallbackQuery):
+    await callback.message.answer(BOT_INFO, reply_markup=kb.static_join_button)
+    await more_help_info(callback)
+
+
+@router.callback_query(F.data.startswith("first_help_info_"))
+async def next_help(callback: CallbackQuery):
+    current_step: str = callback.data.split("_")[-1]
+
+    await post_help_book(
+        callback,
+        book=BOT_STEPS,
+        step=current_step,
+        start_message="🤖 <b>Что делать дальше? Вот краткий алгоритм работы с нашим ботом и WireGuard:</b>",
+        prefix="first_help_info",
+    )
+
+
+@router.callback_query(F.data == "wg_help_info")
+async def wg_help(callback: CallbackQuery):
+    await callback.message.answer(
+        "На какую платформу вы хотите установить WireGuard?",
+        reply_markup=kb.static_wg_platform_keyboard,
+    )
+
+
+@router.callback_query(F.data.startswith("wg_help_info_"))
+async def wg_help_platform(callback: CallbackQuery):
+    *_, current_platform, current_step = callback.data.split("_")
+
+    await post_help_book(
+        callback,
+        book=WG_STEPS[current_platform],
+        step=current_step,
+        start_message=f"🛠️ <b>Настройка WireGuard на {current_platform}:</b>",
+        prefix=f"wg_help_info_{current_platform}",
+    )
+
+
+@router.callback_query(F.data.startswith("error_help_info"))
+async def error_help(callback: CallbackQuery):
+    current_step: str = callback.data.split("_")[-1]
+
+    await post_help_book(
+        callback,
+        book=BOT_ERROR_STEP,
+        step=current_step,
+        start_message="📋 <b>Не волнуйтесь, вот инструкции по устранению проблем с DanVPN</b>",
+        prefix="error_help_info",
+    )
 
 
 @router.message(Command("time"))
@@ -36,15 +122,17 @@ async def started(message: Message, started_at):
 
 
 @router.message(Command("id"))
-async def start_bot(message: Message):
-    await message.answer("Ваш Telegram ID")
-    await message.answer(str(message.from_user.id))
+@router.callback_query(F.data == "user_id_info")
+async def start_bot(trigger: Union[Message, CallbackQuery]):
+    await getattr(trigger, "message", trigger).answer("Ваш Telegram ID")
+    await getattr(trigger, "message", trigger).answer(str(trigger.from_user.id))
 
 
 @router.message(Command("cmd"))
 @router.message(Command("commands"))
 @router.message(F.text == "Команды")
-async def commands_list(message: Message):
+@router.callback_query(F.data == "cmd_help_info")
+async def commands_list(trigger: Union[Message, CallbackQuery]):
     help_t = as_list(
         Bold("Запуск:"),
         "/start - запуск (перезагрузка) бота",
@@ -65,16 +153,15 @@ async def commands_list(message: Message):
         Bold("Действия с подпиской:"),
         as_marked_section(
             "/sub - Купить подписку",
-            "/refund - Вернуть деньги (ПХААХАХА)",
+            "/refund - Сделать запрос на возварт средств",
             "/history - История транзакций",
             marker="~ ",
         ),
         Bold("Информация:"),
         as_marked_section(
             "/help - Помощь",
-            "/help_wg - Помощь по настройке wireguard конфигураций на устройствах",
             "/cmd - Список всех команд",
-            "/admin - функционал администратора (ЗАПАРОЛИНА)",
+            "/admin - функционал администратора",
             "/bug - Доложить о баге",
             "/id - Ваш Telegram ID",
             "/time - время запуска бота",
@@ -83,7 +170,7 @@ async def commands_list(message: Message):
         Bold("Расширенные возможности (тарифы от расширенного и выше):"),
     )
 
-    await message.answer(**help_t.as_kwargs())
+    await getattr(trigger, "message", trigger).answer(**help_t.as_kwargs())
 
 
 @router.callback_query(F.data == "freeze_info")
@@ -104,5 +191,5 @@ async def freeze_user_info(callback: CallbackQuery):
         "\nРазморозить свой аккаунт можно в меню /app. После разморозки восстановление конфигураций произойдет в течение 1 минуты."
         "\n\n<b>Стоимость услуги равна одному ежедневному списанию вашего тарифа!</b>"
         "\n<b>Разблокировка бесплатна.</b>",
-        reply_markup=freeze_user_button,
+        reply_markup=kb.freeze_user_button,
     )
