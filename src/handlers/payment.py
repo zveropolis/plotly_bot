@@ -145,20 +145,6 @@ async def choose_rate(callback: CallbackQuery):
 
     if not user_data:
         return
-    elif user_data.stage == rate_id:
-        await callback.answer("У вас уже подключен этот тариф")
-        return
-    elif rate_id == 0.3 and not user_data.free:
-        await callback.answer(
-            "К сожалению вы исчерпали возможность подключения пробного периода"
-        )
-        return
-    elif user_data.stage == 0.3:
-        await callback.answer(
-            "Дождитесь окончания пробного периода или пополните баланс",
-            show_alert=True,
-        )
-        return
     elif user_data.stage > rate_id:
         tax = user_data.stage * 10
     else:
@@ -178,6 +164,15 @@ async def change_rate(callback: CallbackQuery, bot: Bot):
     rate_id = float(callback.data.split("_")[-1])
     try:
         if not user_data:
+            return
+        elif user_data.stage == rate_id:
+            await callback.answer("У вас уже подключен этот тариф")
+            return
+        elif user_data.stage == 0.3:
+            await callback.answer(
+                "Дождитесь окончания пробного периода или пополните баланс",
+                show_alert=True,
+            )
             return
         elif rate_id == 0.3:
             if user_data.free:
