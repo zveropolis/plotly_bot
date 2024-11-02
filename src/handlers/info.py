@@ -168,6 +168,7 @@ async def commands_list(trigger: Union[Message, CallbackQuery]):
             marker="~ ",
         ),
         Bold("Расширенные возможности (тарифы от расширенного и выше):"),
+        Bold("В РАЗРАБОТКЕ"),
     )
 
     await getattr(trigger, "message", trigger).answer(**help_t.as_kwargs())
