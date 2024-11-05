@@ -264,8 +264,8 @@ async def server_speed(trigger: Union[Message, CallbackQuery], bot: Bot):
     else:
         server_data = (
             "Текущая максимально доступная скорость интернет соединения по VPN:\n\n"
-            f"Скачивание: <b>{server_speed_in}</b>"
-            f"Загрузка:     <b>{server_speed_out}</b>"
+            f"📥 Скачивание:  <b>{round(float(server_speed_in)/(1048576),2)} Мбит/с</b>\n\n"
+            f"📤 Загрузка:         <b>{round(float(server_speed_out)/(1048576),2)} Мбит/с</b>"
         )
 
         await getattr(trigger, "message", trigger).answer(server_data)
