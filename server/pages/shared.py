@@ -34,24 +34,9 @@ def bot_page(
                     active="startswith:/bot/auth",
                 ),
                 c.Link(
-                    components=[c.Text(text="Тарифы")],
-                    on_click=GoToEvent(url="/bot/auth/login/password"),
-                    active="startswith:/bot/auth",
-                ),
-                c.Link(
-                    components=[c.Text(text="Инструкции")],
-                    on_click=GoToEvent(url="/auth/login/password"),
-                    active="startswith:/bot/auth",
-                ),
-                c.Link(
                     components=[c.Text(text="Техподдержка")],
                     on_click=GoToEvent(url="/bot/bug/create"),
                     active="startswith:/bot",
-                ),
-                c.Link(
-                    components=[c.Text(text="О нас")],
-                    on_click=GoToEvent(url="/auth/login/password"),
-                    active="startswith:/bot/auth",
                 ),
             ],
         ),
