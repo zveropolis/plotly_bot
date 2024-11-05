@@ -1,14 +1,9 @@
-from aiogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-)
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                           KeyboardButton, ReplyKeyboardMarkup)
 from pytils.numeral import get_plural
 
 from db.models import UserActivity, UserData
 from text import rates
-
 
 static_join_button = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -185,14 +180,14 @@ def get_help_book_keyboard(pages: list, page: int, prefix: str):
     )
 
 
-def get_account_keyboard(user_data: UserData):
+def get_account_keyboard(user_data: UserData, extended=False):
     buttons = []
     match getattr(user_data, "active", None):
         case UserActivity.active | UserActivity.inactive:
             buttons.append(
                 [
                     InlineKeyboardButton(
-                        text="Заморозить аккаунт", callback_data="freeze_account_info"
+                        text="❄️ Заморозить аккаунт", callback_data="freeze_account_info"
                     )
                 ]
             )
@@ -200,7 +195,7 @@ def get_account_keyboard(user_data: UserData):
             buttons.append(
                 [
                     InlineKeyboardButton(
-                        text="Разморозить аккаунт", callback_data="recover_account"
+                        text="🔥 Разморозить аккаунт", callback_data="recover_account"
                     )
                 ]
             )
@@ -218,16 +213,41 @@ def get_account_keyboard(user_data: UserData):
         [
             [
                 InlineKeyboardButton(
-                    text="Мои конфигурации", callback_data="user_configurations"
+                    text="📂 Мои конфигурации", callback_data="user_configurations"
                 )
             ],
-            [InlineKeyboardButton(text="Подписка", callback_data="user_payment")],
-            [
-                InlineKeyboardButton(text="Мой ID", callback_data="user_id_info"),
-                InlineKeyboardButton(text="Помощь", callback_data="main_help"),
-            ],
+            [InlineKeyboardButton(text="🤩 Подписка", callback_data="user_payment")],
+            [InlineKeyboardButton(text="🆘 Помощь", callback_data="main_help")],
         ]
     )
+    if not extended:
+        buttons.extend(
+            [
+                [
+                    InlineKeyboardButton(
+                        text="⏬ Инструменты", callback_data="extra_function_open"
+                    )
+                ]
+            ]
+        )
+
+    else:
+        buttons.extend(
+            [
+                [
+                    InlineKeyboardButton(
+                        text="⏫ Инструменты", callback_data="extra_function_close"
+                    )
+                ],
+                [InlineKeyboardButton(text="🆔 Мой ID", callback_data="user_id_info")],
+                [InlineKeyboardButton(text="🔍 Сервер", callback_data="server_status")],
+                [
+                    InlineKeyboardButton(
+                        text="⚡️ Скорость VPN", callback_data="server_speed"
+                    )
+                ],
+            ]
+        )
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 

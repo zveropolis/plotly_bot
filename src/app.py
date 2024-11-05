@@ -112,7 +112,7 @@ async def __start_bot(
         [
             asyncio.create_task(job)
             for job in [
-                bot.delete_webhook(drop_pending_updates=True),
+                # bot.delete_webhook(drop_pending_updates=True),
                 dp.start_polling(
                     bot,
                     allowed_updates=dp.resolve_used_update_types(),

@@ -17,7 +17,7 @@ from db import utils
 from db.models import FreezeSteps, UserActivity, UserData, WgConfig
 from handlers.utils import find_config, find_user
 from kb import get_config_keyboard, static_pay_button, why_freezed_button
-from wg.utils import WgConfigMaker
+from wg.utils import WgServerTools
 
 logger = logging.getLogger()
 router = Router()
@@ -87,7 +87,7 @@ async def create_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
             raise exc.PayError
 
         elif len(user_data.configs) < settings.acceptable_config[user_data.stage]:
-            wg = WgConfigMaker()
+            wg = WgServerTools()
             conf = await wg.move_user(move="add", user_id=trigger.from_user.id)
             config: WgConfig = await utils.add_wg_config(
                 conf, user_id=trigger.from_user.id

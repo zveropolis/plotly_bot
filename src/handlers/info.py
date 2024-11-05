@@ -2,14 +2,19 @@ import logging
 from contextlib import suppress
 from typing import Union
 
-from aiogram import F, Router
+from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
 
 import kb
-from text import BOT_INFO, BOT_STEPS, WG_STEPS, BOT_ERROR_STEP
+import text
+from core.exceptions import DatabaseError, WireguardError
+from db.models import UserData
+from db.utils import test_server_speed
+from handlers.utils import find_user
+from wg.utils import WgServerTools
 
 logger = logging.getLogger()
 router = Router()
@@ -65,7 +70,7 @@ async def help_me(trigger: Union[Message, CallbackQuery]):
 
 @router.callback_query(F.data == "bot_info")
 async def bot_info(callback: CallbackQuery):
-    await callback.message.answer(BOT_INFO, reply_markup=kb.static_join_button)
+    await callback.message.answer(text.BOT_INFO, reply_markup=kb.static_join_button)
     await more_help_info(callback)
 
 
@@ -75,7 +80,7 @@ async def next_help(callback: CallbackQuery):
 
     await post_help_book(
         callback,
-        book=BOT_STEPS,
+        book=text.BOT_STEPS,
         step=current_step,
         start_message="🤖 <b>Что делать дальше? Вот краткий алгоритм работы с нашим ботом и WireGuard:</b>",
         prefix="first_help_info",
@@ -96,7 +101,7 @@ async def wg_help_platform(callback: CallbackQuery):
 
     await post_help_book(
         callback,
-        book=WG_STEPS[current_platform],
+        book=text.WG_STEPS[current_platform],
         step=current_step,
         start_message=f"🛠️ <b>Настройка WireGuard на {current_platform}:</b>",
         prefix=f"wg_help_info_{current_platform}",
@@ -109,7 +114,7 @@ async def error_help(callback: CallbackQuery):
 
     await post_help_book(
         callback,
-        book=BOT_ERROR_STEP,
+        book=text.BOT_ERROR_STEP,
         step=current_step,
         start_message="📋 <b>Не волнуйтесь, вот инструкции по устранению проблем с DanVPN</b>",
         prefix="error_help_info",
@@ -167,8 +172,12 @@ async def commands_list(trigger: Union[Message, CallbackQuery]):
             "/time - время запуска бота",
             marker="~ ",
         ),
-        Bold("Расширенные возможности (тарифы от расширенного и выше):"),
-        Bold("В РАЗРАБОТКЕ"),
+        as_marked_section(
+            Bold("Расширенные возможности (тарифы от расширенного и выше):"),
+            "/server - Анализ работы сервера",
+            "/speed - Максимально доступная скорость VPN на данный момент",
+            "/mute - Отключить уведомления (В РАЗРАБОТКЕ)",
+        ),
     )
 
     await getattr(trigger, "message", trigger).answer(**help_t.as_kwargs())
@@ -194,3 +203,69 @@ async def freeze_user_info(callback: CallbackQuery):
         "\n<b>Разблокировка бесплатна.</b>",
         reply_markup=kb.freeze_user_button,
     )
+
+
+@router.message(Command("server"))
+@router.callback_query(F.data == "server_status")
+async def server_status(trigger: Union[Message, CallbackQuery], bot: Bot):
+    await bot.send_chat_action(trigger.from_user.id, "typing")
+
+    user_data: UserData = await find_user(trigger)
+    if not user_data:
+        return
+    elif user_data.stage < 2:
+        await getattr(trigger, "message", trigger).answer(
+            "Команда заблокирована. Выберите тариф от 'Расширенного' или выше."
+        )
+        return
+
+    try:
+        wg = WgServerTools()
+
+        server_status = await wg.get_server_status()
+        cpu_usage = await wg.get_server_сpu_usage()
+
+    except WireguardError:
+        await getattr(trigger, "message", trigger).answer(text.WG_ERROR)
+
+    else:
+        server_data = (
+            "Текущие параметры сервера:\n\n"
+            f"🖥 Сервер:        <b>{server_status.capitalize()}</b>\n\n"
+            f"🦾 СPU usage:  <b>{cpu_usage}</b>"
+        )
+
+        await getattr(trigger, "message", trigger).answer(server_data)
+
+
+@router.message(Command("speed"))
+@router.callback_query(F.data == "server_speed")
+async def server_speed(trigger: Union[Message, CallbackQuery], bot: Bot):
+    await bot.send_chat_action(trigger.from_user.id, "typing")
+
+    user_data: UserData = await find_user(trigger)
+    if not user_data:
+        return
+    elif user_data.stage < 2:
+        await getattr(trigger, "message", trigger).answer(
+            "Команда заблокирована. Выберите тариф от 'Расширенного' или выше."
+        )
+        return
+
+    try:
+        server_speed_in, server_speed_out = await test_server_speed()
+
+    except WireguardError:
+        await getattr(trigger, "message", trigger).answer(
+            text.WG_ERROR, show_alert=True
+        )
+    except DatabaseError:
+        await trigger.answer(text=text.DB_ERROR, show_alert=True)
+    else:
+        server_data = (
+            "Текущая максимально доступная скорость интернет соединения по VPN:\n\n"
+            f"Скачивание: <b>{server_speed_in}</b>"
+            f"Загрузка:     <b>{server_speed_out}</b>"
+        )
+
+        await getattr(trigger, "message", trigger).answer(server_data)

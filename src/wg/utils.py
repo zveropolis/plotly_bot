@@ -23,7 +23,7 @@ logger = logging.getLogger("asyncssh")
 SSH = WgConnection()
 
 
-class WgConfigMaker:
+class WgServerTools:
     peer_counter = "~/Scripts/LastPeerAddress"
 
     def __init__(self) -> None:
@@ -66,9 +66,7 @@ class WgConfigMaker:
             logger.info(completed_proc.stderr)
 
         except (OSError, asyncssh.Error) as e:
-            logger.exception(
-                "Сбой при изменении пира в конфигурации сервера wireguard"
-            )
+            logger.exception("Сбой при изменении пира в конфигурации сервера wireguard")
             raise WireguardError from e
 
     def _create_db_wg_model(self, user_id):
@@ -149,14 +147,44 @@ class WgConfigMaker:
 
             return clean_peers
 
+    async def get_server_status(self):
+        conn = await self._check_connection()
+        try:
+            cmd = f"echo {escape(settings.WG_PASS.get_secret_value())} | sudo -S systemctl status wg-quick@wg1.service | grep Active:"
+            completed_proc = await conn.run(f"\n{cmd}", check=True)
+            _, status, *_ = completed_proc.stdout.strip("\n ").split()
+
+        except (OSError, asyncssh.Error) as e:
+            logger.exception("Сбой при получении статуса сервера wireguard")
+            logger.info("Server status: inactive")
+            return "inactive"
+        else:
+            logger.info(f"Server status: {status}")
+            return status
+
+    async def get_server_сpu_usage(self):
+        conn = await self._check_connection()
+        try:
+            cmd = "top -bn2 | grep '%Cpu' | tail -1 | grep -P '(....|...) id,'|awk '{print 100-$8 \"%\"}'"
+            completed_proc = await conn.run(f"\n{cmd}", check=True)
+            usage = completed_proc.stdout.strip("\n ")
+
+        except (OSError, asyncssh.Error) as e:
+            logger.exception("Сбой при получении загруженности сервера wireguard")
+            logger.info("Server status: inactive")
+            raise WireguardError from e
+        else:
+            logger.info(f"Server cpu usage: {usage}")
+            return usage
+
 
 async def test_100():
-    wg = WgConfigMaker()
+    wg = WgServerTools()
     start = time()
 
     await SSH.connect()
 
-    coros = [wg.get_peer_list() for _ in range(1)]
+    coros = [wg.get_server_сpu_usage() for _ in range(1)]
     # coros = [wg.move_user(user_id=6987832296, move="add") for _ in range(15)]
     # coros = [
     #     wg.move_user(

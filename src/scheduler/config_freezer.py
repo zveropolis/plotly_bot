@@ -3,7 +3,7 @@ import logging
 from core.exceptions import DatabaseError, WireguardError
 from db.models import FreezeSteps
 from db.utils import freeze_config, get_all_wg_configs
-from wg.utils import WgConfigMaker
+from wg.utils import WgServerTools
 
 logger = logging.getLogger("apscheduler")
 logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
@@ -15,7 +15,7 @@ async def check_freeze_configs():
 
         wait_no_cfg = [cfg for cfg in configs if cfg.freeze == FreezeSteps.wait_no]
         for config in wait_no_cfg:
-            await WgConfigMaker().move_user(
+            await WgServerTools().move_user(
                 move="unban", user_pubkey=config.server_public_key
             )
         if wait_no_cfg:
@@ -23,7 +23,7 @@ async def check_freeze_configs():
 
         wait_yes_cfg = [cfg for cfg in configs if cfg.freeze == FreezeSteps.wait_yes]
         for config in wait_yes_cfg:
-            await WgConfigMaker().move_user(
+            await WgServerTools().move_user(
                 move="ban", user_pubkey=config.server_public_key
             )
         if wait_yes_cfg:
@@ -48,7 +48,7 @@ async def check_freeze_configs():
 
 async def validate_configs():
     try:
-        server_peers = await WgConfigMaker().get_peer_list()
+        server_peers = await WgServerTools().get_peer_list()
         server_peers = {peer["publickey"]: peer for peer in server_peers}
 
         local_configs = await get_all_wg_configs()

@@ -3,6 +3,7 @@ from db.utils.admin import (get_admins, get_all_users, get_valid_users,
 from db.utils.reports import add_report
 # from db.utils.redis import CashManager
 from db.utils.save import async_backup, dump
+from db.utils.tests import test_server_speed
 from db.utils.transactions import (close_free_trial, confirm_success_pay,
                                    get_user_transactions, insert_transaction,
                                    raise_money)
