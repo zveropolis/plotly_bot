@@ -98,7 +98,7 @@ async def get_user_transact(trigger: Union[Message, CallbackQuery]):
                     post_params.pop("withdraw_amount") - post_params["amount"]
                 )
 
-            post_params["Сумма"] = post_params.pop("amount")
+            post_params["Сумма"] = round(float(post_params.pop("amount")), 2)
 
             await getattr(trigger, "message", trigger).answer(
                 "<pre>"
