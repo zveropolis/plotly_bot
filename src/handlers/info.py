@@ -10,7 +10,7 @@ from aiogram.utils.formatting import Bold, as_list, as_marked_section
 
 import kb
 import text
-from core.exceptions import DatabaseError, WireguardError
+from core.exceptions import BaseBotError, DatabaseError, WireguardError
 from db.models import UserData
 from db.utils import test_server_speed
 from handlers.utils import find_user
@@ -261,11 +261,17 @@ async def server_speed(trigger: Union[Message, CallbackQuery], bot: Bot):
         )
     except DatabaseError:
         await trigger.answer(text=text.DB_ERROR, show_alert=True)
+    except BaseBotError:
+        await trigger.answer(
+            text="Ошибка измерения пропускной способности. Попробуйте позже.",
+            show_alert=True,
+        )
+
     else:
         server_data = (
             "Текущая максимально доступная скорость интернет соединения по VPN:\n\n"
-            f"📥 Скачивание:  <b>{round(float(server_speed_in)/(1048576),2)} Мбит/с</b>\n\n"
-            f"📤 Загрузка:         <b>{round(float(server_speed_out)/(1048576),2)} Мбит/с</b>"
+            f"📥 Скачивание:  <b>{round(server_speed_in/1048576, 2)} Мбит/с</b>\n\n"
+            f"📤 Загрузка:        <b>{round(server_speed_out/1048576, 2)} Мбит/с</b>"
         )
 
         await getattr(trigger, "message", trigger).answer(server_data)
