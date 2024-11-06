@@ -8,11 +8,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy import and_, select, update
 
 from core.err import DatabaseError
-
 # from db.utils import get_all_users
 from db import models as mod
 from db.database import execute_query
-from server.pages.shared import bot_page, patched_fastui_form, tabs
+from server.fast_pages.shared import bot_page, patched_fastui_form, tabs
 from server.utils.auth_user import User
 
 router = APIRouter()

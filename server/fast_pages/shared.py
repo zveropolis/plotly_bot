@@ -1,4 +1,5 @@
 import logging
+
 import fastapi
 import fastui.forms
 import pydantic
@@ -20,7 +21,7 @@ def bot_page(
         c.PageTitle(text=f"Dan VPN — {title}" if title else "Dan VPN"),
         c.Navbar(
             title="Dan VPN",
-            title_event=GoToEvent(url="/bot"),
+            title_event=GoToEvent(url="http://assa.ddns.net/vpn"),
             start_links=[
                 c.Link(
                     components=[c.Text(text=user.login.capitalize())],
@@ -52,7 +53,7 @@ def bot_page(
                 c.Link(
                     components=[c.Text(text="Github")],
                     on_click=GoToEvent(
-                        url="https://github.com/zveropolis/vpn_dan_bot.git"
+                        url="https://github.com/daniil-mazurov/vpn_dan_bot.git"
                     ),
                 ),
                 c.Link(

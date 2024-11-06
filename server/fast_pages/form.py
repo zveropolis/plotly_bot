@@ -17,7 +17,7 @@ from core.exceptions import UniquenessError
 from core.path import PATH
 from db.models import Reports
 from db.utils import add_report
-from server.pages.shared import bot_page, patched_fastui_form
+from server.fast_pages.shared import bot_page, patched_fastui_form
 from server.utils.auth_user import User
 
 router = APIRouter()
@@ -169,7 +169,10 @@ async def big_form_post(form: Annotated[BugModel, patched_fastui_form(BugModel)]
                     )
                 ],
                 footer=[
-                    c.Button(text="Принято", on_click=GoToEvent(url="/bot")),
+                    c.Button(
+                        text="Принято",
+                        on_click=GoToEvent(url="http://assa.ddns.net/vpn"),
+                    ),
                 ],
                 open_trigger=PageEvent(name="bug-sended"),
             ),

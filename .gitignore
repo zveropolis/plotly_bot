@@ -21,3 +21,4 @@ src/db/backups/backup*
 src/db/dumps/*dump*
 bugs/*
 3.10/*
+server/html/*

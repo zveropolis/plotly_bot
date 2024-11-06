@@ -13,7 +13,7 @@ from core.config import settings
 from core.err import DatabaseError
 from db import models as mod
 from db.database import execute_query
-from server.pages.shared import bot_page, tabs
+from server.fast_pages.shared import bot_page, tabs
 from server.utils.auth_user import User
 
 router = APIRouter()

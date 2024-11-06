@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import os
-import subprocess as sub
 from datetime import datetime, timedelta
 
 from pandas import DataFrame, ExcelWriter
@@ -60,18 +59,24 @@ async def dump(regular=False):
         f"-p {settings.DB_PORT} -h {settings.DB_HOST} > {filename}"
     )
 
-    logger.info("Создание дампа БД", extra={"dumpname": filename})
+    logger.info("Создание дампа БД")
 
-    proc = await asyncio.create_subprocess_shell(
-        cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-    )
-
-    stdout, stderr = await proc.communicate()
-
-    logger.info(f"pg_dump exited with {proc.returncode}")
     try:
-        ERROR = stderr.decode()
-        assert not ERROR, "Ошибка создания дампа БД"
-    except AssertionError:
-        logger.exception(ERROR)
-        raise DumpError(ERROR)
+        proc = await asyncio.create_subprocess_shell(
+            cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await proc.communicate()
+
+        logger.info(f"pg_dump exited with {proc.returncode}")
+
+        if proc.returncode != 0:
+            # Попробуйте декодировать с игнорированием ошибок
+            error_message = stderr.decode("utf-8", errors="ignore")
+            logger.error(f"Ошибка создания дампа БД: {error_message}")
+            raise DumpError(error_message)
+        else:
+            logger.info("Дамп БД успешно создан", extra={"dumpname": filename})
+
+    except Exception as e:
+        logger.exception("Произошла ошибка при создании дампа БД")
+        raise DumpError(str(e))

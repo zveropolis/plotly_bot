@@ -17,11 +17,12 @@ from fastui.auth import fastapi_auth_exception_handling
 sys.path.insert(1, os.path.join(sys.path[0], "server"))
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
 
-from server.pages.auth import router as auth_router
-from server.pages.form import router as form_router
-from server.pages.main import router as main_router
-from server.pages.reports import router as reports_router
-from server.pages.tables import router as tables_router
+from server.fast_pages.auth import router as auth_router
+from server.fast_pages.form import router as form_router
+from server.fast_pages.main import router as main_router
+from server.fast_pages.reports import router as reports_router
+from server.fast_pages.tables import router as tables_router
+from server.pages.index import router as index_router
 from src.app import models as mod
 from src.core.path import PATH
 from src.db.utils import confirm_success_pay
@@ -41,6 +42,7 @@ app.include_router(auth_router, prefix="/api/bot/auth")
 app.include_router(tables_router, prefix="/api/bot/tables")
 app.include_router(reports_router, prefix="/api/bot/tables/reports")
 app.include_router(main_router, prefix="/api/bot")
+app.include_router(index_router, prefix="/vpn")
 app.mount("/static", static, name="static")
 app.mount("/bugs", bugs, name="bugs")
 

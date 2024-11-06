@@ -14,7 +14,7 @@ from pydantic_core import PydanticCustomError
 
 from core.config import settings
 from db import models as mod
-from server.pages.shared import bot_page, patched_fastui_form
+from server.fast_pages.shared import bot_page, patched_fastui_form
 from server.utils.auth_user import User
 
 router = APIRouter()

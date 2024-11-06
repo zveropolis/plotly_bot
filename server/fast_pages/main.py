@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from typing import Annotated
@@ -6,9 +7,10 @@ from fastapi import APIRouter, Depends
 from fastui import AnyComponent, FastUI
 from fastui import components as c
 from fastui.events import GoToEvent
+from fastapi.responses import RedirectResponse
 
 from core.path import PATH
-from server.pages.shared import bot_page
+from server.fast_pages.shared import bot_page
 from server.utils.auth_user import User
 
 router = APIRouter()
