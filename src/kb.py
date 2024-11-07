@@ -1,5 +1,9 @@
-from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, ReplyKeyboardMarkup)
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 from pytils.numeral import get_plural
 
 from db.models import UserActivity, UserData
@@ -97,6 +101,17 @@ freeze_user_button = InlineKeyboardMarkup(
                 text="Заморозить аккаунт", callback_data="freeze_account"
             )
         ]
+    ]
+)
+
+static_history_button = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Пополнения", callback_data="transact_history_in"
+            ),
+            InlineKeyboardButton(text="Снятия", callback_data="transact_history_out"),
+        ],
     ]
 )
 

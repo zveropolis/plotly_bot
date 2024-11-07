@@ -1,16 +1,18 @@
 import logging
 from datetime import datetime, timedelta, timezone
+import os
 from typing import Union
 from uuid import uuid4
 
 from aiogram import Bot, F, Router
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, FSInputFile
 from pytils.numeral import get_plural
 from yoomoney import Client, Quickpay
 from yoomoney.exceptions import YooMoneyError
 
+from core.path import PATH
 import kb
 import text
 from core import exceptions as exc
@@ -18,7 +20,7 @@ from core.config import settings
 from core.metric import async_speed_metric
 from db import utils
 from db.models import Transactions, UserData
-from handlers.utils import find_user
+from handlers.utils import find_user, get_table_from_df
 from handlers.wg_service import post_user_data
 from states import Service
 
@@ -53,19 +55,22 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
 
 @router.message(Command("history"))
 @router.callback_query(F.data == "transact_history")
+async def get_user_transact_choose(trigger: Union[Message, CallbackQuery]):
+    await getattr(trigger, "message", trigger).answer(
+        "Какие операции вам нужно увидеть?", reply_markup=kb.static_history_button
+    )
+
+
+@router.callback_query(F.data.startswith("transact_history_"))
 @async_speed_metric
-async def get_user_transact(trigger: Union[Message, CallbackQuery]):
+async def get_user_transact(callback: CallbackQuery):
     try:
         transactions: list[Transactions] = await utils.get_user_transactions(
-            trigger.from_user.id
+            callback.from_user.id
         )
 
-        if transactions:
-            await getattr(trigger, "message", trigger).answer("Список ваших транзакций")
-        else:
-            await getattr(trigger, "message", trigger).answer(
-                "У вас не было еще ни одной транзакции"
-            )
+        transact_list: list[dict] = []
+        *_, transact_type = callback.data.split("_")
 
         for transact in sorted(transactions, key=lambda x: x.date):
             params = transact.__udict__
@@ -74,8 +79,8 @@ async def get_user_transact(trigger: Union[Message, CallbackQuery]):
             post_params = {key: params[key] for key in params.keys() & view_params}
 
             if transact.date:
-                post_params["date"] = post_params["date"].astimezone().ctime()
-                post_params["Дата"] = post_params.pop("date")
+                post_params["date"] = post_params["date"].astimezone()
+                post_params["Дата"] = post_params.get("date").ctime()
 
                 if not transact.transaction_id and datetime.now(
                     transact.date.tzinfo
@@ -100,26 +105,54 @@ async def get_user_transact(trigger: Union[Message, CallbackQuery]):
 
             post_params["Сумма"] = round(float(post_params.pop("amount")), 2)
 
-            await getattr(trigger, "message", trigger).answer(
+            if transact_type == "in" and transact.amount > 0:
+                transact_list.append(post_params)
+            elif transact_type == "out" and transact.amount < 0:
+                transact_list.append(post_params)
+
+        if transact_list:
+            await callback.message.answer("Последние 10 транзакций")
+        else:
+            await callback.answer("У вас не было еще ни одной транзакции такого вида")
+
+        await callback.message.answer(
+            "\n\n".join(
                 "<pre>"
                 + "\n".join(
                     sorted(
                         (
                             f"<b>{key}</b>:{' '*(10-len(key))}{val}"
-                            for key, val in post_params.items()
+                            for key, val in transact.items()
+                            if key != "date"
                         ),
                         key=lambda x: len(x.split(":")[0]),
                     )
                 )
                 + "</pre>"
+                for transact in transact_list[-10:]
             )
+        )
+
+        if len(transact_list) > 10:
+            for tr in transact_list:
+                tr.pop("Дата")
+
+            tr_file = os.path.join(PATH, "tmp", f"{transact_type}_transactions.xlsx")
+
+            get_table_from_df(transact_list, tr_file)
+
+            await callback.message.answer_document(
+                FSInputFile(tr_file, "transactions.xlsx"),
+                caption="Полный список ваших транзакций",
+            )
+            os.remove(tr_file)
     except exc.DatabaseError:
-        await trigger.answer(text=text.DB_ERROR, show_alert=True)
+        await callback.answer(text=text.DB_ERROR, show_alert=True)
     except Exception:
         logger.exception("Ошибка при отображении истории транзакций")
-        await trigger.answer(
-            text="К сожалению, сейчас мы не можем отобразить вашу историю. "
-            "Попробуйте позже.",
+        await callback.answer(
+            text="К сожалению, сейчас мы не можем корректно отобразить вашу историю. "
+            "Попробуйте позже или обратитесь в техподдержку.",
             show_alert=True,
         )
 
