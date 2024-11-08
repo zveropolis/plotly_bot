@@ -6,6 +6,7 @@ from db.utils.reports import add_report
 from db.utils.save import async_backup, dump
 from db.utils.tests import test_server_speed
 from db.utils.transactions import (close_free_trial, confirm_success_pay,
+                                   delete_cash_transactions,
                                    get_user_transactions, insert_transaction,
                                    raise_money)
 from db.utils.user import (add_user, ban_user, clear_cash, freeze_user,

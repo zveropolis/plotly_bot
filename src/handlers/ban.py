@@ -1,5 +1,6 @@
 from aiogram import F, Router
-from aiogram.filters.chat_member_updated import KICKED, MEMBER, ChatMemberUpdatedFilter
+from aiogram.filters.chat_member_updated import (KICKED, MEMBER,
+                                                 ChatMemberUpdatedFilter)
 from aiogram.types import ChatMemberUpdated
 
 import text

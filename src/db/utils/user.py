@@ -1,11 +1,14 @@
 import logging
+from datetime import datetime, timezone
+from uuid import uuid4
 
 from sqlalchemy import insert, select, update
 
 from core.config import settings
 from core.metric import async_speed_metric
 from db.database import execute_query
-from db.models import UserActivity, UserData
+from db.models import Transactions, UserActivity, UserData
+from db.utils import delete_cash_transactions
 from db.utils.redis import CashManager
 
 logger = logging.getLogger()
@@ -42,13 +45,28 @@ async def freeze_user(user_id):
 
     query = (
         update(UserData)
-        .values(
-            active=UserActivity.freezed,
-            balance=UserData.balance - UserData.stage * settings.cost,
-        )
+        .values(active=UserActivity.freezed)
         .filter_by(telegram_id=user_id)
+        .returning(UserData)
     )
     await execute_query(query)
+
+    user: UserData = (await execute_query(query)).scalar_one_or_none()
+
+    data = dict(
+        user_id=user.telegram_id,
+        date=datetime.now(timezone.utc),
+        amount=-1 * user.stage * settings.cost,
+        withdraw_amount=-1 * user.stage * settings.cost,
+        label=uuid4(),
+        transaction_id="Заморозка аккаунта",
+        transaction_reference="",
+    )
+
+    query = insert(Transactions).values(data)
+    await execute_query(query)
+
+    await delete_cash_transactions(user.telegram_id)
 
 
 @async_speed_metric

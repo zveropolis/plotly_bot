@@ -99,6 +99,24 @@ async def close_free_trial(user_id):
     return result
 
 
+async def get_user_transactions(user_id):
+    trans: list[Transactions] = await get_cash_wg_transactions(user_id)
+
+    if trans:
+        return trans
+
+    query = select(Transactions).where(Transactions.user_id == user_id)
+
+    result: list[Transactions] = (await execute_query(query)).scalars().all()
+
+    if result:
+        await CashManager(Transactions).add(
+            **{f"{trans.id}:{user_id}": trans.__ustr_dict__ for trans in result}
+        )
+
+    return result
+
+
 @async_speed_metric
 async def raise_money():
     query = select(UserData).filter_by(active=UserActivity.active)
@@ -123,21 +141,3 @@ async def raise_money():
     for user in users:
         await delete_cash_transactions(user.telegram_id)
         await CashManager(UserData).delete(user.telegram_id)
-
-
-async def get_user_transactions(user_id):
-    trans: list[Transactions] = await get_cash_wg_transactions(user_id)
-
-    if trans:
-        return trans
-
-    query = select(Transactions).where(Transactions.user_id == user_id)
-
-    result: list[Transactions] = (await execute_query(query)).scalars().all()
-
-    if result:
-        await CashManager(Transactions).add(
-            **{f"{trans.id}:{user_id}": trans.__ustr_dict__ for trans in result}
-        )
-
-    return result

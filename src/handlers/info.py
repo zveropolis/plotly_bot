@@ -1,6 +1,6 @@
-from datetime import timedelta
 import logging
 from contextlib import suppress
+from datetime import timedelta
 from typing import Union
 
 from aiogram import Bot, F, Router
@@ -11,12 +11,12 @@ from aiogram.utils.formatting import Bold, as_list, as_marked_section
 
 import kb
 import text
+from core.config import settings
 from core.exceptions import BaseBotError, DatabaseError, WireguardError
 from db.models import UserData
-from db.utils import test_server_speed, get_user
+from db.utils import get_user, test_server_speed
 from handlers.utils import find_user
 from wg.utils import WgServerTools
-from core.config import settings
 
 logger = logging.getLogger()
 router = Router()

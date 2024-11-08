@@ -5,10 +5,10 @@ from aiogram import Bot, F, Router
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, Message
 
-from db.models import UserActivity, UserData
 import text
 from core import exceptions as exc
 from db import utils
+from db.models import UserActivity, UserData
 from src.handlers.account import account_actions
 
 logger = logging.getLogger()

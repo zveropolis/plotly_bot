@@ -1,11 +1,9 @@
-from aiogram import F, Router, Bot
-from aiogram.filters.chat_member_updated import (
-    ChatMemberUpdatedFilter,
-    IS_NOT_MEMBER,
-    MEMBER,
-    ADMINISTRATOR,
-)
+from aiogram import Bot, F, Router
+from aiogram.filters.chat_member_updated import (ADMINISTRATOR, IS_NOT_MEMBER,
+                                                 MEMBER,
+                                                 ChatMemberUpdatedFilter)
 from aiogram.types import ChatMemberUpdated, Message
+
 from core.config import settings
 
 router = Router()
