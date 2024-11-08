@@ -5,36 +5,18 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import select
 
 from server.utils.auth_user import User
+from src.app import models as mod
 from src.core.path import PATH
+from src.db.database import execute_query
 
 router = APIRouter()
 logger = logging.getLogger()
 
 
 templates = Jinja2Templates(directory=os.path.join(PATH, "server", "templates"))
-
-# Пример данных новостей
-news_data = [
-    {
-        "date": "Nov 1, 2024",
-        "title": "Запуск сервиса в тестовом режиме",
-        "excerpt": "Уважаемый пользователь, сейчас наш сервис находится на стадии тестирования. Если вы столкнетесь с какой-либо проблемой в работе сервиса, пожалуйста воспользуйтесь командой /bug и сообщите нам о ней.",
-        "id": "news1",
-    }
-]
-
-news_content = {
-    "news1": {
-        "title": "🚀 Первый запуск! Полет нормальный.",
-        "content": """
-    <p>Дорогие пользователи! Мы рады сообщить, что наш VPN сервис успешно запущен и сейчас работает в тестовом режиме! 🎉</p>
-    <p>Мы стремимся предоставить вам надежное и безопасное соединение, и на этом этапе мы будем внимательно следить за работой сервиса, чтобы устранить любые возможные проблемы.</p>
-    <p>Пожалуйста, делитесь своими впечатлениями и сообщайте о любых замеченных ошибках. Для этого воспользуйтесь <a href="/bot/bug/create">ссылкой</a> либо командой `<a href="https://t.me/vpn_dan_bot">/bug</a>` в нашем чат-боте. Ваши отзывы помогут нам улучшить наш сервис!</p>""",
-    }
-}
-
 
 configs = [
     {
@@ -52,12 +34,26 @@ configs = [
 
 @router.get("/", response_class=HTMLResponse)
 async def main_page(request: Request):
+    query = select(mod.News).order_by(mod.News.id)
+    news: list[mod.News] = (await execute_query(query)).scalars().all()
+
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
-            "news": news_data,
-            "news_content": news_content,
+            "news": [
+                {
+                    "date": new.date.ctime().replace("00:00:00", ""),
+                    "title": new.title,
+                    "excerpt": new.excerpt,
+                    "id": new.news_id,
+                }
+                for new in news
+            ],
+            "news_content": {
+                new.news_id: {"title": new.content_title, "content": new.content}
+                for new in news
+            },
         },
     )
 

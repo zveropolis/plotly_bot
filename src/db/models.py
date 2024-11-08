@@ -410,10 +410,57 @@ yoomoney_site_display: list = [
 ]
 
 
+class News(Base):
+    __tablename__ = "news"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    news_id: Mapped[str] = mapped_column(unique=True)
+    date: Mapped[date_cls] = mapped_column(type_=Date, server_default=func.now())
+    title: Mapped[str]
+    excerpt: Mapped[str]
+    content_title: Mapped[str]
+    content: Mapped[str]
+
+    class ValidationSchema(BaseModel):
+        id: int | None = Field(default=None, title="ID")
+        news_id: str = Field(title="News ID")
+        date: date_cls = Field(title="Create date")
+        title: str = Field(title="Title")
+        excerpt: str = Field(title="Excerpt")
+        content_title: str = Field(title="Content Title")
+        content: str = Field(title="Content")
+
+        model_config = ConfigDict(extra="ignore")
+
+    # INTERFACE (fastui)
+    site_display = [
+        DisplayLookup(
+            field="news_id",
+            on_click=GoToEvent(url="/bot/tables/news/?news_id={news_id}"),
+        ),
+        DisplayLookup(field="title"),
+        DisplayLookup(field="date", mode=DisplayMode.date),
+    ]
+    site_display_all = site_display + [
+        DisplayLookup(field="excerpt"),
+        DisplayLookup(field="content_title"),
+        DisplayLookup(field="content"),
+    ]
+
+    def __init__(self, **kwargs):
+        if kwargs:
+            validated_data = self.ValidationSchema(**kwargs).__dict__
+
+            super().__init__(**(validated_data))
+        else:
+            super().__init__(**(kwargs))
+
+
 TABLES_SCHEMA = {
     UserData.__tablename__: UserData,
     Transactions.__tablename__: Transactions,
     WgConfig.__tablename__: WgConfig,
     Reports.__tablename__: Reports,
     YoomoneyOperation.__tablename__: YoomoneyOperation,
+    News.__tablename__: News,
 }
