@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 from typing import Annotated
@@ -7,7 +6,6 @@ from fastapi import APIRouter, Depends
 from fastui import AnyComponent, FastUI
 from fastui import components as c
 from fastui.events import GoToEvent
-from fastapi.responses import RedirectResponse
 
 from core.path import PATH
 from server.fast_pages.shared import bot_page
@@ -21,7 +19,7 @@ with open(os.path.join(PATH, "server", "bot.md"), encoding="utf-8") as file:
 
 
 @router.get("/", response_model=FastUI, response_model_exclude_none=True)
-def api_index(
+async def api_index(
     user: Annotated[User | None, Depends(User.from_request_opt)],
 ) -> list[AnyComponent]:
     return bot_page(

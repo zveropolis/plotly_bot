@@ -49,13 +49,19 @@ async def send_notice(bot: Bot):
                     )
 
                 case "REPORT":
-                    admin_ids: list[UserData] = await get_admins()
-
-                    for admin in admin_ids:
+                    if amount and amount != "None":
                         await bot.send_message(
-                            admin.telegram_id,
-                            f"Поступило обращение от пользователя {user_id}. Номер обращения: {label}",
+                            user_id,
+                            f"Вашему обращению присвоен новый статус: <b>{amount}</b>. Номер обращения: {label}",
                         )
+                    else:
+                        admin_ids: list[UserData] = await get_admins()
+
+                        for admin in admin_ids:
+                            await bot.send_message(
+                                admin.telegram_id,
+                                f"Поступило обращение от пользователя {user_id}. Номер обращения: {label}",
+                            )
         except Exception:
             logger.exception("Ошибка планировщика событий")
             continue

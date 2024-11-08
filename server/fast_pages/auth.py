@@ -48,7 +48,7 @@ class LoginForm(BaseModel):
 
 
 @router.get("/login", response_model=FastUI, response_model_exclude_none=True)
-def auth_login(
+async def auth_login(
     user: Annotated[User | None, Depends(User.from_request_opt)],
 ) -> list[AnyComponent]:
     if user is not None:

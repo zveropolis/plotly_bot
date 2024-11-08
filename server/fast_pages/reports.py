@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,6 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import and_, select, update
 
 from core.err import DatabaseError
+
 # from db.utils import get_all_users
 from db import models as mod
 from db.database import execute_query
@@ -15,6 +17,7 @@ from server.fast_pages.shared import bot_page, patched_fastui_form, tabs
 from server.utils.auth_user import User
 
 router = APIRouter()
+queue = logging.getLogger("queue")
 
 
 class ReportStatus(BaseModel):
@@ -139,6 +142,16 @@ async def change_report_status(
             ),
         ]
     else:
+        queue.info(
+            "Изменен статус обращения",
+            extra={
+                "type": "REPORT",
+                "user_id": form.user_id,
+                "label": form.id,
+                "amount": form.status,
+            },
+        )
+
         return [
             c.FireEvent(
                 event=GoToEvent(

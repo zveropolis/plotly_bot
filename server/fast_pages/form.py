@@ -76,12 +76,12 @@ class BugModel(BaseModel):
 
 
 @router.get("/error", response_model=FastUI, response_model_exclude_none=True)
-def redirect_bug():
+async def redirect_bug():
     return bot_page(c.FireEvent(event=GoToEvent(url="/bot/bug/create")))
 
 
 @router.get("/create", response_model=FastUI, response_model_exclude_none=True)
-def form_content(
+async def form_content(
     user: Annotated[User | None, Depends(User.from_request_opt)],
     name: str | None = None,
     telegram_id: int | None = None,
