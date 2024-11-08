@@ -47,6 +47,12 @@ async def get_all_users():
 
 @async_speed_metric
 async def get_admins():
-    query = select(UserData).where(UserData.admin)
+    query = select(UserData).where(
+        and_(
+            UserData.admin,
+            UserData.active != UserActivity.banned,
+            UserData.active != UserActivity.deleted,
+        )
+    )
 
     return (await execute_query(query)).scalars().all()

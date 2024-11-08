@@ -1,5 +1,9 @@
-from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, ReplyKeyboardMarkup)
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 from pytils.numeral import get_plural
 
 from db.models import UserActivity, UserData
@@ -202,6 +206,7 @@ def get_account_keyboard(user_data: UserData, extended=False):
                     )
                 ]
             )
+
         case UserActivity.freezed:
             buttons.append(
                 [
@@ -210,6 +215,18 @@ def get_account_keyboard(user_data: UserData, extended=False):
                     )
                 ]
             )
+
+        case UserActivity.banned:
+            buttons.append(
+                [
+                    InlineKeyboardButton(
+                        text="Подать заявку на разбан",
+                        url=f"http://assa.ddns.net/bot/bug/create?name={user_data.telegram_name}&telegram_id={user_data.telegram_id}",
+                    )
+                ]
+            )
+            return InlineKeyboardMarkup(inline_keyboard=buttons)
+
         case _:
             buttons.append(
                 [

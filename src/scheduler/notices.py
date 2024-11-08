@@ -3,6 +3,7 @@ import os
 
 import aiofiles
 from aiogram import Bot
+from aiogram.exceptions import TelegramForbiddenError
 from pytils.numeral import get_plural
 
 from core.path import PATH
@@ -62,9 +63,10 @@ async def send_notice(bot: Bot):
                                 admin.telegram_id,
                                 f"Поступило обращение от пользователя {user_id}. Номер обращения: {label}",
                             )
+        except TelegramForbiddenError:
+            logger.debug("Бот заблокирован пользователем. Уведомление отложено.")
         except Exception:
             logger.exception("Ошибка планировщика событий")
-            continue
         else:
             notices.pop(notice.index(notice))
 

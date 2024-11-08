@@ -270,6 +270,10 @@ class AccountStatuses:
 def get_account_status(user_data: UserData):
     if user_data.active == UserActivity.freezed:
         return AccountStatuses.freezed
+    elif user_data.active == UserActivity.banned:
+        return AccountStatuses.banned
+    elif user_data.active == UserActivity.deleted:
+        return AccountStatuses.deleted
     elif user_data.admin:
         return AccountStatuses.admin
     else:

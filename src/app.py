@@ -42,6 +42,7 @@ def __create_bot():
     dp.message.middleware(ChatActionMiddleware())
     dp.include_routers(
         hand.admin.router,
+        hand.ban.router,
         hand.account.router,
         hand.user_service.router,
         hand.info.router,

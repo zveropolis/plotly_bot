@@ -5,6 +5,7 @@ from aiogram import Bot, F, Router
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, Message
 
+from db.models import UserActivity, UserData
 import text
 from core import exceptions as exc
 from db import utils
@@ -12,8 +13,7 @@ from src.handlers.account import account_actions
 
 logger = logging.getLogger()
 router = Router()
-
-# This module handles user account actions such as registration, deletion, and recovery.
+router.message.filter(F.chat.type == "private")
 
 
 @router.message(Command("reg"))
@@ -50,16 +50,24 @@ async def register_user(trigger: Union[Message, CallbackQuery], bot: Bot):
 @router.callback_query(F.data == "freeze_account")
 async def freeze_user(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
-        # Attempt to freeze the user from the database using their ID
-        await utils.freeze_user(trigger.from_user.id)
+        user_data: UserData = await utils.get_user(trigger.from_user.id)
+        match user_data.active:
+            case UserActivity.freezed:
+                await trigger.answer(text="Ваш аккаунт уже заморожен")
+                return
+            case UserActivity.banned:
+                await trigger.answer(text="Ваш аккаунт забанен")
+                return
+            case UserActivity.deleted:
+                await trigger.answer(text="Ваш аккаунт удален")
+                return
+            case _:
+                await utils.freeze_user(trigger.from_user.id)
     except exc.DatabaseError:
-        # Handle database errors during deletion
         await trigger.answer(text=text.DB_ERROR, show_alert=True)
     else:
-        # Notify the user that a deletion request is being processed
         await trigger.answer(text="Посылаю запрос на заморозку учетной записи...")
     finally:
-        # Delete the original message after processing to keep the chat clean
         await bot.delete_message(
             trigger.from_user.id, getattr(trigger, "message", trigger).message_id
         )
@@ -69,8 +77,19 @@ async def freeze_user(trigger: Union[Message, CallbackQuery], bot: Bot):
 @router.callback_query(F.data == "recover_account")
 async def recover_user(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
-        # Attempt to recover the user's account using their ID
-        user_data = await utils.recover_user(trigger.from_user.id)
+        user_data: UserData = await utils.get_user(trigger.from_user.id)
+        match user_data.active:
+            case UserActivity.banned:
+                await trigger.answer(text="Ваш аккаунт забанен")
+                return
+            case UserActivity.deleted:
+                await trigger.answer(text="Ваш аккаунт удален")
+                return
+            case UserActivity.freezed:
+                user_data = await utils.recover_user(trigger.from_user.id)
+            case _:
+                await trigger.answer(text="Ваш аккаунт уже разморожен")
+                return
     except exc.DatabaseError:
         # Handle database errors during recovery
         await trigger.answer(text=text.DB_ERROR, show_alert=True)

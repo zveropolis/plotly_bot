@@ -18,7 +18,7 @@ async def get_user(user_id):
         return result[0]
 
     query = select(UserData).where(UserData.telegram_id == user_id)
-    result = (await execute_query(query)).scalar_one_or_none()
+    result: UserData = (await execute_query(query)).scalar_one_or_none()
     if result:
         await CashManager(UserData).add({user_id: result.__ustr_dict__})
 
@@ -46,6 +46,18 @@ async def freeze_user(user_id):
             active=UserActivity.freezed,
             balance=UserData.balance - UserData.stage * settings.cost,
         )
+        .filter_by(telegram_id=user_id)
+    )
+    await execute_query(query)
+
+
+@async_speed_metric
+async def ban_user(user_id):
+    await clear_cash(user_id)
+
+    query = (
+        update(UserData)
+        .values(active=UserActivity.banned)
         .filter_by(telegram_id=user_id)
     )
     await execute_query(query)

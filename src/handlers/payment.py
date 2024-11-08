@@ -115,8 +115,8 @@ async def get_user_transact(callback: CallbackQuery):
         else:
             await callback.answer("У вас не было еще ни одной транзакции такого вида")
 
-        await callback.message.answer(
-            "\n\n".join(
+        for transact in transact_list[-10:]:
+            await callback.message.answer(
                 "<pre>"
                 + "\n".join(
                     sorted(
@@ -129,9 +129,7 @@ async def get_user_transact(callback: CallbackQuery):
                     )
                 )
                 + "</pre>"
-                for transact in transact_list[-10:]
             )
-        )
 
         if len(transact_list) > 10:
             for tr in transact_list:
