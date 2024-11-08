@@ -1,3 +1,4 @@
+from datetime import timedelta
 import logging
 from contextlib import suppress
 from typing import Union
@@ -12,12 +13,14 @@ import kb
 import text
 from core.exceptions import BaseBotError, DatabaseError, WireguardError
 from db.models import UserData
-from db.utils import test_server_speed
+from db.utils import test_server_speed, get_user
 from handlers.utils import find_user
 from wg.utils import WgServerTools
+from core.config import settings
 
 logger = logging.getLogger()
 router = Router()
+router.message.filter(F.chat.type == "private")
 
 
 async def more_help_info(callback: CallbackQuery):
@@ -147,6 +150,7 @@ async def commands_list(trigger: Union[Message, CallbackQuery]):
             "/reg - Регистрация в БД Бота",
             "/freeze - Заморозить аккаунт",
             "/recover - Разморозить аккаунт",
+            "/chat - Получить доступ в клиентский чат",
             marker="~ ",
         ),
         Bold("Действия с конфигурациями:"),
@@ -275,3 +279,24 @@ async def server_speed(trigger: Union[Message, CallbackQuery], bot: Bot):
         )
 
         await getattr(trigger, "message", trigger).answer(server_data)
+
+
+@router.message(Command("chat"))
+@router.callback_query(F.data == "invite_to_chat")
+async def get_chat_invite(trigger: Union[Message, CallbackQuery], bot: Bot):
+    user_data = await get_user(trigger.from_user.id)
+
+    if user_data is None:
+        await getattr(trigger, "message", trigger).answer(
+            "Чат доступен только зарегистрированным пользователям. "
+            "Для начала выполните команду /reg"
+        )
+    else:
+        link = await bot.create_chat_invite_link(
+            settings.BOT_CHAT, "chat", timedelta(hours=12), member_limit=1
+        )
+
+        await getattr(trigger, "message", trigger).answer(
+            "🎉Поздравляем! Вам открыт доступ в клиентский чат.",
+            reply_markup=kb.get_chat_button(link.invite_link),
+        )

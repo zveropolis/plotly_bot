@@ -21,6 +21,8 @@ from wg.utils import WgServerTools
 logger = logging.getLogger()
 router = Router()
 
+router.message.filter(F.chat.type == "private")
+
 
 @router.message(Command("start"))
 @router.message(F.text == "Перезагрузка")

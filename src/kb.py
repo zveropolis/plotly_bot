@@ -267,12 +267,19 @@ def get_account_keyboard(user_data: UserData, extended=False):
                         text="⏫ Инструменты", callback_data="extra_function_close"
                     )
                 ],
-                [InlineKeyboardButton(text="🆔 Мой ID", callback_data="user_id_info")],
-                [InlineKeyboardButton(text="🔍 Сервер", callback_data="server_status")],
                 [
                     InlineKeyboardButton(
-                        text="⚡️ Скорость VPN", callback_data="server_speed"
+                        text="💬 Наш чат", callback_data="invite_to_chat"
                     )
+                ],
+                [InlineKeyboardButton(text="🆔 Мой ID", callback_data="user_id_info")],
+                [
+                    InlineKeyboardButton(
+                        text="🔍 Сервер", callback_data="server_status"
+                    ),
+                    InlineKeyboardButton(
+                        text="⚡️ Скорость VPN", callback_data="server_speed"
+                    ),
                 ],
             ]
         )
@@ -403,6 +410,19 @@ def get_pay_url(sum, url):
             [
                 InlineKeyboardButton(
                     text=f"Пополнить на {get_plural(sum, 'рубль, рубля, рублей')}",
+                    url=url,
+                )
+            ]
+        ]
+    )
+
+
+def get_chat_button(url):
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🌟Получить доступ в чат",
                     url=url,
                 )
             ]

@@ -17,6 +17,7 @@ from states import AdminService
 
 logger = logging.getLogger()
 router = Router()
+router.message.filter(F.chat.type == "private")
 
 
 @router.message(Command("admin"))

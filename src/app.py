@@ -43,6 +43,7 @@ def __create_bot():
     dp.include_routers(
         hand.admin.router,
         hand.ban.router,
+        hand.group.router,
         hand.account.router,
         hand.user_service.router,
         hand.info.router,

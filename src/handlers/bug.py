@@ -9,6 +9,7 @@ from kb import get_bug_report_url
 
 logger = logging.getLogger()
 router = Router()
+router.message.filter(F.chat.type == "private")
 
 
 @router.message(Command("bug"))

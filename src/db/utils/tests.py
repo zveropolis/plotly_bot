@@ -50,15 +50,17 @@ async def test_server_speed():
 
         stdout, stderr = await proc.communicate()
 
-        speed_in, speed_out = stdout.decode().strip("\r\n").split("\n")
-
         logger.info(
             f"speedtest exited with {proc.returncode}",
             extra={"Server speed_in": speed_in, "Server speed_out": speed_out},
         )
 
-        ERROR = stderr.decode()
+        ERROR = stderr.decode(encoding="utf-8", errors="ignore")
         assert not ERROR, "Ошибка измерения пропускной способности"
+
+        speed_in, speed_out = (
+            stdout.decode(encoding="utf-8", errors="ignore").strip("\r\n").split("\n")
+        )
 
         pipe = redis_engine.pipeline()
         pipe.set("data:speedtest:in", speed_in)

@@ -27,6 +27,7 @@ from states import Service
 logger = logging.getLogger()
 router = Router()
 pay_keyboard = kb.get_pay_keyboard()
+router.message.filter(F.chat.type == "private")
 
 
 @router.message(Command("sub"))

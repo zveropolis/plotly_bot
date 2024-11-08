@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     BOT_TOKEN: SecretStr
     YOO_TOKEN: SecretStr
 
+    BOT_CHAT: int
     BOT_URL: HttpUrl = "https://t.me/vpn_dan_bot"
     subserver_url: HttpUrl = "http:/assa.ddns.net"
 
