@@ -3,7 +3,6 @@ from datetime import timedelta
 from pandas import DataFrame, ExcelWriter
 
 
-
 def get_table_from_df(data_list, filename):
     with ExcelWriter(filename, engine="openpyxl", mode="w") as writer:
         df = DataFrame(data=data_list)
