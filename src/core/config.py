@@ -126,6 +126,6 @@ last_updated = datetime.today()
 decr_time = os.path.join(PATH, "src", "scheduler", "last_decremented.pickle")
 noticed_time = os.path.join(PATH, "src", "scheduler", "last_noticed.pickle")
 
-for timefile in (decr_time, noticed_time):
-    with open(timefile, "wb") as file:
-        pickle.dump(last_updated, file)
+# for timefile in (decr_time, noticed_time):
+#     with open(timefile, "wb") as file:
+#         pickle.dump(last_updated, file)
