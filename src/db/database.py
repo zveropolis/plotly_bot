@@ -48,7 +48,10 @@ async def execute_query(query, echo=True):
                 raise UniquenessError
             except Exception:
                 await session.rollback()
-                logger.exception("Ошибка при подключении к БД", exc_info=query.__dict__)
+                logger.exception(
+                    "Ошибка при подключении к БД",
+                    exc_info=getattr(query, "__dict__", query),
+                )
                 raise DatabaseError
 
 

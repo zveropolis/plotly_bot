@@ -11,7 +11,7 @@ sys.path.insert(1, os.path.dirname(sys.path[0]))
 
 from core.config import Base, settings
 from core.path import PATH
-from db import models as _
+from db import models as _  # COMMENT TRIGGER
 from db.database import async_engine
 
 logging.config.fileConfig("log.ini", disable_existing_loggers=False)
@@ -19,46 +19,81 @@ logging.getLogger("sqlalchemy.engine.Engine").setLevel(logging.INFO)
 logger = logging.getLogger()
 
 
-DUMPNAME = "regular_dump_06_11_2024-09_43.sql"
+DUMPNAME = "regular_dump_11_11_2024-09_16.sql"
 PLATFORM: Literal["Windows", "Linux"] = platform.system()
 
 
 async def postgresql_recover_tables():
-    async with async_engine.connect() as conn:
-        async_engine.echo = False
-        await conn.run_sync(Base.metadata.drop_all)
-        async_engine.echo = True
-        await conn.run_sync(Base.metadata.create_all)
-        await conn.commit()
+    terminate = (
+        f"psql -U {settings.DB_USER} "
+        f"-h {settings.DB_HOST} "
+        "-d nullbase "
+        f"-c \"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{settings.DB_NAME}';\""
+    )
+    drop = (
+        f"psql -U {settings.DB_USER} "
+        f"-h {settings.DB_HOST} "
+        "-d nullbase "
+        f'-c "DROP DATABASE IF EXISTS {settings.DB_NAME};"'
+    )
 
-    cmd = (
+    create = (
+        f"psql -U {settings.DB_USER} "
+        f"-h {settings.DB_HOST} "
+        "-d nullbase "
+        f"""-c \"CREATE DATABASE {settings.DB_NAME}
+                    WITH
+                    OWNER = {settings.DB_USER}
+                    ENCODING = 'UTF8'
+                    LC_COLLATE = 'en_US.utf8'
+                    LC_CTYPE = 'en_US.utf8'
+                    TABLESPACE = pg_default
+                    CONNECTION LIMIT = -1
+                    IS_TEMPLATE = False;\"
+                        """
+    )
+
+    recover = (
         f"psql -U {settings.DB_USER} "
         f"-h {settings.DB_HOST} "
         f"-d {settings.DB_NAME} "
         f'-f {os.path.join(PATH, "src", "db", "dumps", DUMPNAME)}'
     )
     if PLATFORM == "Windows":
-        cmd = f"$env:PGPASSWORD = {settings.DB_PASS.get_secret_value()}; " + cmd
+        # cmd = f"$env:PGPASSWORD = {settings.DB_PASS.get_secret_value()}; " + recover
         logger.error(
             "ЭТА ПЛАТФОРМА НЕ ПОДДЕРЖИВАЕТСЯ",
         )
         return
 
     elif PLATFORM == "Linux":
-        cmd = f"export PGPASSWORD={settings.DB_PASS.get_secret_value()} && {cmd}"
+        login = f"export PGPASSWORD={settings.DB_PASS.get_secret_value()}"
 
-    logger.info(f"Executing command: {cmd}")
+    for cmd in (terminate, drop, create, recover):
+        cmd = f"{login} && {cmd}"
 
-    proc = await asyncio.create_subprocess_shell(
-        cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-    )
-    stdout, stderr = await proc.communicate()
+        logger.info(f"Executing command: {cmd}")
 
-    logger.info(f"pg_dump exited with {proc.returncode}")
+        proc = await asyncio.create_subprocess_shell(
+            cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await proc.communicate()
 
-    if proc.returncode != 0:
-        error_message = stderr.decode("utf-8", errors="ignore")
-        logger.error(f"Ошибка создания дампа БД: {error_message}")
+        logger.info(f"pg_dump exited with {proc.returncode}")
+
+        if proc.returncode != 0:
+            error_message = stderr.decode("utf-8", errors="ignore")
+            logger.error(f"Ошибка создания дампа БД: {error_message}")
+
+        else:
+            print(stdout.decode("utf-8", errors="ignore"))
+
+
+async def create_new_tables():
+    async with async_engine.connect() as conn:
+        async_engine.echo = True
+        await conn.run_sync(Base.metadata.create_all)
+        await conn.commit()
 
 
 if __name__ == "__main__":
@@ -76,6 +111,8 @@ if __name__ == "__main__":
             except Exception:
                 logger.exception("Возникло исключение при подключении к БД")
                 raise
+
+        await create_new_tables()
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(start())
