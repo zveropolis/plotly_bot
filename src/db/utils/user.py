@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import insert, select, update
+from sqlalchemy import insert, not_, select, update
 
 from core.config import settings
 from core.metric import async_speed_metric
@@ -129,6 +129,18 @@ async def update_rate_user(user_id, stage, tax=0, trial=False):
 
     await delete_cash_transactions(user.telegram_id)
     return user
+
+
+@async_speed_metric
+async def mute_user(user_id):
+    await clear_cash(user_id)
+
+    query = (
+        update(UserData)
+        .values(mute=not_(UserData.mute))
+        .filter_by(telegram_id=user_id)
+    )
+    await execute_query(query)
 
 
 @async_speed_metric

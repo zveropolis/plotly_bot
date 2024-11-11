@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, not_, select, update
 
 from core.metric import async_speed_metric
 from db.database import execute_query
@@ -27,6 +27,7 @@ async def set_admin(user_id):
 async def get_valid_users(my_id):
     query = select(UserData).where(
         and_(
+            not_(UserData.mute),
             UserData.telegram_id != my_id,
             UserData.active != UserActivity.freezed,
             UserData.active != UserActivity.banned,

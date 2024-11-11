@@ -77,12 +77,14 @@ async def account_actions(
         )
     else:
         account_status = text.get_account_status(user_data)
-        sub_status = text.get_sub_status(user_data)
+        sub_status, rate = text.get_sub_status(user_data)
         account_data = "\n".join(
             (
-                f"Сервер:      <b>{server_status.capitalize()}</b>",
-                f"Аккаунт:     <b>{account_status}</b>",
-                f"Подписка: <b>{sub_status}</b>" if sub_status else "",
+                f"Сервер:              <b>{server_status.capitalize()}</b>",
+                f"Аккаунт:             <b>{account_status}</b>",
+                f"Уведомления:  <b>{'Вкл' if not user_data.mute else 'Выкл'}</b>",
+                f"Подписка:         <b>{sub_status}</b>" if sub_status else "",
+                f"Тариф:                <b>{rate}</b>" if rate else "",
             )
         )
 

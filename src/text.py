@@ -282,11 +282,11 @@ def get_account_status(user_data: UserData):
 
 def get_sub_status(user_data: UserData):
     if user_data.active == UserActivity.active:
-        return f"Активна | {rates.get(user_data.stage,'Неопознанный')} Тариф"
+        return "Активна", rates.get(user_data.stage, "Неопознанный")
     elif user_data.active == UserActivity.inactive:
-        return "Неактивна"
+        return "Неактивна", ""
     else:
-        return ""
+        return "", ""
 
 
 def get_config_data(user_config: WgConfig):

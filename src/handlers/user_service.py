@@ -9,6 +9,7 @@ import text
 from core import exceptions as exc
 from db import utils
 from db.models import UserActivity, UserData
+from handlers.utils import find_user
 from src.handlers.account import account_actions
 
 logger = logging.getLogger()
@@ -106,4 +107,33 @@ async def recover_user(trigger: Union[Message, CallbackQuery], bot: Bot):
         # Delete the original message after processing to keep the chat clean
         await bot.delete_message(
             trigger.from_user.id, getattr(trigger, "message", trigger).message_id
+        )
+
+
+@router.message(Command("mute"))
+@router.callback_query(F.data == "user_mute_toggle")
+async def mute_toggle(trigger: Union[Message, CallbackQuery], bot: Bot):
+    user_data: UserData = await find_user(trigger)
+    if not user_data:
+        return
+    elif user_data.stage < 2:
+        await getattr(trigger, "message", trigger).answer(
+            "Команда заблокирована. Выберите тариф от 'Расширенного' или выше."
+        )
+        return
+
+    try:
+        await utils.mute_user(trigger.from_user.id)
+
+    except exc.DatabaseError:
+        await trigger.answer(text=text.DB_ERROR, show_alert=True)
+
+    else:
+        if user_data.mute:
+            mute_status = "включены"
+        else:
+            mute_status = "отключены"
+
+        await getattr(trigger, "message", trigger).answer(
+            f"Ваши уведомления <b>{mute_status}</b>"
         )

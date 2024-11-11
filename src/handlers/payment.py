@@ -39,14 +39,15 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
     if not user_data:
         return
 
-    sub_status = text.get_sub_status(user_data)
+    sub_status, rate = text.get_sub_status(user_data)
 
     if sub_status:
         await getattr(trigger, "message", trigger).answer(
             "\n".join(
                 (
-                    f"Ваша подписка: <b>{sub_status}</b>",
-                    f"Ваш баланс: <b>{user_data.fbalance} руб</b>",
+                    f"Подписка: <b>{sub_status}</b>",
+                    f"Тариф:        <b>{rate}</b>",
+                    f"Баланс:       <b>{user_data.fbalance} руб</b>",
                     f"Вам осталось <b>{get_plural(text.get_end_sub(user_data), 'день, дня, дней')}</b>",
                 )
             ),

@@ -66,6 +66,7 @@ class UserData(Base):
     stage: Mapped[float] = mapped_column(default=0)
     balance: Mapped[float] = mapped_column(type_=Numeric(scale=2), default=0)
     free: Mapped[bool] = mapped_column(default=True)
+    mute: Mapped[bool] = mapped_column(server_default="0")
     updated: Mapped[datetime] = mapped_column(
         type_=DateTime(timezone=True),
         server_default=func.now(),
@@ -89,6 +90,7 @@ class UserData(Base):
         stage: float = Field(title="Stage", default=0)
         balance: float = Field(title="Balance", default=0)
         free: bool = Field(title="Free", default=True)
+        mute: bool = Field(title="Mute", default=False)
         updated: datetime = Field(title="Last update")
 
         configs: list["WgConfig.ValidationSchema"] = Field(
@@ -111,6 +113,7 @@ class UserData(Base):
         DisplayLookup(field="stage"),
         DisplayLookup(field="balance"),
         DisplayLookup(field="free"),
+        DisplayLookup(field="Mute"),
         DisplayLookup(field="updated", mode=DisplayMode.datetime),
     ]
 

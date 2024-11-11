@@ -268,7 +268,15 @@ def get_account_keyboard(user_data: UserData, extended=False):
                         text="💬 Наш чат", callback_data="invite_to_chat"
                     )
                 ],
-                [InlineKeyboardButton(text="🆔 Мой ID", callback_data="user_id_info")],
+                [
+                    InlineKeyboardButton(
+                        text="🆔 Мой ID", callback_data="user_id_info"
+                    ),
+                    InlineKeyboardButton(
+                        text="🔊 Unmute" if user_data.mute else "🔇 Mute",
+                        callback_data="user_mute_toggle",
+                    ),
+                ],
                 [
                     InlineKeyboardButton(
                         text="🔍 Сервер", callback_data="server_status"
