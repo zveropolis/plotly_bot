@@ -89,11 +89,14 @@ async def get_user_transact(callback: CallbackQuery):
                     continue
 
             if transact.amount > 0:
+                post_params["Описание"] = "Пополнение"
                 if transact.transaction_id:
                     post_params["Статус"] = "Исполнена"
+                    if not transact.transaction_id.isnumeric():
+                        post_params["Описание"] = transact.transaction_id
+
                 else:
                     post_params["Статус"] = "Не исполнена"
-                post_params["Описание"] = "Пополнение"
             else:
                 post_params["Описание"] = params.get("transaction_id", None)
 

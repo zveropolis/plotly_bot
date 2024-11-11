@@ -100,18 +100,35 @@ async def update_rate_user(user_id, stage, tax=0, trial=False):
     await clear_cash(user_id)
 
     tax *= -1
+    tax_descr = "Комиссия за смену тарифа"
 
     if trial:
+        tax_descr = "Активация пробного периода"
         tax += 7
 
     query = (
         update(UserData)
-        .values(stage=stage, free=False, balance=UserData.balance + tax)
+        .values(stage=stage, free=False)
         .filter_by(telegram_id=user_id)
         .returning(UserData)
     )
-    result: UserData = (await execute_query(query)).scalar_one_or_none()
-    return result
+    user: UserData = (await execute_query(query)).scalar_one_or_none()
+
+    data = dict(
+        user_id=user.telegram_id,
+        date=datetime.now(timezone.utc),
+        amount=tax,
+        withdraw_amount=tax,
+        label=uuid4(),
+        transaction_id=tax_descr,
+        transaction_reference="",
+    )
+
+    query = insert(Transactions).values(data)
+    await execute_query(query)
+
+    await delete_cash_transactions(user.telegram_id)
+    return user
 
 
 @async_speed_metric
