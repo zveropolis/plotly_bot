@@ -240,11 +240,18 @@ async def change_rate(callback: CallbackQuery, bot: Bot):
 @router.callback_query(F.data == "top_up_balance")
 async def input_balance(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
-        "Выберите сумму или введите вручную."
+        "Выберите сумму или введите вручную. Для отмены используйте /cancel."
         f"<b>\n(Актуальная комиссия провайдера {settings.transfer_fee*100-100} %</b>",
         reply_markup=pay_keyboard,
     )
     await state.set_state(Service.balance)
+
+
+@router.message(Service.balance, Command("cancel"))
+async def cancel_input_balance(message: Message, state: FSMContext):
+    await state.clear()
+    await state.set_state()
+    await message.answer("Отменено")
 
 
 @router.callback_query(F.data.startswith("pay_sub_"))

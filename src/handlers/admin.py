@@ -31,7 +31,8 @@ async def admin_actions(message: Message):
                 "/admin - список команд администратора",
                 "/backup - выгрузить бэкап БД в виде excel таблицы",
                 "/send - рассылка сообщения всем зарегистрированным пользователям",
-                "/close | /sorry",
+                "/close - уведомление пользователей о технических работах на сервере",
+                "/open - уведомление пользователей об окончании технических работ на сервере",
                 marker="~ ",
             )
 
@@ -102,7 +103,8 @@ async def admin_mailing_confirm(message: Message, state: FSMContext):
             await state.set_state(AdminService.mailing_message)
             await message.answer(f"Сообщение для рассылки:\n<b>{message.text}</b>")
             await message.answer(
-                "Вы уверены, что хотите отправить это <b>ВСЕМ</b> пользователям?"
+                "Вы уверены, что хотите отправить это <b>ВСЕМ</b> пользователям? "
+                "Для отмены нажмите /cancel или введите `нет`"
             )
             await state.update_data({"mailing_message": message.text})
 
@@ -140,6 +142,7 @@ async def admin_mailing_finish(message: Message, bot: Bot, state: FSMContext):
         await message.answer(text.DB_ERROR)
 
 
+@router.message(AdminService.mailing_message, Command("cancel"))
 @router.message(AdminService.mailing_message, F.text.lower().in_(text.no))
 @async_speed_metric
 async def admin_mailing_cancel(message: Message, state: FSMContext):
@@ -153,3 +156,47 @@ async def admin_mailing_cancel(message: Message, state: FSMContext):
 @async_speed_metric
 async def admin_mailing_repeat(message: Message):
     await message.answer("<b>ДА ИЛИ НЕТ?!</b>")
+
+
+@router.message(Command("close"))
+async def admin_mailing_stop_server(message: Message, bot: Bot):
+    try:
+        user_data: UserData = await utils.get_user(message.from_user.id)
+        if getattr(user_data, "admin", False):
+            all_users_data: list[UserData] = await utils.get_valid_users(
+                message.from_user.id
+            )
+
+            for user_data in all_users_data:
+                await bot.send_message(user_data.telegram_id, text.SERVER_STOPPED)
+            await message.answer(
+                f"Сообщение отправлено {get_plural(len(all_users_data), 'пользователю, пользователям, пользователям')}"
+            )
+
+        else:
+            await message.answer(text.only_admin)
+
+    except exc.DatabaseError:
+        await message.answer(text.DB_ERROR)
+
+
+@router.message(Command("open"))
+async def admin_mailing_start_server(message: Message, bot: Bot):
+    try:
+        user_data: UserData = await utils.get_user(message.from_user.id)
+        if getattr(user_data, "admin", False):
+            all_users_data: list[UserData] = await utils.get_valid_users(
+                message.from_user.id
+            )
+
+            for user_data in all_users_data:
+                await bot.send_message(user_data.telegram_id, text.SERVER_STARTED)
+            await message.answer(
+                f"Сообщение отправлено {get_plural(len(all_users_data), 'пользователю, пользователям, пользователям')}"
+            )
+
+        else:
+            await message.answer(text.only_admin)
+
+    except exc.DatabaseError:
+        await message.answer(text.DB_ERROR)

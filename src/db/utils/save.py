@@ -10,7 +10,7 @@ from core.config import settings
 from core.exceptions import BackupError, DumpError
 from core.path import PATH
 from db.database import execute_query
-from db.models import Transactions, UserData, WgConfig
+from db.models import TABLES_SCHEMA, Base
 
 logger = logging.getLogger()
 
@@ -25,18 +25,23 @@ async def async_backup():
     )
     with ExcelWriter(filename, engine="openpyxl", mode="w") as writer:
         try:
-            for model in (UserData, WgConfig, Transactions):
-                query = select(model).order_by(model.id)
-                res = await execute_query(query)
+            for model in TABLES_SCHEMA.values():
+                if model.__bases__[0] is Base:
+                    query = select(model).order_by(model.id)
+                    res = await execute_query(query)
 
-                df = DataFrame(data=[line.__udict__ for line in res.scalars().all()])
+                    df = DataFrame(
+                        data=[line.__udict__ for line in res.scalars().all()]
+                    )
 
-                date_columns = df.select_dtypes(include=["datetime64[ns, UTC]"]).columns
-                for date_column in date_columns:
-                    df[date_column] = df[date_column].dt.tz_localize(None)
-                    df[date_column] = df[date_column] + timedelta(hours=3)
+                    date_columns = df.select_dtypes(
+                        include=["datetime64[ns, UTC]"]
+                    ).columns
+                    for date_column in date_columns:
+                        df[date_column] = df[date_column].dt.tz_localize(None)
+                        df[date_column] = df[date_column] + timedelta(hours=3)
 
-                df.to_excel(writer, sheet_name=model.__tablename__, index=False)
+                    df.to_excel(writer, sheet_name=model.__tablename__, index=False)
         except Exception:
             logger.exception("Ошибка создания дампа БД")
             raise BackupError
