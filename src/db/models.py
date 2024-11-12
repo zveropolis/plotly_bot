@@ -477,14 +477,6 @@ class News(Base):
         content_title: str = Field(title="Content Title")
         content: str = Field(title="Content")
 
-        site_date: str = Field(init=False, title="Create date", default="00:00")
-
-        @model_validator(mode="after")
-        def set_site_date(cls, values: BaseModel):
-            if hasattr(values, "date"):
-                values.site_date = values.date.astimezone().ctime()
-            return values
-
         model_config = ConfigDict(extra="ignore")
 
     # INTERFACE (fastui)

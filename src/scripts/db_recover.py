@@ -19,7 +19,7 @@ logging.getLogger("sqlalchemy.engine.Engine").setLevel(logging.INFO)
 logger = logging.getLogger()
 
 
-DUMPNAME = "regular_dump_11_11_2024-09_16.sql"
+DUMPNAME = "dump_12_11_2024-16_20.sql"
 PLATFORM: Literal["Windows", "Linux"] = platform.system()
 
 
