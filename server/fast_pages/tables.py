@@ -528,3 +528,38 @@ async def transaction_profile(
             user=user,
             title=f'Transactions from user "{transactions[0].user_id}"',
         )
+
+
+@router.get("/news/", response_model=FastUI, response_model_exclude_none=True)
+async def new_profile(
+    user: Annotated[User, Depends(User.from_request)],
+    news_id: int,
+) -> list[AnyComponent]:
+    try:
+        _table = mod.News
+
+        query = select(_table).where(_table.id == news_id)
+        raw_new: mod.News = (await execute_query(query)).scalar_one_or_none()
+        if raw_new:
+            new = _table.ValidationSchema.model_validate(raw_new, from_attributes=True)
+
+        else:
+            return bot_page(c.Paragraph(text="New not found"), user=user)
+
+    except DatabaseError:
+        raise HTTPException(status_code=500, detail="Database Error")
+    else:
+        return bot_page(
+            *tabs(),
+            c.Div(
+                components=[
+                    c.Button(
+                        text="Back", named_style="secondary", on_click=BackEvent()
+                    ),
+                ],
+                class_name="mt-3 pt-1",
+            ),
+            c.Details(data=new, fields=_table.site_display_all),
+            user=user,
+            title=new.title,
+        )

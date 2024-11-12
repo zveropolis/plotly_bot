@@ -1,12 +1,9 @@
 import logging
-from datetime import datetime
 
-from sqlalchemy import insert, select, update, delete
+from sqlalchemy import delete, insert
 
-from core.config import settings
 from db.database import execute_query
 from db.models import News
-from db.utils.redis import CashManager
 
 logger = logging.getLogger()
 

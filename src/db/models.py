@@ -491,7 +491,7 @@ class News(Base):
     site_display_all = site_display + [
         DisplayLookup(field="excerpt"),
         DisplayLookup(field="content_title"),
-        DisplayLookup(field="content"),
+        DisplayLookup(field="content", mode=DisplayMode.markdown),
     ]
 
     def __init__(self, **kwargs):
