@@ -1,11 +1,12 @@
-from typing import Annotated
+import enum
+from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastui import AnyComponent, FastUI
 from fastui import components as c
 from fastui.events import BackEvent
-from pydantic import BaseModel
-from sqlalchemy import select
+from pydantic import BaseModel, Field
+from sqlalchemy import desc, select
 from yoomoney import Client
 from yoomoney.exceptions import YooMoneyError
 
@@ -85,6 +86,250 @@ async def yoomoney_operation_profile(
         )
 
 
+class UserFilterForm(BaseModel):
+    active: mod.UserActivity | None = Field(default=None)
+
+
+@router.get("/userdata", response_model=FastUI, response_model_exclude_none=True)
+async def userdata_view(
+    user: Annotated[User, Depends(User.from_request)],
+    page: int = 1,
+    active: mod.UserActivity | None = None,
+) -> list[AnyComponent]:
+    try:
+        schema: BaseModel = mod.UserData.ValidationSchema
+        size = user.page_size
+
+        query = select(mod.UserData).order_by(desc(mod.UserData.id), mod.UserData.admin)
+
+        if active is not None:
+            query = query.where(mod.UserData.active == active)
+
+        raw: list = (await execute_query(query)).scalars().all()
+        data = [schema.model_validate(row, from_attributes=True) for row in raw]
+
+    except AssertionError:
+        raise HTTPException(status_code=404, detail="Item not found")
+    except DatabaseError:
+        raise HTTPException(status_code=500, detail="Database Error")
+    else:
+        return bot_page(
+            *tabs(),
+            c.ModelForm(
+                model=UserFilterForm,
+                submit_url=".",
+                method="GOTO",
+                submit_on_change=True,
+                display_mode="inline",
+            ),
+            c.Table(
+                data=data[(page - 1) * size : page * size],
+                columns=mod.UserData.site_display,
+            )
+            if data
+            else c.Paragraph(text="Empty table"),
+            c.Pagination(page=page, page_size=size, total=len(data)),
+            user=user,
+            title=mod.UserData.__tablename__.capitalize(),
+        )
+
+
+class TransactionType(str, enum.Enum):
+    inner = "Пополнение"
+    outer = "Списание"
+    success = "Исполнена"
+    fatal = "Не исполнена"
+
+
+class TransactionsFilterForm(BaseModel):
+    type: list[TransactionType] | None = Field(default=None)
+
+
+@router.get("/transactions", response_model=FastUI, response_model_exclude_none=True)
+async def transactions_view(
+    user: Annotated[User, Depends(User.from_request)],
+    page: int = 1,
+    type: Optional[List[TransactionType]] = Query(None),
+) -> list[AnyComponent]:
+    try:
+        schema: BaseModel = mod.Transactions.ValidationSchema
+        size = user.page_size
+
+        query = select(mod.Transactions).order_by(desc(mod.Transactions.date))
+
+        if type is not None:
+            if TransactionType.inner in type and TransactionType.outer in type:
+                pass
+            elif TransactionType.inner in type:
+                query = query.where(mod.Transactions.amount > 0)
+            elif TransactionType.outer in type:
+                query = query.where(mod.Transactions.amount < 0)
+
+            if TransactionType.success in type and TransactionType.fatal in type:
+                pass
+            elif TransactionType.success in type:
+                query = query.where(mod.Transactions.transaction_id.isnot(None))
+            elif TransactionType.fatal in type:
+                query = query.where(mod.Transactions.transaction_id.is_(None))
+
+        raw: list = (await execute_query(query)).scalars().all()
+        data = [schema.model_validate(row, from_attributes=True) for row in raw]
+
+    except AssertionError:
+        raise HTTPException(status_code=404, detail="Item not found")
+    except DatabaseError:
+        raise HTTPException(status_code=500, detail="Database Error")
+    else:
+        return bot_page(
+            *tabs(),
+            c.ModelForm(
+                model=TransactionsFilterForm,
+                submit_url=".",
+                method="GOTO",
+                submit_on_change=True,
+                display_mode="inline",
+            ),
+            c.Table(
+                data=data[(page - 1) * size : page * size],
+                columns=mod.Transactions.site_display,
+            )
+            if data
+            else c.Paragraph(text="Empty table"),
+            c.Pagination(page=page, page_size=size, total=len(data)),
+            user=user,
+            title=mod.Transactions.__tablename__.capitalize(),
+        )
+
+
+class WgConfigFilterForm(BaseModel):
+    freeze: mod.FreezeSteps | None = Field(default=None)
+
+
+@router.get("/wg_config", response_model=FastUI, response_model_exclude_none=True)
+async def wg_config_view(
+    user: Annotated[User, Depends(User.from_request)],
+    page: int = 1,
+    freeze: mod.FreezeSteps | None = None,
+) -> list[AnyComponent]:
+    try:
+        schema: BaseModel = mod.WgConfig.ValidationSchema
+        size = user.page_size
+
+        query = select(mod.WgConfig).order_by(mod.WgConfig.id)
+
+        if freeze is not None:
+            query = query.where(mod.WgConfig.freeze == freeze)
+
+        raw: list = (await execute_query(query)).scalars().all()
+        data = [schema.model_validate(row, from_attributes=True) for row in raw]
+
+    except AssertionError:
+        raise HTTPException(status_code=404, detail="Item not found")
+    except DatabaseError:
+        raise HTTPException(status_code=500, detail="Database Error")
+    else:
+        return bot_page(
+            *tabs(),
+            c.ModelForm(
+                model=WgConfigFilterForm,
+                submit_url=".",
+                method="GOTO",
+                submit_on_change=True,
+                display_mode="inline",
+            ),
+            c.Table(
+                data=data[(page - 1) * size : page * size],
+                columns=mod.WgConfig.site_display,
+            )
+            if data
+            else c.Paragraph(text="Empty table"),
+            c.Pagination(page=page, page_size=size, total=len(data)),
+            user=user,
+            title=mod.WgConfig.__tablename__.capitalize(),
+        )
+
+
+class ReportFilterForm(BaseModel):
+    status: mod.ReportStatus | None = Field(default=None)
+
+
+@router.get("/reports", response_model=FastUI, response_model_exclude_none=True)
+async def reports_view(
+    user: Annotated[User, Depends(User.from_request)],
+    page: int = 1,
+    status: mod.ReportStatus | None = None,
+) -> list[AnyComponent]:
+    try:
+        schema: BaseModel = mod.Reports.ValidationSchema
+        size = user.page_size
+
+        query = select(mod.Reports).order_by(desc(mod.Reports.create_date))
+
+        if status is not None:
+            query = query.where(mod.Reports.status == status)
+
+        raw: list = (await execute_query(query)).scalars().all()
+        data = [schema.model_validate(row, from_attributes=True) for row in raw]
+
+    except AssertionError:
+        raise HTTPException(status_code=404, detail="Item not found")
+    except DatabaseError:
+        raise HTTPException(status_code=500, detail="Database Error")
+    else:
+        return bot_page(
+            *tabs(),
+            c.ModelForm(
+                model=ReportFilterForm,
+                submit_url=".",
+                method="GOTO",
+                submit_on_change=True,
+                display_mode="inline",
+            ),
+            c.Table(
+                data=data[(page - 1) * size : page * size],
+                columns=mod.Reports.site_display,
+            )
+            if data
+            else c.Paragraph(text="Empty table"),
+            c.Pagination(page=page, page_size=size, total=len(data)),
+            user=user,
+            title=mod.Reports.__tablename__.capitalize(),
+        )
+
+
+@router.get("/news", response_model=FastUI, response_model_exclude_none=True)
+async def news_view(
+    user: Annotated[User, Depends(User.from_request)],
+    page: int = 1,
+) -> list[AnyComponent]:
+    try:
+        schema: BaseModel = mod.News.ValidationSchema
+        size = user.page_size
+
+        query = select(mod.News).order_by(desc(mod.News.date))
+
+        raw: list = (await execute_query(query)).scalars().all()
+        data = [schema.model_validate(row, from_attributes=True) for row in raw]
+
+    except AssertionError:
+        raise HTTPException(status_code=404, detail="Item not found")
+    except DatabaseError:
+        raise HTTPException(status_code=500, detail="Database Error")
+    else:
+        return bot_page(
+            *tabs(),
+            c.Table(
+                data=data[(page - 1) * size : page * size],
+                columns=mod.News.site_display,
+            )
+            if data
+            else c.Paragraph(text="Empty table"),
+            c.Pagination(page=page, page_size=size, total=len(data)),
+            user=user,
+            title=mod.News.__tablename__.capitalize(),
+        )
+
+
 @router.get("/{table}", response_model=FastUI, response_model_exclude_none=True)
 async def tables_view(
     user: Annotated[User, Depends(User.from_request)],
@@ -97,7 +342,7 @@ async def tables_view(
         schema: BaseModel = _table.ValidationSchema
         size = user.page_size
 
-        query = select(_table).order_by(_table.id)
+        query = select(_table).order_by(desc(_table.id))
         raw: list = (await execute_query(query)).scalars().all()
         data = [schema.model_validate(row, from_attributes=True) for row in raw]
 

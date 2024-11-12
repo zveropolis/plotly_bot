@@ -125,7 +125,7 @@ async def big_form_post(form: Annotated[BugModel, patched_fastui_form(BugModel)]
             info=form.bug_info,
             pictures=pic_map,
             create_date=form.date_of,
-        ).model_dump(exclude={"id", "updated"})
+        ).model_dump(exclude={"id", "updated", "site_updated"})
 
         report = await add_report(report)
 

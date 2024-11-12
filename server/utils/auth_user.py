@@ -15,7 +15,7 @@ from core.config import settings
 class User:
     login: str
     extra: dict[str, Any]
-    page_size: int = 10
+    page_size: int = 15
 
     def encode_token(self) -> str:
         payload = asdict(self)

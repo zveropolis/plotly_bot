@@ -97,6 +97,14 @@ class UserData(Base):
             default=[], title="User Configurations"
         )
 
+        site_updated: str = Field(init=False, title="Last update", default="00:00")
+
+        @model_validator(mode="after")
+        def set_site_date(cls, values: BaseModel):
+            if hasattr(values, "updated"):
+                values.site_updated = values.updated.astimezone().ctime()
+            return values
+
         model_config = ConfigDict(extra="ignore")
 
     # INTERFACE (fastui)
@@ -114,12 +122,14 @@ class UserData(Base):
         DisplayLookup(field="balance"),
         DisplayLookup(field="free"),
         DisplayLookup(field="Mute"),
-        DisplayLookup(field="updated", mode=DisplayMode.datetime),
+        DisplayLookup(field="site_updated"),
     ]
 
     def __init__(self, **kwargs):
         if kwargs:
-            validated_data = self.ValidationSchema(**kwargs).__dict__
+            validated_data = self.ValidationSchema(**kwargs).model_dump(
+                exclude={"site_updated"}
+            )
 
             super().__init__(**(validated_data))
         else:
@@ -166,10 +176,18 @@ class Transactions(Base):
             default=None, title="Transaction Reference"
         )
 
+        site_date: str = Field(init=False, title="Transaction date", default="00:00")
+
         @model_validator(mode="before")
         def convert_str_to_none(cls, values):
             if isinstance(values, Iterable):
                 return {k: None if v == "None" else v for k, v in dict(values).items()}
+            return values
+
+        @model_validator(mode="after")
+        def set_site_date(cls, values: BaseModel):
+            if hasattr(values, "date"):
+                values.site_date = values.date.astimezone().ctime()
             return values
 
         model_config = ConfigDict(extra="ignore")
@@ -182,16 +200,16 @@ class Transactions(Base):
             mode=DisplayMode.plain,
             on_click=GoToEvent(url="/bot/tables/userdata/?telegram_id={user_id}"),
         ),
-        DisplayLookup(field="date", mode=DisplayMode.datetime),
+        DisplayLookup(field="site_date"),
         DisplayLookup(field="amount"),
         DisplayLookup(
             field="label",
             on_click=GoToEvent(url="/bot/tables/transactions/?label={label}"),
         ),
-        DisplayLookup(field="sender"),
     ]
 
     site_display_all = site_display + [
+        DisplayLookup(field="sender"),
         DisplayLookup(field="transaction_id", mode=DisplayMode.plain),
         DisplayLookup(field="sha1_hash", mode=DisplayMode.inline_code),
         DisplayLookup(field="withdraw_amount"),
@@ -199,7 +217,9 @@ class Transactions(Base):
 
     def __init__(self, **kwargs):
         if kwargs:
-            validated_data = self.ValidationSchema(**kwargs).__dict__
+            validated_data = self.ValidationSchema(**kwargs).model_dump(
+                exclude={"site_date"}
+            )
 
             super().__init__(**(validated_data))
         else:
@@ -322,6 +342,14 @@ class Reports(Base):
             default=None, title="Last update"
         )  # None def big_form_post
 
+        site_updated: str = Field(init=False, title="Last update", default="00:00")
+
+        @model_validator(mode="after")
+        def set_updated(cls, values: BaseModel):
+            if hasattr(values, "updated") and hasattr(values.updated, "ctime"):
+                values.site_updated = values.updated.astimezone().ctime()
+            return values
+
         model_config = ConfigDict(extra="ignore")
 
     # INTERFACE (fastui)
@@ -342,13 +370,15 @@ class Reports(Base):
         DisplayLookup(field="create_date", mode=DisplayMode.date),
     ]
     site_display_all = site_display + [
-        DisplayLookup(field="updated", mode=DisplayMode.datetime),
+        DisplayLookup(field="site_updated"),
         DisplayLookup(field="info"),
     ]
 
     def __init__(self, **kwargs):
         if kwargs:
-            validated_data = self.ValidationSchema(**kwargs).__dict__
+            validated_data = self.ValidationSchema(**kwargs).model_dump(
+                exclude={"site_updated"}
+            )
 
             super().__init__(**(validated_data))
         else:
@@ -367,6 +397,14 @@ class YoomoneyOperation(BaseModel):
     amount: float
     label: str
     type: str
+
+    site_datetime: str = Field(init=False, title="Datetime", default="00:00")
+
+    @model_validator(mode="after")
+    def set_date(cls, values: BaseModel):
+        if hasattr(values, "datetime"):
+            values.site_datetime = values.datetime.astimezone().ctime()
+        return values
 
 
 class YoomoneyOperationDetails(BaseModel):
@@ -399,6 +437,14 @@ class YoomoneyOperationDetails(BaseModel):
             k: str(v) if isinstance(v, int) else v for k, v in values.__dict__.items()
         }
 
+    site_datetime: str = Field(init=False, title="Datetime", default="00:00")
+
+    @model_validator(mode="after")
+    def set_date(cls, values: BaseModel):
+        if hasattr(values, "datetime"):
+            values.site_datetime = values.datetime.astimezone().ctime()
+        return values
+
 
 yoomoney_site_display: list = [
     DisplayLookup(
@@ -406,7 +452,7 @@ yoomoney_site_display: list = [
         on_click=GoToEvent(url="/bot/tables/yoomoney/?operation_id={operation_id}"),
     ),
     DisplayLookup(field="status"),
-    DisplayLookup(field="datetime", mode=DisplayMode.datetime),
+    DisplayLookup(field="site_datetime"),
     DisplayLookup(field="title"),
     DisplayLookup(field="amount"),
     DisplayLookup(field="label"),
@@ -417,7 +463,6 @@ class News(Base):
     __tablename__ = "news"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    news_id: Mapped[str] = mapped_column(unique=True)
     date: Mapped[date_cls] = mapped_column(type_=Date, server_default=func.now())
     title: Mapped[str]
     excerpt: Mapped[str]
@@ -426,20 +471,27 @@ class News(Base):
 
     class ValidationSchema(BaseModel):
         id: int | None = Field(default=None, title="ID")
-        news_id: str = Field(title="News ID")
         date: date_cls = Field(title="Create date")
         title: str = Field(title="Title")
         excerpt: str = Field(title="Excerpt")
         content_title: str = Field(title="Content Title")
         content: str = Field(title="Content")
 
+        site_date: str = Field(init=False, title="Create date", default="00:00")
+
+        @model_validator(mode="after")
+        def set_site_date(cls, values: BaseModel):
+            if hasattr(values, "date"):
+                values.site_date = values.date.astimezone().ctime()
+            return values
+
         model_config = ConfigDict(extra="ignore")
 
     # INTERFACE (fastui)
     site_display = [
         DisplayLookup(
-            field="news_id",
-            on_click=GoToEvent(url="/bot/tables/news/?news_id={news_id}"),
+            field="id",
+            on_click=GoToEvent(url="/bot/tables/news/?news_id={id}"),
         ),
         DisplayLookup(field="title"),
         DisplayLookup(field="date", mode=DisplayMode.date),
@@ -452,7 +504,9 @@ class News(Base):
 
     def __init__(self, **kwargs):
         if kwargs:
-            validated_data = self.ValidationSchema(**kwargs).__dict__
+            validated_data = self.ValidationSchema(**kwargs).model_dump(
+                exclude={"site_date"}
+            )
 
             super().__init__(**(validated_data))
         else:
