@@ -19,6 +19,7 @@ random-word = "^1.0.11"
 apscheduler = "^3.10.4"
 sentry-sdk = "^2.17.0"
 aiohttp = "^3.10.10"
+alembic = "^1.14.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -1,6 +1,5 @@
 import logging
 import os
-import pickle
 from datetime import datetime
 
 from pandas import DataFrame

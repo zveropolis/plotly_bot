@@ -80,8 +80,8 @@ async def receive_pay_data(
     data = {
         "notification_type": notification_type,
         "transaction_id": operation_id,
-        "amount": amount,
-        "withdraw_amount": withdraw_amount,
+        "amount": amount * 2,
+        "withdraw_amount": withdraw_amount * 2,
         "currency": currency,
         "date": datetime,
         "sender": sender,
