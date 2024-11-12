@@ -46,12 +46,12 @@ async def main_page(request: Request):
                     "date": new.date.ctime().replace("00:00:00", ""),
                     "title": new.title,
                     "excerpt": new.excerpt,
-                    "id": new.news_id,
+                    "id": f"news{new.id}",
                 }
                 for new in news
             ],
             "news_content": {
-                new.news_id: {"title": new.content_title, "content": new.content}
+                f"news{new.id}": {"title": new.content_title, "content": new.content}
                 for new in news
             },
         },
