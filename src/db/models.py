@@ -121,7 +121,7 @@ class UserData(Base):
         DisplayLookup(field="stage"),
         DisplayLookup(field="balance"),
         DisplayLookup(field="free"),
-        DisplayLookup(field="Mute"),
+        DisplayLookup(field="mute"),
         DisplayLookup(field="site_updated"),
     ]
 

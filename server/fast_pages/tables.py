@@ -20,6 +20,17 @@ from server.utils.auth_user import User
 router = APIRouter()
 
 
+def get_table_widget(page, size, data, interface):
+    if data:
+        table_widget = (
+            c.Table(data=data[(page - 1) * size : page * size], columns=interface),
+            c.Pagination(page=page, page_size=size, total=len(data)),
+        )
+    else:
+        table_widget = (c.Paragraph(text="Empty table"),)
+    return table_widget
+
+
 @router.get("/yoomoney", response_model=FastUI, response_model_exclude_none=True)
 async def yoomoney_view(
     user: Annotated[User, Depends(User.from_request)],
@@ -40,15 +51,11 @@ async def yoomoney_view(
     except YooMoneyError:
         raise HTTPException(status_code=500, detail="Yoomoney Connection Error")
     else:
+        table_widget = get_table_widget(page, size, data, mod.yoomoney_site_display)
+
         return bot_page(
             *tabs(),
-            c.Table(
-                data=data[(page - 1) * size : page * size],
-                columns=mod.yoomoney_site_display,
-            )
-            if data
-            else c.Paragraph(text="Empty table"),
-            c.Pagination(page=page, page_size=size, total=len(data)),
+            *table_widget,
             user=user,
             title=_table.__tablename__.capitalize(),
         )
@@ -113,6 +120,8 @@ async def userdata_view(
     except DatabaseError:
         raise HTTPException(status_code=500, detail="Database Error")
     else:
+        table_widget = get_table_widget(page, size, data, mod.UserData.site_display)
+
         return bot_page(
             *tabs(),
             c.ModelForm(
@@ -122,13 +131,7 @@ async def userdata_view(
                 submit_on_change=True,
                 display_mode="inline",
             ),
-            c.Table(
-                data=data[(page - 1) * size : page * size],
-                columns=mod.UserData.site_display,
-            )
-            if data
-            else c.Paragraph(text="Empty table"),
-            c.Pagination(page=page, page_size=size, total=len(data)),
+            *table_widget,
             user=user,
             title=mod.UserData.__tablename__.capitalize(),
         )
@@ -180,6 +183,8 @@ async def transactions_view(
     except DatabaseError:
         raise HTTPException(status_code=500, detail="Database Error")
     else:
+        table_widget = get_table_widget(page, size, data, mod.Transactions.site_display)
+
         return bot_page(
             *tabs(),
             c.ModelForm(
@@ -189,13 +194,7 @@ async def transactions_view(
                 submit_on_change=True,
                 display_mode="inline",
             ),
-            c.Table(
-                data=data[(page - 1) * size : page * size],
-                columns=mod.Transactions.site_display,
-            )
-            if data
-            else c.Paragraph(text="Empty table"),
-            c.Pagination(page=page, page_size=size, total=len(data)),
+            *table_widget,
             user=user,
             title=mod.Transactions.__tablename__.capitalize(),
         )
@@ -228,6 +227,8 @@ async def wg_config_view(
     except DatabaseError:
         raise HTTPException(status_code=500, detail="Database Error")
     else:
+        table_widget = get_table_widget(page, size, data, mod.WgConfig.site_display)
+
         return bot_page(
             *tabs(),
             c.ModelForm(
@@ -237,13 +238,7 @@ async def wg_config_view(
                 submit_on_change=True,
                 display_mode="inline",
             ),
-            c.Table(
-                data=data[(page - 1) * size : page * size],
-                columns=mod.WgConfig.site_display,
-            )
-            if data
-            else c.Paragraph(text="Empty table"),
-            c.Pagination(page=page, page_size=size, total=len(data)),
+            *table_widget,
             user=user,
             title=mod.WgConfig.__tablename__.capitalize(),
         )
@@ -276,6 +271,8 @@ async def reports_view(
     except DatabaseError:
         raise HTTPException(status_code=500, detail="Database Error")
     else:
+        table_widget = get_table_widget(page, size, data, mod.Reports.site_display)
+
         return bot_page(
             *tabs(),
             c.ModelForm(
@@ -285,13 +282,7 @@ async def reports_view(
                 submit_on_change=True,
                 display_mode="inline",
             ),
-            c.Table(
-                data=data[(page - 1) * size : page * size],
-                columns=mod.Reports.site_display,
-            )
-            if data
-            else c.Paragraph(text="Empty table"),
-            c.Pagination(page=page, page_size=size, total=len(data)),
+            *table_widget,
             user=user,
             title=mod.Reports.__tablename__.capitalize(),
         )
@@ -316,15 +307,11 @@ async def news_view(
     except DatabaseError:
         raise HTTPException(status_code=500, detail="Database Error")
     else:
+        table_widget = get_table_widget(page, size, data, mod.News.site_display)
+
         return bot_page(
             *tabs(),
-            c.Table(
-                data=data[(page - 1) * size : page * size],
-                columns=mod.News.site_display,
-            )
-            if data
-            else c.Paragraph(text="Empty table"),
-            c.Pagination(page=page, page_size=size, total=len(data)),
+            *table_widget,
             user=user,
             title=mod.News.__tablename__.capitalize(),
         )
@@ -353,14 +340,11 @@ async def tables_view(
     except DatabaseError:
         raise HTTPException(status_code=500, detail="Database Error")
     else:
+        table_widget = get_table_widget(page, size, data, _table.site_display)
+
         return bot_page(
             *tabs(),
-            c.Table(
-                data=data[(page - 1) * size : page * size], columns=_table.site_display
-            )
-            if data
-            else c.Paragraph(text="Empty table"),
-            c.Pagination(page=page, page_size=size, total=len(data)),
+            *table_widget,
             user=user,
             title=table.capitalize(),
         )
@@ -370,9 +354,12 @@ async def tables_view(
 async def user_profile(
     user: Annotated[User, Depends(User.from_request)],
     telegram_id: int,
+    config_page: int = 1,
+    transact_page: int = 1,
 ) -> list[AnyComponent]:
     try:
         _table = mod.UserData
+        size = user.page_size
 
         query = select(_table).where(_table.telegram_id == telegram_id)
         raw_tg_user: mod.UserData = (await execute_query(query)).scalar_one_or_none()
@@ -384,7 +371,7 @@ async def user_profile(
             query = (
                 select(mod.Transactions)
                 .where(mod.Transactions.user_id == tg_user.telegram_id)
-                .order_by(mod.Transactions.id)
+                .order_by(desc(mod.Transactions.date))
             )
             raw: list = (await execute_query(query)).scalars().all()
             transactions = [
@@ -400,6 +387,40 @@ async def user_profile(
     except DatabaseError:
         raise HTTPException(status_code=500, detail="Database Error")
     else:
+        if tg_user.configs:
+            wg_configs = (
+                c.Table(
+                    data=tg_user.configs[(config_page - 1) * size : config_page * size],
+                    columns=mod.WgConfig.site_display,
+                ),
+                c.Pagination(
+                    page=config_page,
+                    page_size=size,
+                    total=len(tg_user.configs),
+                    page_query_param="config_page",
+                ),
+            )
+        else:
+            wg_configs = (c.Paragraph(text="No configs"),)
+
+        if transactions:
+            user_tr = (
+                c.Table(
+                    data=transactions[
+                        (transact_page - 1) * size : transact_page * size
+                    ],
+                    columns=mod.Transactions.site_display,
+                ),
+                c.Pagination(
+                    page=transact_page,
+                    page_size=size,
+                    total=len(transactions),
+                    page_query_param="transact_page",
+                ),
+            )
+        else:
+            user_tr = (c.Paragraph(text="No transactions"),)
+
         return bot_page(
             *tabs(),
             c.Div(
@@ -412,19 +433,9 @@ async def user_profile(
             ),
             c.Details(data=tg_user, fields=_table.site_display),
             c.Heading(text="User configurations", level=3),
-            c.Table(
-                data=tg_user.configs,
-                columns=mod.WgConfig.site_display,
-            )
-            if tg_user.configs
-            else c.Paragraph(text="No configs"),
+            *wg_configs,
             c.Heading(text="User tranasactions", level=3),
-            c.Table(
-                data=transactions,
-                columns=mod.Transactions.site_display,
-            )
-            if transactions
-            else c.Paragraph(text="No transactions"),
+            *user_tr,
             user=user,
             title=tg_user.telegram_name,
         )
