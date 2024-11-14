@@ -1,13 +1,16 @@
 #!/usr/bin/python3
 
 import argparse
-import fcntl
 import functools
 import logging
 import pathlib
+import platform
 from ipaddress import IPv4Interface
 from subprocess import Popen
 from time import time
+
+if platform.system() == "Linux":
+    import fcntl
 
 logger = logging.getLogger()
 

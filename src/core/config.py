@@ -18,9 +18,9 @@ class AuthorizeVar(BaseSettings):
     """Класс для хранения параметров авторизации yoomoney."""
 
     client_id: SecretStr
-    """client_id (SecretStr): Идентификатор клиента yoomoney."""
+    """Идентификатор клиента yoomoney."""
     client_secret: SecretStr
-    """client_secret (SecretStr): Секрет клиента yoomoney."""
+    """Секрет клиента yoomoney."""
 
 
 class Base(DeclarativeBase):

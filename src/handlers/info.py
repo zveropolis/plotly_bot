@@ -191,7 +191,7 @@ async def commands_list(trigger: Union[Message, CallbackQuery]):
 async def freeze_config_info(callback: CallbackQuery):
     await callback.message.answer(
         "Конфигурации замораживаются, когда становятся недоступными. "
-        "\n\nПроверьте, достаточно ли средств на вашем счете? Соответсвует ли количество ваших конфигураций вашему тарифу?"
+        "\n\nПроверьте, достаточно ли средств на вашем счете? Соответсвует ли количество ваших конфигураций вашему тарифу? "
         "Возможно недавно произошли изменения в вашем тарифе, подождите несколько минут и попробуйте снова."
         "\n\nЕсли вам все равно не понятно, почему ваша конфигурация заблокирована, воспользуйтесь командой /bug и сообщите о вашей проблеме."
     )
@@ -282,6 +282,7 @@ async def server_speed(trigger: Union[Message, CallbackQuery], bot: Bot):
 
 
 @router.message(Command("chat"))
+@router.message(F.text == 'Чат')
 @router.callback_query(F.data == "invite_to_chat")
 async def get_chat_invite(trigger: Union[Message, CallbackQuery], bot: Bot):
     user_data = await get_user(trigger.from_user.id)
