@@ -3,7 +3,7 @@ import os
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 
@@ -17,6 +17,8 @@ logger = logging.getLogger()
 
 
 templates = Jinja2Templates(directory=os.path.join(PATH, "server", "templates"))
+docs = os.path.join(PATH, "docs")
+
 
 configs = [
     {
@@ -73,6 +75,42 @@ async def main_page(request: Request):
 @router.get("/pricing", response_class=HTMLResponse)
 async def pricing_page(request: Request):
     return templates.TemplateResponse("pricing.html", {"request": request})
+
+
+# @router.get("/docs/{path:path}", response_class=HTMLResponse)
+# async def open_docs(request: Request, path: str):
+#     """Возвращает HTML-страницу по указанному пути.
+
+#     Args:
+#         request (Request): Объект запроса.
+#         path (str): Путь к HTML-файлу.
+
+#     Returns:
+#         HTMLResponse: Рендеренная HTML-страница.
+#     """
+#     return docs.TemplateResponse(path, {"request": request})
+
+
+@router.get("/docs/{path:path}", response_class=FileResponse)
+async def open_docs(request: Request, path: str):
+    """Возвращает статическую HTML-страницу по указанному пути.
+
+    Args:
+        request (Request): Объект запроса.
+        path (str): Путь к HTML-файлу.
+
+    Returns:
+        FileResponse: Статическая HTML-страница.
+    """
+    file_path = os.path.join(docs, path)
+
+    # Проверяем, существует ли файл
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    else:
+        return FileResponse(
+            os.path.join(docs, "404.html")
+        )
 
 
 @router.get("/{path:path}", response_class=HTMLResponse)

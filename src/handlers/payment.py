@@ -47,7 +47,7 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
                 (
                     f"Подписка: <b>{sub_status}</b>",
                     f"Тариф:        <b>{rate}</b>",
-                    f"Баланс:       <b>{user_data.fbalance} руб</b>",
+                    f"Баланс:       <b>{user_data.fbalance()} руб</b>",
                     f"Вам осталось <b>{get_plural(text.get_end_sub(user_data), 'день, дня, дней')}</b>",
                 )
             ),

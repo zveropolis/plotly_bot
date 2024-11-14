@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vpn-dan-bot"
-version = "0.2.3"
+version = "0.3"
 description = "test python 3.12"
 authors = ["daniil-mazurov"]
 readme = "README.md"
@@ -25,6 +25,7 @@ alembic = "^1.14.0"
 [tool.poetry.group.dev.dependencies]
 isort = "^5.13.2"
 ipykernel = "^6.29.5"
+pdoc = "^15.0.0"
 
 
 [tool.poetry.group.database.dependencies]

@@ -1,12 +1,26 @@
 import argparse
 import logging
 
+# Настройка логгирования
 logger = logging.getLogger()
 sql_logger = logging.getLogger("sqlalchemy.engine.Engine")
 sched_logger = logging.getLogger("apscheduler")
 
 
 def parse_args():
+    """Парсинг аргументов командной строки.
+
+    Создает парсер аргументов и обрабатывает входные параметры для
+    настройки логирования. Поддерживаются следующие параметры:
+
+    - `--nolog`: Опции для отключения логирования:
+        - `all`: Отключает все логирование.
+        - `file`: Отключает логирование в файл.
+        - `console`: Отключает логирование в консоль.
+
+    Returns:
+        argparse.Namespace: Объект с аргументами, переданными через командную строку.
+    """
     parser = argparse.ArgumentParser(
         prog="DanVPN Bot",
         description="Wireguard config manager",

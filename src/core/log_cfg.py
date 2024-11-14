@@ -1,11 +1,22 @@
+"""Кастомизация логирования"""
+
 import copy
 import logging
 
 
 class ColoredConsoleHandler(logging.StreamHandler):
+    """Обработчик логов, который выводит сообщения в консоль с цветовой кодировкой.
+
+    Этот класс наследует от `logging.StreamHandler` и переопределяет метод `emit`,
+    чтобы добавить цветовую кодировку в зависимости от уровня логирования.
+    """
+
     def emit(self, record):
-        # Need to make a actual copy of the record
-        # to prevent altering the message for other loggers
+        """Выводит лог-сообщение с цветовой кодировкой.
+
+        Args:
+            record (logging.LogRecord): Запись лога, содержащая информацию о сообщении.
+        """
         myrecord = copy.copy(record)
         levelno = myrecord.levelno
         if levelno >= 50:  # CRITICAL / FATAL
@@ -33,9 +44,22 @@ class ColoredConsoleHandler(logging.StreamHandler):
 
 
 class ExtraFormatter(logging.Formatter):
-    def format(self, record: logging.LogRecord) -> str:
-        self._style._fmt = self._fmt
+    """Форматировщик логов, который добавляет дополнительные атрибуты в формат сообщений.
 
+    Этот класс наследует от `logging.Formatter` и переопределяет метод `format`,
+    чтобы включить дополнительные атрибуты, которые могут быть добавлены к записям лога.
+    """
+
+    def format(self, record: logging.LogRecord) -> str:
+        """Форматирует запись лога, добавляя дополнительные атрибуты.
+
+        Args:
+            record (logging.LogRecord): Запись лога, содержащая информацию о сообщении.
+
+        Returns:
+            str: Отформатированная строка сообщения лога.
+        """
+        self._style._fmt = self._fmt
         default_attrs = logging.LogRecord(*[None] * 7).__dict__.keys()
         extras = (
             set(record.__dict__.keys())
@@ -45,5 +69,4 @@ class ExtraFormatter(logging.Formatter):
         if extras:
             format_str = "\n" + "\n".join(f"{val}: %({val})s" for val in sorted(extras))
             self._style._fmt += format_str
-
         return super().format(record)

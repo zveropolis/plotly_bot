@@ -10,6 +10,10 @@ static_join_button = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="Присоединиться!", callback_data="start_app")]
     ]
 )
+"""Клавиатура для кнопки "Присоединиться!".
+
+    Используется для приглашения пользователя присоединиться к приложению.
+"""
 
 static_wg_url = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -20,6 +24,11 @@ static_wg_url = InlineKeyboardMarkup(
         ]
     ]
 )
+"""Клавиатура с кнопкой для скачивания WireGuard.
+
+    Предоставляет пользователю ссылку на установку WireGuard.
+"""
+
 static_wg_platform_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -41,18 +50,31 @@ static_wg_platform_keyboard = InlineKeyboardMarkup(
         ],
     ]
 )
+"""Клавиатура для выбора платформы WireGuard.
+
+    Позволяет пользователю выбрать операционную систему для получения
+    соответствующей информации по настройке WireGuard.
+"""
 
 static_reg_button = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Зарегистироваться", callback_data="register_user")]
     ]
 )
+"""Клавиатура с кнопкой регистрации.
+
+    Используется для начала процесса регистрации нового пользователя.
+"""
+
 static_pay_button = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Купить подписку", callback_data="user_payment")]
     ]
 )
+"""Клавиатура с кнопкой для покупки подписки.
 
+    Позволяет пользователю перейти к процессу покупки подписки.
+"""
 
 static_start_button = ReplyKeyboardMarkup(
     keyboard=[
@@ -69,17 +91,31 @@ static_start_button = ReplyKeyboardMarkup(
     resize_keyboard=True,
     input_field_placeholder="Выберете действие или введите команду",
 )
+"""Клавиатура для основных действий пользователя.
+
+    Предоставляет пользователю выбор действий, таких как перезагрузка,
+    проверка статуса, подключений, подписки и получения помощи.
+"""
 
 static_support_button = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Доложить о проблеме", callback_data="call_support")]
     ]
 )
+"""Клавиатура с кнопкой для обращения в службу поддержки.
+
+    Позволяет пользователю сообщить о проблеме или запросить помощь.
+"""
+
 static_balance_button = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Пополнить баланс", callback_data="top_up_balance")]
     ]
 )
+"""Клавиатура с кнопкой для пополнения баланса.
+
+    Позволяет пользователю перейти к процессу пополнения своего баланса.
+"""
 
 why_freezed_button = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -90,6 +126,11 @@ why_freezed_button = InlineKeyboardMarkup(
         ]
     ]
 )
+"""Клавиатура с кнопкой для получения информации о замороженной конфигурации.
+
+    Позволяет пользователю узнать причины, по которым его конфигурация заморожена.
+"""
+
 freeze_user_button = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -99,6 +140,10 @@ freeze_user_button = InlineKeyboardMarkup(
         ]
     ]
 )
+"""Клавиатура с кнопкой для заморозки аккаунта.
+
+    Позволяет пользователю инициировать процесс заморозки своего аккаунта.
+"""
 
 static_history_button = InlineKeyboardMarkup(
     inline_keyboard=[
@@ -110,9 +155,22 @@ static_history_button = InlineKeyboardMarkup(
         ],
     ]
 )
+"""Клавиатура для отображения истории транзакций.
+
+    Позволяет пользователю просмотреть историю пополнений и снятий средств.
+"""
 
 
 def get_help_menu(name, user_id):
+    """Создает меню помощи для пользователя.
+
+    Args:
+        name (str): Имя пользователя.
+        user_id (int): ID пользователя.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопками помощи.
+    """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="Что это за сервис?", callback_data="bot_info")],
@@ -145,9 +203,18 @@ def get_help_menu(name, user_id):
 
 
 def get_help_book_keyboard(pages: list, page: int, prefix: str):
+    """Создает клавиатуру для навигации по страницам помощи.
+
+    Args:
+        pages (list): Список страниц.
+        page (int): Номер текущей страницы.
+        prefix (str): Префикс для callback_data.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопками навигации.
+    """
     prev_page = page - 1
     next_page = page + 1
-
     if page == 0:
         return InlineKeyboardMarkup(
             inline_keyboard=[
@@ -159,7 +226,6 @@ def get_help_book_keyboard(pages: list, page: int, prefix: str):
                 ]
             ]
         )
-
     if page == len(pages) - 1:
         return InlineKeyboardMarkup(
             inline_keyboard=[
@@ -176,7 +242,6 @@ def get_help_book_keyboard(pages: list, page: int, prefix: str):
                 ],
             ]
         )
-
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -192,6 +257,15 @@ def get_help_book_keyboard(pages: list, page: int, prefix: str):
 
 
 def get_account_keyboard(user_data: UserData, extended=False):
+    """Создает клавиатуру для управления аккаунтом пользователя.
+
+    Args:
+        user_data (UserData): Данные пользователя.
+        extended (bool, optional): Если True, добавляются дополнительные кнопки.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопками управления аккаунтом.
+    """
     buttons = []
     match getattr(user_data, "active", None):
         case UserActivity.active | UserActivity.inactive:
@@ -202,7 +276,6 @@ def get_account_keyboard(user_data: UserData, extended=False):
                     )
                 ]
             )
-
         case UserActivity.freezed:
             buttons.append(
                 [
@@ -211,7 +284,6 @@ def get_account_keyboard(user_data: UserData, extended=False):
                     )
                 ]
             )
-
         case UserActivity.banned:
             buttons.append(
                 [
@@ -222,7 +294,6 @@ def get_account_keyboard(user_data: UserData, extended=False):
                 ]
             )
             return InlineKeyboardMarkup(inline_keyboard=buttons)
-
         case _:
             buttons.append(
                 [
@@ -232,7 +303,6 @@ def get_account_keyboard(user_data: UserData, extended=False):
                 ]
             )
             return InlineKeyboardMarkup(inline_keyboard=buttons)
-
     buttons.extend(
         [
             [
@@ -254,7 +324,6 @@ def get_account_keyboard(user_data: UserData, extended=False):
                 ]
             ]
         )
-
     else:
         buttons.extend(
             [
@@ -287,14 +356,17 @@ def get_account_keyboard(user_data: UserData, extended=False):
                 ],
             ]
         )
-
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 def get_config_keyboard():
+    """Создает клавиатуру для создания конфигурации.
+
+    Returns:
+        tuple: Кортеж из клавиатур для создания конфигурации и выбора формата.
+    """
     buttons = []
     cfgs = []
-
     cfgs.append(
         [
             InlineKeyboardButton(text="TEXT", callback_data="create_conf_text"),
@@ -302,7 +374,6 @@ def get_config_keyboard():
             InlineKeyboardButton(text="FILE", callback_data="create_conf_file"),
         ]
     )
-
     buttons.append(
         [
             InlineKeyboardButton(
@@ -317,6 +388,15 @@ def get_config_keyboard():
 
 
 def get_subscr_buttons(user_data: UserData, force_rates=False):
+    """Создает клавиатуру для выбора подписки.
+
+    Args:
+        user_data (UserData): Данные пользователя.
+        force_rates (bool, optional): Если True, принудительно отображает тарифы.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопками подписки.
+    """
     buttons = []
     my_rate = rates.get(user_data.stage, None)
     if my_rate or force_rates:
@@ -327,7 +407,6 @@ def get_subscr_buttons(user_data: UserData, force_rates=False):
                 prefix = "❌ "
             else:
                 prefix = ""
-
             buttons.append(
                 [
                     InlineKeyboardButton(
@@ -364,12 +443,19 @@ def get_subscr_buttons(user_data: UserData, force_rates=False):
                 ],
             ]
         )
-
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 
 
 def get_rate_button(rate: int):
+    """Создает кнопку для выбора тарифа.
+
+    Args:
+        rate (int): Значение тарифа.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопкой выбора тарифа.
+    """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -382,6 +468,11 @@ def get_rate_button(rate: int):
 
 
 def get_pay_keyboard():
+    """Создает клавиатуру для выбора суммы оплаты.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопками для оплаты.
+    """
     buttons = [
         [
             InlineKeyboardButton(text="100", callback_data="pay_sub_100"),
@@ -390,12 +481,20 @@ def get_pay_keyboard():
             InlineKeyboardButton(text="1000", callback_data="pay_sub_1000"),
         ]
     ]
-
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 
 
 def get_bug_report_url(name, user_id):
+    """Создает кнопку для заполнения формы обращения.
+
+    Args:
+        name (str): Имя пользователя.
+        user_id (int): ID пользователя.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопкой для заполнения формы обращения.
+    """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -409,6 +508,15 @@ def get_bug_report_url(name, user_id):
 
 
 def get_pay_url(sum, url):
+    """Создает кнопку для пополнения баланса.
+
+    Args:
+        sum (float): Сумма пополнения.
+        url (str): URL для пополнения.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопкой для пополнения.
+    """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -422,6 +530,14 @@ def get_pay_url(sum, url):
 
 
 def get_chat_button(url):
+    """Создает кнопку для получения доступа в чат.
+
+    Args:
+        url (str): URL для доступа в чат.
+
+    Returns:
+        InlineKeyboardMarkup: Клавиатура с кнопкой для доступа в чат.
+    """
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [

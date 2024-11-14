@@ -23,3 +23,4 @@ bugs/*
 3.10/*
 server/html/*
 server/static/archive/*
+server/templates/dev/*

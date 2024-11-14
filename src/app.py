@@ -25,7 +25,16 @@ logger = logging.getLogger()
 
 
 @exception_logging()
-def __create_bot():
+def create_bot():
+    """Создает экземпляр бота и диспетчера.
+
+    Эта функция инициализирует бота с заданным токеном и
+    создает диспетчер с использованием RedisStorage для хранения
+    состояний.
+
+    Returns:
+        tuple: Кортеж из экземпляра бота и диспетчера.
+    """
     bot = Bot(
         token=settings.BOT_TOKEN.get_secret_value(),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
@@ -55,7 +64,19 @@ def __create_bot():
     return bot, dp
 
 
-def __create_scheduler(bot):
+def create_scheduler(bot):
+    """Создает планировщик для выполнения задач.
+
+    Эта функция инициализирует планировщик для выполнения
+    различных периодических задач, таких как отправка уведомлений,
+    уменьшение баланса и проверка конфигураций.
+
+    Args:
+        bot (Bot): Экземпляр бота, используемый для отправки уведомлений.
+
+    Returns:
+        AsyncIOScheduler: Экземпляр планировщика.
+    """
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
         send_notice,
@@ -103,11 +124,33 @@ def __create_scheduler(bot):
     return scheduler
 
 
-async def __start_bot(
+async def start_services(
     bot: Bot, dp: Dispatcher, scheduler: AsyncIOScheduler, timeout: float = None
 ):
-    await __test_subsystem()
+    """Запускает службы бота и планировщика.
 
+    Эта функция инициализирует и запускает подсистемы бота, а также
+    запускает планировщик для выполнения задач. Она управляет
+    асинхронным опросом обновлений от Telegram.
+
+    Args:
+        bot (Bot): Экземпляр бота, который будет использоваться для
+            взаимодействия с Telegram API.
+        dp (Dispatcher): Диспетчер, который обрабатывает обновления
+            и маршрутизирует их к соответствующим обработчикам.
+        scheduler (AsyncIOScheduler): Планировщик для управления
+            асинхронными задачами.
+        timeout (float, optional): Максимальное время ожидания в
+            секундах для выполнения задач. Если None, будет ожидать
+            бесконечно.
+
+    Returns:
+        set: Множество задач, которые были созданы для выполнения.
+
+    Raises:
+        RuntimeError: Если происходит ошибка при остановке опроса.
+    """
+    await test_subsystem()
     scheduler.start()
 
     tasks = await asyncio.wait(
@@ -131,11 +174,18 @@ async def __start_bot(
     return tasks
 
 
-async def __test_subsystem():
+async def test_subsystem():
+    """Тестирует подключение к подсистемам.
+
+    Эта функция проверяет доступность баз данных и других
+    подсистем, необходимых для работы бота.
+
+    Raises:
+        Exception: Если возникает ошибка при подключении к БД.
+    """
     bases = await test_base()
     bases.extend(await test_redis_base())
-    bases.append(await __test_subserver())
-
+    bases.append(await test_subserver())
     for base in bases:
         try:
             if isinstance(base, Exception):
@@ -145,7 +195,15 @@ async def __test_subsystem():
             raise
 
 
-async def __test_subserver():
+async def test_subserver():
+    """Тестирует подключение к подсерверу.
+
+    Эта функция отправляет запрос к подсерверу для проверки его
+    доступности и корректности ответа.
+
+    Raises:
+        AssertionError: Если ответ от подсервера не соответствует ожиданиям.
+    """
     async with ClientSession() as session:
         url = "http://assa.ddns.net/test"
         # url = "http://127.0.0.1:5000/test"
@@ -157,11 +215,15 @@ async def __test_subserver():
 
 
 async def start_bot():
-    """Запуск бота"""
+    """Запускает бота и его службы.
 
+    Эта функция инициализирует подключение по SSH к wireguard серверу, 
+    создает бота, диспетчер и планировщик, а затем запускает все службы.
+
+    Returns:
+        set: Множество задач, которые были созданы для выполнения.
+    """
     await SSH.connect()
-
-    bot, dp = __create_bot()
-    scheduler = __create_scheduler(bot)
-
-    return await __start_bot(bot, dp, scheduler)
+    bot, dp = create_bot()
+    scheduler = create_scheduler(bot)
+    return await start_services(bot, dp, scheduler)

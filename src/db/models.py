@@ -12,7 +12,6 @@ from random_word import RandomWords
 from sqlalchemy import (BigInteger, Date, DateTime, Enum, ForeignKey, Numeric,
                         String, func)
 from sqlalchemy.dialects.postgresql import CIDR, INET, JSONB
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.config import Base, settings
@@ -54,6 +53,7 @@ class ReportStatus(enum.Enum):
 
 class UserData(Base):
     __tablename__ = "userdata"
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(type_=BigInteger, unique=True)
@@ -77,7 +77,7 @@ class UserData(Base):
         back_populates="conf_connect", lazy="subquery"
     )
 
-    @hybrid_property
+    # @hybrid_property
     def fbalance(self):
         return round(float(self.balance), 2)
 
@@ -138,6 +138,7 @@ class UserData(Base):
 
 class Transactions(Base):
     __tablename__ = "transactions"
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
@@ -228,6 +229,7 @@ class Transactions(Base):
 
 class WgConfig(Base):
     __tablename__ = "wg_config"
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
@@ -307,6 +309,7 @@ class WgConfig(Base):
 
 class Reports(Base):
     __tablename__ = "reports"
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
@@ -461,6 +464,7 @@ yoomoney_site_display: list = [
 
 class News(Base):
     __tablename__ = "news"
+    __table_args__ = {"extend_existing": True}
 
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[date_cls] = mapped_column(type_=Date, server_default=func.now())
