@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery, Message
 
 import text
 from core import exceptions as exc
+from core.err import bot_exceptor
 from db import utils
 from db.models import UserActivity, UserData
 from handlers.utils import find_user
@@ -19,6 +20,7 @@ router.message.filter(F.chat.type == "private")
 
 @router.message(Command("reg"))
 @router.callback_query(F.data == "register_user")
+@bot_exceptor
 async def register_user(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
         # Attempt to add a new user to the database using their ID and full name
@@ -49,6 +51,7 @@ async def register_user(trigger: Union[Message, CallbackQuery], bot: Bot):
 
 @router.message(Command("freeze"))
 @router.callback_query(F.data == "freeze_account")
+@bot_exceptor
 async def freeze_user(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
         user_data: UserData = await utils.get_user(trigger.from_user.id)
@@ -76,6 +79,7 @@ async def freeze_user(trigger: Union[Message, CallbackQuery], bot: Bot):
 
 @router.message(Command("recover"))
 @router.callback_query(F.data == "recover_account")
+@bot_exceptor
 async def recover_user(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
         user_data: UserData = await utils.get_user(trigger.from_user.id)
@@ -112,6 +116,7 @@ async def recover_user(trigger: Union[Message, CallbackQuery], bot: Bot):
 
 @router.message(Command("mute"))
 @router.callback_query(F.data == "user_mute_toggle")
+@bot_exceptor
 async def mute_toggle(trigger: Union[Message, CallbackQuery], bot: Bot):
     user_data: UserData = await find_user(trigger)
     if not user_data:

@@ -72,130 +72,187 @@
                     <h1 class="modulename">
 <a href="./../../../src.html">src</a><wbr>.<a href="./../../db.html">db</a><wbr>.<a href="./../utils.html">utils</a><wbr>.wg    </h1>
 
-                
+                        <div class="docstring"><p>Функционал для работы с БД. Работа с конфигурациями</p>
+</div>
+
                         <input id="mod-wg-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-wg-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">logging</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;Функционал для работы с БД. Работа с конфигурациями&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">and_</span><span class="p">,</span> <span class="n">insert</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">update</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">joinedload</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">core.exceptions</span> <span class="kn">import</span> <span class="n">DatabaseError</span><span class="p">,</span> <span class="n">UniquenessError</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">core.metric</span> <span class="kn">import</span> <span class="n">async_speed_metric</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">db.database</span> <span class="kn">import</span> <span class="n">execute_query</span><span class="p">,</span> <span class="n">iter_redis_keys</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">FreezeSteps</span><span class="p">,</span> <span class="n">UserData</span><span class="p">,</span> <span class="n">WgConfig</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">db.utils</span> <span class="kn">import</span> <span class="n">get_user</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">db.utils.redis</span> <span class="kn">import</span> <span class="n">CashManager</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">logging</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">and_</span><span class="p">,</span> <span class="n">insert</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">update</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">joinedload</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">core.exceptions</span> <span class="kn">import</span> <span class="n">DatabaseError</span><span class="p">,</span> <span class="n">UniquenessError</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">core.metric</span> <span class="kn">import</span> <span class="n">async_speed_metric</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">db.database</span> <span class="kn">import</span> <span class="n">execute_query</span><span class="p">,</span> <span class="n">iter_redis_keys</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">FreezeSteps</span><span class="p">,</span> <span class="n">UserData</span><span class="p">,</span> <span class="n">WgConfig</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">db.utils</span> <span class="kn">import</span> <span class="n">get_user</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">db.utils.redis</span> <span class="kn">import</span> <span class="n">CashManager</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">cash</span> <span class="o">=</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>    <span class="n">wg_keys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="k">async</span> <span class="k">for</span> <span class="n">wg_conf_key</span> <span class="ow">in</span> <span class="n">wg_keys</span><span class="p">:</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>        <span class="n">cash</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="n">wg_conf_key</span><span class="p">)</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">cash</span><span class="p">()</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>    <span class="n">rkeys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>    <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>        <span class="o">*</span><span class="p">[</span><span class="n">key</span> <span class="k">async</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rkeys</span><span class="p">],</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="n">fullkey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>    <span class="p">)</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает кэшированные конфигурации WireGuard для указанного пользователя.</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    Args:</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    Returns:</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">        list[WgConfig]: Список конфигураций WireGuard, связанных с пользователем.</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>    <span class="n">cash</span> <span class="o">=</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>    <span class="n">wg_keys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>    <span class="k">async</span> <span class="k">for</span> <span class="n">wg_conf_key</span> <span class="ow">in</span> <span class="n">wg_keys</span><span class="p">:</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="n">cash</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="n">wg_conf_key</span><span class="p">)</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">cash</span><span class="p">()</span>
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_wg_config</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">cfg_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    <span class="n">wg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>    <span class="k">if</span> <span class="n">wg_data</span><span class="p">:</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>        <span class="k">for</span> <span class="n">wg_conf</span> <span class="ow">in</span> <span class="n">wg_data</span><span class="p">:</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>            <span class="k">if</span> <span class="n">wg_conf</span><span class="o">.</span><span class="n">user_private_key</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="n">cfg_id</span><span class="p">:</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>                <span class="k">return</span> <span class="n">wg_conf</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="n">and_</span><span class="p">(</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">WgConfig</span><span class="o">.</span><span class="n">user_private_key</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">cfg_id</span><span class="p">))</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>    <span class="p">)</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Удаляет кэшированные конфигурации WireGuard для указанного пользователя.</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">    Args:</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="n">rkeys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>    <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>        <span class="o">*</span><span class="p">[</span><span class="n">key</span> <span class="k">async</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rkeys</span><span class="p">],</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>        <span class="n">fullkey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="p">)</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_user_with_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>    <span class="n">user_data</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="n">wg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>    <span class="k">if</span> <span class="n">wg_data</span><span class="p">:</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>        <span class="k">if</span> <span class="n">user_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>            <span class="n">user_data</span><span class="o">.</span><span class="n">configs</span> <span class="o">=</span> <span class="n">wg_data</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_wg_config</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">cfg_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает конфигурацию WireGuard по идентификатору для указанного пользователя.</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">    Args:</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">        cfg_id (str): Идентификатор конфигурации.</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>        <span class="k">return</span> <span class="n">user_data</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="n">select</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">telegram_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">configs</span><span class="p">))</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>    <span class="p">)</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>            <span class="o">**</span><span class="p">{</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">__ustr_dict__</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>                <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">configs</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>            <span class="p">}</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>        <span class="p">)</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">    Returns:</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">        WgConfig: Конфигурация WireGuard, если найдена, иначе None.</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="n">wg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="k">if</span> <span class="n">wg_data</span><span class="p">:</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="k">for</span> <span class="n">wg_conf</span> <span class="ow">in</span> <span class="n">wg_data</span><span class="p">:</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>            <span class="k">if</span> <span class="n">wg_conf</span><span class="o">.</span><span class="n">user_private_key</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="n">cfg_id</span><span class="p">:</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>                <span class="k">return</span> <span class="n">wg_conf</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="n">and_</span><span class="p">(</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">WgConfig</span><span class="o">.</span><span class="n">user_private_key</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">cfg_id</span><span class="p">))</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="p">)</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="k">return</span> <span class="n">result</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add_wg_config</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>            <span class="n">result</span><span class="p">:</span> <span class="n">WgConfig</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="k">except</span> <span class="n">UniquenessError</span><span class="p">:</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>            <span class="k">continue</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>            <span class="k">break</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="k">await</span> <span class="n">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="k">raise</span> <span class="n">DatabaseError</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="k">return</span> <span class="n">result</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">freeze_config</span><span class="p">(</span><span class="n">configs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">],</span> <span class="n">freeze</span><span class="p">:</span> <span class="n">FreezeSteps</span><span class="p">):</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="n">update</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="n">config</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">]))</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">freeze</span><span class="o">=</span><span class="n">freeze</span><span class="p">)</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="p">)</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_user_with_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает данные пользователя вместе с его конфигурациями WireGuard.</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">    Args:</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    Returns:</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        UserData: Данные пользователя, включая конфигурации WireGuard.</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="n">user_data</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="n">wg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">if</span> <span class="n">wg_data</span><span class="p">:</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>        <span class="k">if</span> <span class="n">user_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>            <span class="n">user_data</span><span class="o">.</span><span class="n">configs</span> <span class="o">=</span> <span class="n">wg_data</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="k">return</span> <span class="n">user_data</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="n">select</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">telegram_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">configs</span><span class="p">))</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="p">)</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>            <span class="o">**</span><span class="p">{</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">__ustr_dict__</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>                <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">configs</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>            <span class="p">}</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="p">)</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>    <span class="n">updated_users</span> <span class="o">=</span> <span class="p">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">user_id</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">result</span><span class="p">}</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">updated_users</span><span class="p">:</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="k">await</span> <span class="n">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add_wg_config</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Добавляет новую конфигурацию WireGuard для указанного пользователя.</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_all_wg_configs</span><span class="p">():</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">    Args:</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        conf (dict): Конфигурация WireGuard для добавления.</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="k">return</span> <span class="n">result</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">    Returns:</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">        WgConfig: Добавленная конфигурация WireGuard.</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd">    Raises:</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">        DatabaseError: Если конфигурацию не удалось добавить из-за ошибки базы данных.</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>            <span class="n">result</span><span class="p">:</span> <span class="n">WgConfig</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="k">except</span> <span class="n">UniquenessError</span><span class="p">:</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>            <span class="k">continue</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>            <span class="k">break</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="k">await</span> <span class="n">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="k">raise</span> <span class="n">DatabaseError</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">return</span> <span class="n">result</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">freeze_config</span><span class="p">(</span><span class="n">configs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">],</span> <span class="n">freeze</span><span class="p">:</span> <span class="n">FreezeSteps</span><span class="p">):</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Замораживает указанные конфигурации WireGuard.</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a><span class="sd">    Args:</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="sd">        configs (list[WgConfig]): Список конфигураций WireGuard для заморозки.</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="sd">        freeze (FreezeSteps): Шаг заморозки.</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>        <span class="n">update</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="n">config</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">]))</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">freeze</span><span class="o">=</span><span class="n">freeze</span><span class="p">)</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>        <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="p">)</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>    <span class="n">updated_users</span> <span class="o">=</span> <span class="p">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">user_id</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">result</span><span class="p">}</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>    <span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">updated_users</span><span class="p">:</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>        <span class="k">await</span> <span class="n">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_all_wg_configs</span><span class="p">():</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает все конфигурации WireGuard.</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">    Returns:</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">        list[WgConfig]: Список всех конфигураций WireGuard.</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
@@ -224,19 +281,41 @@
 
     </div>
     <a class="headerlink" href="#get_cash_wg_configs"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_cash_wg_configs-17"><a href="#get_cash_wg_configs-17"><span class="linenos">17</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="get_cash_wg_configs-18"><a href="#get_cash_wg_configs-18"><span class="linenos">18</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="get_cash_wg_configs-19"><a href="#get_cash_wg_configs-19"><span class="linenos">19</span></a>    <span class="n">cash</span> <span class="o">=</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="get_cash_wg_configs-20"><a href="#get_cash_wg_configs-20"><span class="linenos">20</span></a>
-</span><span id="get_cash_wg_configs-21"><a href="#get_cash_wg_configs-21"><span class="linenos">21</span></a>    <span class="n">wg_keys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="get_cash_wg_configs-22"><a href="#get_cash_wg_configs-22"><span class="linenos">22</span></a>    <span class="k">async</span> <span class="k">for</span> <span class="n">wg_conf_key</span> <span class="ow">in</span> <span class="n">wg_keys</span><span class="p">:</span>
-</span><span id="get_cash_wg_configs-23"><a href="#get_cash_wg_configs-23"><span class="linenos">23</span></a>        <span class="n">cash</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="n">wg_conf_key</span><span class="p">)</span>
-</span><span id="get_cash_wg_configs-24"><a href="#get_cash_wg_configs-24"><span class="linenos">24</span></a>
-</span><span id="get_cash_wg_configs-25"><a href="#get_cash_wg_configs-25"><span class="linenos">25</span></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">cash</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_cash_wg_configs-19"><a href="#get_cash_wg_configs-19"><span class="linenos">19</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="get_cash_wg_configs-20"><a href="#get_cash_wg_configs-20"><span class="linenos">20</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="get_cash_wg_configs-21"><a href="#get_cash_wg_configs-21"><span class="linenos">21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает кэшированные конфигурации WireGuard для указанного пользователя.</span>
+</span><span id="get_cash_wg_configs-22"><a href="#get_cash_wg_configs-22"><span class="linenos">22</span></a>
+</span><span id="get_cash_wg_configs-23"><a href="#get_cash_wg_configs-23"><span class="linenos">23</span></a><span class="sd">    Args:</span>
+</span><span id="get_cash_wg_configs-24"><a href="#get_cash_wg_configs-24"><span class="linenos">24</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="get_cash_wg_configs-25"><a href="#get_cash_wg_configs-25"><span class="linenos">25</span></a>
+</span><span id="get_cash_wg_configs-26"><a href="#get_cash_wg_configs-26"><span class="linenos">26</span></a><span class="sd">    Returns:</span>
+</span><span id="get_cash_wg_configs-27"><a href="#get_cash_wg_configs-27"><span class="linenos">27</span></a><span class="sd">        list[WgConfig]: Список конфигураций WireGuard, связанных с пользователем.</span>
+</span><span id="get_cash_wg_configs-28"><a href="#get_cash_wg_configs-28"><span class="linenos">28</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_cash_wg_configs-29"><a href="#get_cash_wg_configs-29"><span class="linenos">29</span></a>    <span class="n">cash</span> <span class="o">=</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="get_cash_wg_configs-30"><a href="#get_cash_wg_configs-30"><span class="linenos">30</span></a>
+</span><span id="get_cash_wg_configs-31"><a href="#get_cash_wg_configs-31"><span class="linenos">31</span></a>    <span class="n">wg_keys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="get_cash_wg_configs-32"><a href="#get_cash_wg_configs-32"><span class="linenos">32</span></a>    <span class="k">async</span> <span class="k">for</span> <span class="n">wg_conf_key</span> <span class="ow">in</span> <span class="n">wg_keys</span><span class="p">:</span>
+</span><span id="get_cash_wg_configs-33"><a href="#get_cash_wg_configs-33"><span class="linenos">33</span></a>        <span class="n">cash</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="n">wg_conf_key</span><span class="p">)</span>
+</span><span id="get_cash_wg_configs-34"><a href="#get_cash_wg_configs-34"><span class="linenos">34</span></a>
+</span><span id="get_cash_wg_configs-35"><a href="#get_cash_wg_configs-35"><span class="linenos">35</span></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">cash</span><span class="p">()</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Получает кэшированные конфигурации WireGuard для указанного пользователя.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>user_id (int):</strong>  Идентификатор пользователя.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>list[WgConfig]: Список конфигураций WireGuard, связанных с пользователем.</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="delete_cash_configs">
@@ -251,17 +330,30 @@
 
     </div>
     <a class="headerlink" href="#delete_cash_configs"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="delete_cash_configs-28"><a href="#delete_cash_configs-28"><span class="linenos">28</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="delete_cash_configs-29"><a href="#delete_cash_configs-29"><span class="linenos">29</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="delete_cash_configs-30"><a href="#delete_cash_configs-30"><span class="linenos">30</span></a>    <span class="n">rkeys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="delete_cash_configs-31"><a href="#delete_cash_configs-31"><span class="linenos">31</span></a>    <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
-</span><span id="delete_cash_configs-32"><a href="#delete_cash_configs-32"><span class="linenos">32</span></a>        <span class="o">*</span><span class="p">[</span><span class="n">key</span> <span class="k">async</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rkeys</span><span class="p">],</span>
-</span><span id="delete_cash_configs-33"><a href="#delete_cash_configs-33"><span class="linenos">33</span></a>        <span class="n">fullkey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="delete_cash_configs-34"><a href="#delete_cash_configs-34"><span class="linenos">34</span></a>    <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="delete_cash_configs-38"><a href="#delete_cash_configs-38"><span class="linenos">38</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="delete_cash_configs-39"><a href="#delete_cash_configs-39"><span class="linenos">39</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="delete_cash_configs-40"><a href="#delete_cash_configs-40"><span class="linenos">40</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Удаляет кэшированные конфигурации WireGuard для указанного пользователя.</span>
+</span><span id="delete_cash_configs-41"><a href="#delete_cash_configs-41"><span class="linenos">41</span></a>
+</span><span id="delete_cash_configs-42"><a href="#delete_cash_configs-42"><span class="linenos">42</span></a><span class="sd">    Args:</span>
+</span><span id="delete_cash_configs-43"><a href="#delete_cash_configs-43"><span class="linenos">43</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="delete_cash_configs-44"><a href="#delete_cash_configs-44"><span class="linenos">44</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="delete_cash_configs-45"><a href="#delete_cash_configs-45"><span class="linenos">45</span></a>    <span class="n">rkeys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="delete_cash_configs-46"><a href="#delete_cash_configs-46"><span class="linenos">46</span></a>    <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+</span><span id="delete_cash_configs-47"><a href="#delete_cash_configs-47"><span class="linenos">47</span></a>        <span class="o">*</span><span class="p">[</span><span class="n">key</span> <span class="k">async</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rkeys</span><span class="p">],</span>
+</span><span id="delete_cash_configs-48"><a href="#delete_cash_configs-48"><span class="linenos">48</span></a>        <span class="n">fullkey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="delete_cash_configs-49"><a href="#delete_cash_configs-49"><span class="linenos">49</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Удаляет кэшированные конфигурации WireGuard для указанного пользователя.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>user_id (int):</strong>  Идентификатор пользователя.</li>
+</ul>
+</div>
+
 
                 </section>
                 <section id="get_wg_config">
@@ -276,23 +368,47 @@
 
     </div>
     <a class="headerlink" href="#get_wg_config"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_wg_config-37"><a href="#get_wg_config-37"><span class="linenos">37</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="get_wg_config-38"><a href="#get_wg_config-38"><span class="linenos">38</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_wg_config</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">cfg_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="get_wg_config-39"><a href="#get_wg_config-39"><span class="linenos">39</span></a>    <span class="n">wg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="get_wg_config-40"><a href="#get_wg_config-40"><span class="linenos">40</span></a>    <span class="k">if</span> <span class="n">wg_data</span><span class="p">:</span>
-</span><span id="get_wg_config-41"><a href="#get_wg_config-41"><span class="linenos">41</span></a>        <span class="k">for</span> <span class="n">wg_conf</span> <span class="ow">in</span> <span class="n">wg_data</span><span class="p">:</span>
-</span><span id="get_wg_config-42"><a href="#get_wg_config-42"><span class="linenos">42</span></a>            <span class="k">if</span> <span class="n">wg_conf</span><span class="o">.</span><span class="n">user_private_key</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="n">cfg_id</span><span class="p">:</span>
-</span><span id="get_wg_config-43"><a href="#get_wg_config-43"><span class="linenos">43</span></a>                <span class="k">return</span> <span class="n">wg_conf</span>
-</span><span id="get_wg_config-44"><a href="#get_wg_config-44"><span class="linenos">44</span></a>
-</span><span id="get_wg_config-45"><a href="#get_wg_config-45"><span class="linenos">45</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-</span><span id="get_wg_config-46"><a href="#get_wg_config-46"><span class="linenos">46</span></a>        <span class="n">and_</span><span class="p">(</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">WgConfig</span><span class="o">.</span><span class="n">user_private_key</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">cfg_id</span><span class="p">))</span>
-</span><span id="get_wg_config-47"><a href="#get_wg_config-47"><span class="linenos">47</span></a>    <span class="p">)</span>
-</span><span id="get_wg_config-48"><a href="#get_wg_config-48"><span class="linenos">48</span></a>
-</span><span id="get_wg_config-49"><a href="#get_wg_config-49"><span class="linenos">49</span></a>    <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_wg_config-52"><a href="#get_wg_config-52"><span class="linenos">52</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="get_wg_config-53"><a href="#get_wg_config-53"><span class="linenos">53</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_wg_config</span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span> <span class="n">cfg_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="get_wg_config-54"><a href="#get_wg_config-54"><span class="linenos">54</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает конфигурацию WireGuard по идентификатору для указанного пользователя.</span>
+</span><span id="get_wg_config-55"><a href="#get_wg_config-55"><span class="linenos">55</span></a>
+</span><span id="get_wg_config-56"><a href="#get_wg_config-56"><span class="linenos">56</span></a><span class="sd">    Args:</span>
+</span><span id="get_wg_config-57"><a href="#get_wg_config-57"><span class="linenos">57</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="get_wg_config-58"><a href="#get_wg_config-58"><span class="linenos">58</span></a><span class="sd">        cfg_id (str): Идентификатор конфигурации.</span>
+</span><span id="get_wg_config-59"><a href="#get_wg_config-59"><span class="linenos">59</span></a>
+</span><span id="get_wg_config-60"><a href="#get_wg_config-60"><span class="linenos">60</span></a><span class="sd">    Returns:</span>
+</span><span id="get_wg_config-61"><a href="#get_wg_config-61"><span class="linenos">61</span></a><span class="sd">        WgConfig: Конфигурация WireGuard, если найдена, иначе None.</span>
+</span><span id="get_wg_config-62"><a href="#get_wg_config-62"><span class="linenos">62</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_wg_config-63"><a href="#get_wg_config-63"><span class="linenos">63</span></a>    <span class="n">wg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="get_wg_config-64"><a href="#get_wg_config-64"><span class="linenos">64</span></a>    <span class="k">if</span> <span class="n">wg_data</span><span class="p">:</span>
+</span><span id="get_wg_config-65"><a href="#get_wg_config-65"><span class="linenos">65</span></a>        <span class="k">for</span> <span class="n">wg_conf</span> <span class="ow">in</span> <span class="n">wg_data</span><span class="p">:</span>
+</span><span id="get_wg_config-66"><a href="#get_wg_config-66"><span class="linenos">66</span></a>            <span class="k">if</span> <span class="n">wg_conf</span><span class="o">.</span><span class="n">user_private_key</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="n">cfg_id</span><span class="p">:</span>
+</span><span id="get_wg_config-67"><a href="#get_wg_config-67"><span class="linenos">67</span></a>                <span class="k">return</span> <span class="n">wg_conf</span>
+</span><span id="get_wg_config-68"><a href="#get_wg_config-68"><span class="linenos">68</span></a>
+</span><span id="get_wg_config-69"><a href="#get_wg_config-69"><span class="linenos">69</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+</span><span id="get_wg_config-70"><a href="#get_wg_config-70"><span class="linenos">70</span></a>        <span class="n">and_</span><span class="p">(</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">WgConfig</span><span class="o">.</span><span class="n">user_private_key</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">cfg_id</span><span class="p">))</span>
+</span><span id="get_wg_config-71"><a href="#get_wg_config-71"><span class="linenos">71</span></a>    <span class="p">)</span>
+</span><span id="get_wg_config-72"><a href="#get_wg_config-72"><span class="linenos">72</span></a>
+</span><span id="get_wg_config-73"><a href="#get_wg_config-73"><span class="linenos">73</span></a>    <span class="k">return</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Получает конфигурацию WireGuard по идентификатору для указанного пользователя.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>user_id (int):</strong>  Идентификатор пользователя.</li>
+<li><strong>cfg_id (str):</strong>  Идентификатор конфигурации.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>WgConfig: Конфигурация WireGuard, если найдена, иначе None.</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="get_user_with_configs">
@@ -307,35 +423,57 @@
 
     </div>
     <a class="headerlink" href="#get_user_with_configs"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_user_with_configs-52"><a href="#get_user_with_configs-52"><span class="linenos">52</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="get_user_with_configs-53"><a href="#get_user_with_configs-53"><span class="linenos">53</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_user_with_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="get_user_with_configs-54"><a href="#get_user_with_configs-54"><span class="linenos">54</span></a>    <span class="n">user_data</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="get_user_with_configs-55"><a href="#get_user_with_configs-55"><span class="linenos">55</span></a>    <span class="n">wg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="get_user_with_configs-56"><a href="#get_user_with_configs-56"><span class="linenos">56</span></a>    <span class="k">if</span> <span class="n">wg_data</span><span class="p">:</span>
-</span><span id="get_user_with_configs-57"><a href="#get_user_with_configs-57"><span class="linenos">57</span></a>        <span class="k">if</span> <span class="n">user_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="get_user_with_configs-58"><a href="#get_user_with_configs-58"><span class="linenos">58</span></a>            <span class="n">user_data</span><span class="o">.</span><span class="n">configs</span> <span class="o">=</span> <span class="n">wg_data</span>
-</span><span id="get_user_with_configs-59"><a href="#get_user_with_configs-59"><span class="linenos">59</span></a>
-</span><span id="get_user_with_configs-60"><a href="#get_user_with_configs-60"><span class="linenos">60</span></a>        <span class="k">return</span> <span class="n">user_data</span>
-</span><span id="get_user_with_configs-61"><a href="#get_user_with_configs-61"><span class="linenos">61</span></a>
-</span><span id="get_user_with_configs-62"><a href="#get_user_with_configs-62"><span class="linenos">62</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="get_user_with_configs-63"><a href="#get_user_with_configs-63"><span class="linenos">63</span></a>        <span class="n">select</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
-</span><span id="get_user_with_configs-64"><a href="#get_user_with_configs-64"><span class="linenos">64</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">telegram_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
-</span><span id="get_user_with_configs-65"><a href="#get_user_with_configs-65"><span class="linenos">65</span></a>        <span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">configs</span><span class="p">))</span>
-</span><span id="get_user_with_configs-66"><a href="#get_user_with_configs-66"><span class="linenos">66</span></a>    <span class="p">)</span>
-</span><span id="get_user_with_configs-67"><a href="#get_user_with_configs-67"><span class="linenos">67</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="get_user_with_configs-68"><a href="#get_user_with_configs-68"><span class="linenos">68</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="get_user_with_configs-69"><a href="#get_user_with_configs-69"><span class="linenos">69</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-</span><span id="get_user_with_configs-70"><a href="#get_user_with_configs-70"><span class="linenos">70</span></a>            <span class="o">**</span><span class="p">{</span>
-</span><span id="get_user_with_configs-71"><a href="#get_user_with_configs-71"><span class="linenos">71</span></a>                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">__ustr_dict__</span>
-</span><span id="get_user_with_configs-72"><a href="#get_user_with_configs-72"><span class="linenos">72</span></a>                <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">configs</span>
-</span><span id="get_user_with_configs-73"><a href="#get_user_with_configs-73"><span class="linenos">73</span></a>            <span class="p">}</span>
-</span><span id="get_user_with_configs-74"><a href="#get_user_with_configs-74"><span class="linenos">74</span></a>        <span class="p">)</span>
-</span><span id="get_user_with_configs-75"><a href="#get_user_with_configs-75"><span class="linenos">75</span></a>
-</span><span id="get_user_with_configs-76"><a href="#get_user_with_configs-76"><span class="linenos">76</span></a>    <span class="k">return</span> <span class="n">result</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_user_with_configs-76"><a href="#get_user_with_configs-76"><span class="linenos"> 76</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="get_user_with_configs-77"><a href="#get_user_with_configs-77"><span class="linenos"> 77</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_user_with_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="get_user_with_configs-78"><a href="#get_user_with_configs-78"><span class="linenos"> 78</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает данные пользователя вместе с его конфигурациями WireGuard.</span>
+</span><span id="get_user_with_configs-79"><a href="#get_user_with_configs-79"><span class="linenos"> 79</span></a>
+</span><span id="get_user_with_configs-80"><a href="#get_user_with_configs-80"><span class="linenos"> 80</span></a><span class="sd">    Args:</span>
+</span><span id="get_user_with_configs-81"><a href="#get_user_with_configs-81"><span class="linenos"> 81</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="get_user_with_configs-82"><a href="#get_user_with_configs-82"><span class="linenos"> 82</span></a>
+</span><span id="get_user_with_configs-83"><a href="#get_user_with_configs-83"><span class="linenos"> 83</span></a><span class="sd">    Returns:</span>
+</span><span id="get_user_with_configs-84"><a href="#get_user_with_configs-84"><span class="linenos"> 84</span></a><span class="sd">        UserData: Данные пользователя, включая конфигурации WireGuard.</span>
+</span><span id="get_user_with_configs-85"><a href="#get_user_with_configs-85"><span class="linenos"> 85</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_user_with_configs-86"><a href="#get_user_with_configs-86"><span class="linenos"> 86</span></a>    <span class="n">user_data</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="get_user_with_configs-87"><a href="#get_user_with_configs-87"><span class="linenos"> 87</span></a>    <span class="n">wg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="get_user_with_configs-88"><a href="#get_user_with_configs-88"><span class="linenos"> 88</span></a>    <span class="k">if</span> <span class="n">wg_data</span><span class="p">:</span>
+</span><span id="get_user_with_configs-89"><a href="#get_user_with_configs-89"><span class="linenos"> 89</span></a>        <span class="k">if</span> <span class="n">user_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="get_user_with_configs-90"><a href="#get_user_with_configs-90"><span class="linenos"> 90</span></a>            <span class="n">user_data</span><span class="o">.</span><span class="n">configs</span> <span class="o">=</span> <span class="n">wg_data</span>
+</span><span id="get_user_with_configs-91"><a href="#get_user_with_configs-91"><span class="linenos"> 91</span></a>
+</span><span id="get_user_with_configs-92"><a href="#get_user_with_configs-92"><span class="linenos"> 92</span></a>        <span class="k">return</span> <span class="n">user_data</span>
+</span><span id="get_user_with_configs-93"><a href="#get_user_with_configs-93"><span class="linenos"> 93</span></a>
+</span><span id="get_user_with_configs-94"><a href="#get_user_with_configs-94"><span class="linenos"> 94</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="get_user_with_configs-95"><a href="#get_user_with_configs-95"><span class="linenos"> 95</span></a>        <span class="n">select</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
+</span><span id="get_user_with_configs-96"><a href="#get_user_with_configs-96"><span class="linenos"> 96</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">telegram_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
+</span><span id="get_user_with_configs-97"><a href="#get_user_with_configs-97"><span class="linenos"> 97</span></a>        <span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">joinedload</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">configs</span><span class="p">))</span>
+</span><span id="get_user_with_configs-98"><a href="#get_user_with_configs-98"><span class="linenos"> 98</span></a>    <span class="p">)</span>
+</span><span id="get_user_with_configs-99"><a href="#get_user_with_configs-99"><span class="linenos"> 99</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="get_user_with_configs-100"><a href="#get_user_with_configs-100"><span class="linenos">100</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="get_user_with_configs-101"><a href="#get_user_with_configs-101"><span class="linenos">101</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+</span><span id="get_user_with_configs-102"><a href="#get_user_with_configs-102"><span class="linenos">102</span></a>            <span class="o">**</span><span class="p">{</span>
+</span><span id="get_user_with_configs-103"><a href="#get_user_with_configs-103"><span class="linenos">103</span></a>                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">__ustr_dict__</span>
+</span><span id="get_user_with_configs-104"><a href="#get_user_with_configs-104"><span class="linenos">104</span></a>                <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">configs</span>
+</span><span id="get_user_with_configs-105"><a href="#get_user_with_configs-105"><span class="linenos">105</span></a>            <span class="p">}</span>
+</span><span id="get_user_with_configs-106"><a href="#get_user_with_configs-106"><span class="linenos">106</span></a>        <span class="p">)</span>
+</span><span id="get_user_with_configs-107"><a href="#get_user_with_configs-107"><span class="linenos">107</span></a>
+</span><span id="get_user_with_configs-108"><a href="#get_user_with_configs-108"><span class="linenos">108</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Получает данные пользователя вместе с его конфигурациями WireGuard.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>user_id (int):</strong>  Идентификатор пользователя.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>UserData: Данные пользователя, включая конфигурации WireGuard.</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="add_wg_config">
@@ -350,28 +488,61 @@
 
     </div>
     <a class="headerlink" href="#add_wg_config"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="add_wg_config-79"><a href="#add_wg_config-79"><span class="linenos">79</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="add_wg_config-80"><a href="#add_wg_config-80"><span class="linenos">80</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add_wg_config</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
-</span><span id="add_wg_config-81"><a href="#add_wg_config-81"><span class="linenos">81</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="add_wg_config-82"><a href="#add_wg_config-82"><span class="linenos">82</span></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-</span><span id="add_wg_config-83"><a href="#add_wg_config-83"><span class="linenos">83</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="add_wg_config-84"><a href="#add_wg_config-84"><span class="linenos">84</span></a>            <span class="n">result</span><span class="p">:</span> <span class="n">WgConfig</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="add_wg_config-85"><a href="#add_wg_config-85"><span class="linenos">85</span></a>        <span class="k">except</span> <span class="n">UniquenessError</span><span class="p">:</span>
-</span><span id="add_wg_config-86"><a href="#add_wg_config-86"><span class="linenos">86</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="add_wg_config-87"><a href="#add_wg_config-87"><span class="linenos">87</span></a>            <span class="k">continue</span>
-</span><span id="add_wg_config-88"><a href="#add_wg_config-88"><span class="linenos">88</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="add_wg_config-89"><a href="#add_wg_config-89"><span class="linenos">89</span></a>            <span class="k">break</span>
-</span><span id="add_wg_config-90"><a href="#add_wg_config-90"><span class="linenos">90</span></a>
-</span><span id="add_wg_config-91"><a href="#add_wg_config-91"><span class="linenos">91</span></a>    <span class="k">await</span> <span class="n">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="add_wg_config-92"><a href="#add_wg_config-92"><span class="linenos">92</span></a>
-</span><span id="add_wg_config-93"><a href="#add_wg_config-93"><span class="linenos">93</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="add_wg_config-94"><a href="#add_wg_config-94"><span class="linenos">94</span></a>        <span class="k">raise</span> <span class="n">DatabaseError</span>
-</span><span id="add_wg_config-95"><a href="#add_wg_config-95"><span class="linenos">95</span></a>
-</span><span id="add_wg_config-96"><a href="#add_wg_config-96"><span class="linenos">96</span></a>    <span class="k">return</span> <span class="n">result</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="add_wg_config-111"><a href="#add_wg_config-111"><span class="linenos">111</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="add_wg_config-112"><a href="#add_wg_config-112"><span class="linenos">112</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add_wg_config</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">user_id</span><span class="p">):</span>
+</span><span id="add_wg_config-113"><a href="#add_wg_config-113"><span class="linenos">113</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Добавляет новую конфигурацию WireGuard для указанного пользователя.</span>
+</span><span id="add_wg_config-114"><a href="#add_wg_config-114"><span class="linenos">114</span></a>
+</span><span id="add_wg_config-115"><a href="#add_wg_config-115"><span class="linenos">115</span></a><span class="sd">    Args:</span>
+</span><span id="add_wg_config-116"><a href="#add_wg_config-116"><span class="linenos">116</span></a><span class="sd">        conf (dict): Конфигурация WireGuard для добавления.</span>
+</span><span id="add_wg_config-117"><a href="#add_wg_config-117"><span class="linenos">117</span></a><span class="sd">        user_id (int): Идентификатор пользователя.</span>
+</span><span id="add_wg_config-118"><a href="#add_wg_config-118"><span class="linenos">118</span></a>
+</span><span id="add_wg_config-119"><a href="#add_wg_config-119"><span class="linenos">119</span></a><span class="sd">    Returns:</span>
+</span><span id="add_wg_config-120"><a href="#add_wg_config-120"><span class="linenos">120</span></a><span class="sd">        WgConfig: Добавленная конфигурация WireGuard.</span>
+</span><span id="add_wg_config-121"><a href="#add_wg_config-121"><span class="linenos">121</span></a>
+</span><span id="add_wg_config-122"><a href="#add_wg_config-122"><span class="linenos">122</span></a><span class="sd">    Raises:</span>
+</span><span id="add_wg_config-123"><a href="#add_wg_config-123"><span class="linenos">123</span></a><span class="sd">        DatabaseError: Если конфигурацию не удалось добавить из-за ошибки базы данных.</span>
+</span><span id="add_wg_config-124"><a href="#add_wg_config-124"><span class="linenos">124</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="add_wg_config-125"><a href="#add_wg_config-125"><span class="linenos">125</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="add_wg_config-126"><a href="#add_wg_config-126"><span class="linenos">126</span></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+</span><span id="add_wg_config-127"><a href="#add_wg_config-127"><span class="linenos">127</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="add_wg_config-128"><a href="#add_wg_config-128"><span class="linenos">128</span></a>            <span class="n">result</span><span class="p">:</span> <span class="n">WgConfig</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="add_wg_config-129"><a href="#add_wg_config-129"><span class="linenos">129</span></a>        <span class="k">except</span> <span class="n">UniquenessError</span><span class="p">:</span>
+</span><span id="add_wg_config-130"><a href="#add_wg_config-130"><span class="linenos">130</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="add_wg_config-131"><a href="#add_wg_config-131"><span class="linenos">131</span></a>            <span class="k">continue</span>
+</span><span id="add_wg_config-132"><a href="#add_wg_config-132"><span class="linenos">132</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="add_wg_config-133"><a href="#add_wg_config-133"><span class="linenos">133</span></a>            <span class="k">break</span>
+</span><span id="add_wg_config-134"><a href="#add_wg_config-134"><span class="linenos">134</span></a>
+</span><span id="add_wg_config-135"><a href="#add_wg_config-135"><span class="linenos">135</span></a>    <span class="k">await</span> <span class="n">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="add_wg_config-136"><a href="#add_wg_config-136"><span class="linenos">136</span></a>
+</span><span id="add_wg_config-137"><a href="#add_wg_config-137"><span class="linenos">137</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="add_wg_config-138"><a href="#add_wg_config-138"><span class="linenos">138</span></a>        <span class="k">raise</span> <span class="n">DatabaseError</span>
+</span><span id="add_wg_config-139"><a href="#add_wg_config-139"><span class="linenos">139</span></a>
+</span><span id="add_wg_config-140"><a href="#add_wg_config-140"><span class="linenos">140</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Добавляет новую конфигурацию WireGuard для указанного пользователя.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>conf (dict):</strong>  Конфигурация WireGuard для добавления.</li>
+<li><strong>user_id (int):</strong>  Идентификатор пользователя.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>WgConfig: Добавленная конфигурация WireGuard.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>DatabaseError:</strong>  Если конфигурацию не удалось добавить из-за ошибки базы данных.</li>
+</ul>
+</div>
+
 
                 </section>
                 <section id="freeze_config">
@@ -380,30 +551,45 @@
                     <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
 
         <span class="def">async def</span>
-        <span class="name">freeze_config</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">configs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">db</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">WgConfig</span><span class="p">]</span>, </span><span class="param"><span class="n">freeze</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">FreezeSteps</span></span><span class="return-annotation">):</span></span>
+        <span class="name">freeze_config</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">configs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">db</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">wg_config</span><span class="o">.</span><span class="n">WgConfig</span><span class="p">]</span>,</span><span class="param">	<span class="n">freeze</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">enums</span><span class="o">.</span><span class="n">FreezeSteps</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="freeze_config-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#freeze_config"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="freeze_config-99"><a href="#freeze_config-99"><span class="linenos"> 99</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="freeze_config-100"><a href="#freeze_config-100"><span class="linenos">100</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">freeze_config</span><span class="p">(</span><span class="n">configs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">],</span> <span class="n">freeze</span><span class="p">:</span> <span class="n">FreezeSteps</span><span class="p">):</span>
-</span><span id="freeze_config-101"><a href="#freeze_config-101"><span class="linenos">101</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="freeze_config-102"><a href="#freeze_config-102"><span class="linenos">102</span></a>        <span class="n">update</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="freeze_config-103"><a href="#freeze_config-103"><span class="linenos">103</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="n">config</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">]))</span>
-</span><span id="freeze_config-104"><a href="#freeze_config-104"><span class="linenos">104</span></a>        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">freeze</span><span class="o">=</span><span class="n">freeze</span><span class="p">)</span>
-</span><span id="freeze_config-105"><a href="#freeze_config-105"><span class="linenos">105</span></a>        <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="freeze_config-106"><a href="#freeze_config-106"><span class="linenos">106</span></a>    <span class="p">)</span>
-</span><span id="freeze_config-107"><a href="#freeze_config-107"><span class="linenos">107</span></a>
-</span><span id="freeze_config-108"><a href="#freeze_config-108"><span class="linenos">108</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="freeze_config-109"><a href="#freeze_config-109"><span class="linenos">109</span></a>
-</span><span id="freeze_config-110"><a href="#freeze_config-110"><span class="linenos">110</span></a>    <span class="n">updated_users</span> <span class="o">=</span> <span class="p">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">user_id</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">result</span><span class="p">}</span>
-</span><span id="freeze_config-111"><a href="#freeze_config-111"><span class="linenos">111</span></a>    <span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">updated_users</span><span class="p">:</span>
-</span><span id="freeze_config-112"><a href="#freeze_config-112"><span class="linenos">112</span></a>        <span class="k">await</span> <span class="n">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="freeze_config-143"><a href="#freeze_config-143"><span class="linenos">143</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="freeze_config-144"><a href="#freeze_config-144"><span class="linenos">144</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">freeze_config</span><span class="p">(</span><span class="n">configs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">],</span> <span class="n">freeze</span><span class="p">:</span> <span class="n">FreezeSteps</span><span class="p">):</span>
+</span><span id="freeze_config-145"><a href="#freeze_config-145"><span class="linenos">145</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Замораживает указанные конфигурации WireGuard.</span>
+</span><span id="freeze_config-146"><a href="#freeze_config-146"><span class="linenos">146</span></a>
+</span><span id="freeze_config-147"><a href="#freeze_config-147"><span class="linenos">147</span></a><span class="sd">    Args:</span>
+</span><span id="freeze_config-148"><a href="#freeze_config-148"><span class="linenos">148</span></a><span class="sd">        configs (list[WgConfig]): Список конфигураций WireGuard для заморозки.</span>
+</span><span id="freeze_config-149"><a href="#freeze_config-149"><span class="linenos">149</span></a><span class="sd">        freeze (FreezeSteps): Шаг заморозки.</span>
+</span><span id="freeze_config-150"><a href="#freeze_config-150"><span class="linenos">150</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="freeze_config-151"><a href="#freeze_config-151"><span class="linenos">151</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="freeze_config-152"><a href="#freeze_config-152"><span class="linenos">152</span></a>        <span class="n">update</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="freeze_config-153"><a href="#freeze_config-153"><span class="linenos">153</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">WgConfig</span><span class="o">.</span><span class="n">id</span><span class="o">.</span><span class="n">in_</span><span class="p">([</span><span class="n">config</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">]))</span>
+</span><span id="freeze_config-154"><a href="#freeze_config-154"><span class="linenos">154</span></a>        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">freeze</span><span class="o">=</span><span class="n">freeze</span><span class="p">)</span>
+</span><span id="freeze_config-155"><a href="#freeze_config-155"><span class="linenos">155</span></a>        <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="freeze_config-156"><a href="#freeze_config-156"><span class="linenos">156</span></a>    <span class="p">)</span>
+</span><span id="freeze_config-157"><a href="#freeze_config-157"><span class="linenos">157</span></a>
+</span><span id="freeze_config-158"><a href="#freeze_config-158"><span class="linenos">158</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="freeze_config-159"><a href="#freeze_config-159"><span class="linenos">159</span></a>
+</span><span id="freeze_config-160"><a href="#freeze_config-160"><span class="linenos">160</span></a>    <span class="n">updated_users</span> <span class="o">=</span> <span class="p">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">user_id</span> <span class="k">for</span> <span class="n">cfg</span> <span class="ow">in</span> <span class="n">result</span><span class="p">}</span>
+</span><span id="freeze_config-161"><a href="#freeze_config-161"><span class="linenos">161</span></a>    <span class="k">for</span> <span class="n">user_id</span> <span class="ow">in</span> <span class="n">updated_users</span><span class="p">:</span>
+</span><span id="freeze_config-162"><a href="#freeze_config-162"><span class="linenos">162</span></a>        <span class="k">await</span> <span class="n">delete_cash_configs</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Замораживает указанные конфигурации WireGuard.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>configs (list[WgConfig]):</strong>  Список конфигураций WireGuard для заморозки.</li>
+<li><strong>freeze (FreezeSteps):</strong>  Шаг заморозки.</li>
+</ul>
+</div>
+
 
                 </section>
                 <section id="get_all_wg_configs">
@@ -418,16 +604,29 @@
 
     </div>
     <a class="headerlink" href="#get_all_wg_configs"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_all_wg_configs-115"><a href="#get_all_wg_configs-115"><span class="linenos">115</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="get_all_wg_configs-116"><a href="#get_all_wg_configs-116"><span class="linenos">116</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_all_wg_configs</span><span class="p">():</span>
-</span><span id="get_all_wg_configs-117"><a href="#get_all_wg_configs-117"><span class="linenos">117</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
-</span><span id="get_all_wg_configs-118"><a href="#get_all_wg_configs-118"><span class="linenos">118</span></a>
-</span><span id="get_all_wg_configs-119"><a href="#get_all_wg_configs-119"><span class="linenos">119</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="get_all_wg_configs-120"><a href="#get_all_wg_configs-120"><span class="linenos">120</span></a>    <span class="k">return</span> <span class="n">result</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_all_wg_configs-165"><a href="#get_all_wg_configs-165"><span class="linenos">165</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="get_all_wg_configs-166"><a href="#get_all_wg_configs-166"><span class="linenos">166</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_all_wg_configs</span><span class="p">():</span>
+</span><span id="get_all_wg_configs-167"><a href="#get_all_wg_configs-167"><span class="linenos">167</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает все конфигурации WireGuard.</span>
+</span><span id="get_all_wg_configs-168"><a href="#get_all_wg_configs-168"><span class="linenos">168</span></a>
+</span><span id="get_all_wg_configs-169"><a href="#get_all_wg_configs-169"><span class="linenos">169</span></a><span class="sd">    Returns:</span>
+</span><span id="get_all_wg_configs-170"><a href="#get_all_wg_configs-170"><span class="linenos">170</span></a><span class="sd">        list[WgConfig]: Список всех конфигураций WireGuard.</span>
+</span><span id="get_all_wg_configs-171"><a href="#get_all_wg_configs-171"><span class="linenos">171</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_all_wg_configs-172"><a href="#get_all_wg_configs-172"><span class="linenos">172</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">WgConfig</span><span class="p">)</span>
+</span><span id="get_all_wg_configs-173"><a href="#get_all_wg_configs-173"><span class="linenos">173</span></a>
+</span><span id="get_all_wg_configs-174"><a href="#get_all_wg_configs-174"><span class="linenos">174</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WgConfig</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">echo</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="get_all_wg_configs-175"><a href="#get_all_wg_configs-175"><span class="linenos">175</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Получает все конфигурации WireGuard.</p>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>list[WgConfig]: Список всех конфигураций WireGuard.</p>
+</blockquote>
+</div>
+
 
                 </section>
     </main>

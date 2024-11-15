@@ -1,43 +1,75 @@
+"""Функционал для работы с БД. Тестирование"""
+
 import asyncio
 import logging
 from datetime import timedelta
 
 from sqlalchemy import select
 
-from core.exceptions import BaseBotError, WireguardError
+from core.exceptions import BaseBotError
 from db.database import execute_query, execute_redis_query, redis_engine
-from db.models import Transactions, UserData, WgConfig
+from db.models import TABLES_SCHEMA, Base
 
 logger = logging.getLogger()
 
 
 async def test_base():
+    """Тестирует доступность баз данных.
+
+    Функция выполняет выборку из всех моделей базы данных
+    и проверяет их доступность.
+
+    Returns:
+        list: Список результатов выполнения тестов для каждой базы данных.
+    """
+
     async def __test_base(base):
         query = select(base)
         await execute_query(query)
 
-    return await asyncio.gather(
-        *(__test_base(base) for base in (UserData, Transactions, WgConfig)),
-        return_exceptions=True,
-    )
+    test_tasks = []
+
+    for model in TABLES_SCHEMA.values():
+        if model.__bases__[0] is Base:
+            test_tasks.append(__test_base(model))
+
+    return await asyncio.gather(*test_tasks, return_exceptions=True)
 
 
 async def test_redis_base():
+    """Тестирует доступность Redis базы данных.
+
+    Функция выполняет команды ping и flushdb для проверки доступности
+    Redis базы данных.
+
+    Returns:
+        list: Список результатов выполнения тестов для Redis базы данных.
+    """
     pipe = redis_engine.pipeline()
     pipe.ping()
     pipe.flushdb()
 
-    return await asyncio.gather(
-        *(execute_redis_query(pipe),),
-        return_exceptions=True,
-    )
+    return await asyncio.gather(*(execute_redis_query(pipe),), return_exceptions=True)
 
 
 async def test_server_speed():
+    """Измеряет скорость Wireguard сервера.
+
+    Функция проверяет скорость входящего и исходящего трафика,
+    сначала пытаясь получить данные из Redis, а затем, если данные отсутствуют,
+    выполняет команду iperf3 для измерения скорости.
+
+    Returns:
+        tuple: Кортеж из двух значений - скорость входящего и исходящего трафика в битах в секунду.
+
+    Raises:
+        BaseBotError: Если произошла ошибка при измерении пропускной способности.
+    """
     pipe = redis_engine.pipeline()
     pipe.get("data:speedtest:in")
     pipe.get("data:speedtest:out")
     speed_in, speed_out = await execute_redis_query(pipe)
+
     try:
         if speed_in and speed_out:
             return float(speed_in), float(speed_out)
@@ -71,6 +103,7 @@ async def test_server_speed():
         await execute_redis_query(pipe)
 
         return float(speed_in), float(speed_out)
+
     except AssertionError:
         logger.exception(ERROR)
         raise BaseBotError

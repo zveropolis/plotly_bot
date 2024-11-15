@@ -17,23 +17,41 @@ logger = logging.getLogger()
 def bot_page(
     *components: AnyComponent, title: str | None = None, user: User | None = None
 ) -> list[AnyComponent]:
+    if user:
+        authorised = (
+            c.Link(
+                components=[c.Text(text=user.login.capitalize())],
+                on_click=GoToEvent(url="/bot/auth/profile"),
+                active="startswith:/bot/auth",
+            ),
+            c.Link(
+                components=[c.Text(text="Таблицы")],
+                on_click=GoToEvent(url=f"/bot/tables/{mod.UserData.__tablename__}"),
+                active="startswith:/bot/tables",
+            ),
+            c.Link(
+                components=[c.Text(text="ErrorLog")],
+                on_click=GoToEvent(
+                    url="https://app.glitchtip.com/danvpn/issues?query=is:unresolved"
+                ),
+            ),
+        )
+    else:
+        authorised = (
+            c.Link(
+                components=[c.Text(text="Войти")],
+                on_click=GoToEvent(url="/bot/auth/login"),
+                active="startswith:/bot/auth",
+            ),
+        )
+
     return [
         c.PageTitle(text=f"Dan VPN — {title}" if title else "Dan VPN"),
         c.Navbar(
             title="Dan VPN",
             title_event=GoToEvent(url="http://assa.ddns.net/vpn"),
             start_links=[
-                c.Link(
-                    components=[c.Text(text=user.login.capitalize())],
-                    on_click=GoToEvent(url="/bot/auth/profile"),
-                    active="startswith:/bot/auth",
-                )
-                if user
-                else c.Link(
-                    components=[c.Text(text="Войти")],
-                    on_click=GoToEvent(url="/bot/auth/login"),
-                    active="startswith:/bot/auth",
-                ),
+                *authorised,
                 c.Link(
                     components=[c.Text(text="Техподдержка")],
                     on_click=GoToEvent(url="/bot/bug/create"),

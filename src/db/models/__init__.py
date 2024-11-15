@@ -1,3 +1,30 @@
+"""
+Модуль базы данных.
+
+Этот модуль содержит схемы таблиц базы данных и перечисления, используемые в проекте.
+Он импортирует необходимые модели и определяет структуру базы данных.
+
+Импортируемые модели:
+- UserData: Модель данных пользователя.
+- Transactions: Модель транзакций.
+- WgConfig: Модель конфигурации WireGuard.
+- Reports: Модель отчетов.
+- YoomoneyOperation: Модель операции YooMoney.
+- YoomoneyOperationDetails: Модель деталей операции YooMoney.
+- News: Модель новостей.
+
+Перечисления:
+- FreezeSteps: Шаги заморозки.
+- ReportStatus: Статусы отчетов.
+- UserActivity: Статусы активности пользователей.
+
+Словарь TABLES_SCHEMA сопоставляет названия таблиц с их соответствующими моделями.
+
+Attributes:
+    TABLES_SCHEMA (dict): Словарь, где ключами являются названия таблиц,
+    а значениями - соответствующие модели.
+"""
+
 from core.config import Base
 from db import ddl as _  # NOTE TRIGGERS
 from db.models.enums import FreezeSteps, ReportStatus, UserActivity

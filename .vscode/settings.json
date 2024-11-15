@@ -2,7 +2,7 @@
     "git.ignoreLimitWarning": true,
     "python.analysis.extraPaths": [
         "./src",
-        "./server/serv_src"
+        "./server"
     ],
     "CodeGPT.apiKey": "CodeGPT Plus Beta",
     "cSpell.enableFiletypes": [

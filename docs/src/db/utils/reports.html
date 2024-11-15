@@ -54,28 +54,42 @@
                     <h1 class="modulename">
 <a href="./../../../src.html">src</a><wbr>.<a href="./../../db.html">db</a><wbr>.<a href="./../utils.html">utils</a><wbr>.reports    </h1>
 
-                
+                        <div class="docstring"><p>Функционал для работы с БД. Отчеты и обращения</p>
+</div>
+
                         <input id="mod-reports-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-reports-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span> <span class="nn">logging</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;Функционал для работы с БД. Отчеты и обращения&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">and_</span><span class="p">,</span> <span class="n">insert</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">update</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">import</span> <span class="nn">logging</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">core.metric</span> <span class="kn">import</span> <span class="n">async_speed_metric</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span> <span class="nn">db.database</span> <span class="kn">import</span> <span class="n">execute_query</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">Reports</span><span class="p">,</span> <span class="n">UserActivity</span><span class="p">,</span> <span class="n">UserData</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="kn">from</span> <span class="nn">db.utils.redis</span> <span class="kn">import</span> <span class="n">CashManager</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">insert</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span> <span class="nn">core.metric</span> <span class="kn">import</span> <span class="n">async_speed_metric</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="kn">from</span> <span class="nn">db.database</span> <span class="kn">import</span> <span class="n">execute_query</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">Reports</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add_report</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Reports</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">report</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Reports</span><span class="p">)</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">Reports</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="k">return</span> <span class="n">result</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add_report</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Добавляет новый отчет в базу данных.</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">    Эта функция принимает словарь, представляющий отчет, и добавляет его в таблицу Reports.</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">    Возвращает добавленный отчет или None, если добавление не удалось.</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="sd">    Args:</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="sd">        report (dict): Словарь, содержащий информацию об отчете, который нужно добавить.</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="sd">    Returns:</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="sd">        Reports: Добавленный отчет, если он успешно добавлен, иначе None.</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Reports</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">report</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Reports</span><span class="p">)</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">Reports</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
@@ -104,15 +118,43 @@
 
     </div>
     <a class="headerlink" href="#add_report"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="add_report-14"><a href="#add_report-14"><span class="linenos">14</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="add_report-15"><a href="#add_report-15"><span class="linenos">15</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add_report</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-</span><span id="add_report-16"><a href="#add_report-16"><span class="linenos">16</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Reports</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">report</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Reports</span><span class="p">)</span>
-</span><span id="add_report-17"><a href="#add_report-17"><span class="linenos">17</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">Reports</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="add_report-18"><a href="#add_report-18"><span class="linenos">18</span></a>    <span class="k">return</span> <span class="n">result</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="add_report-15"><a href="#add_report-15"><span class="linenos">15</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="add_report-16"><a href="#add_report-16"><span class="linenos">16</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">add_report</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="add_report-17"><a href="#add_report-17"><span class="linenos">17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Добавляет новый отчет в базу данных.</span>
+</span><span id="add_report-18"><a href="#add_report-18"><span class="linenos">18</span></a>
+</span><span id="add_report-19"><a href="#add_report-19"><span class="linenos">19</span></a><span class="sd">    Эта функция принимает словарь, представляющий отчет, и добавляет его в таблицу Reports.</span>
+</span><span id="add_report-20"><a href="#add_report-20"><span class="linenos">20</span></a><span class="sd">    Возвращает добавленный отчет или None, если добавление не удалось.</span>
+</span><span id="add_report-21"><a href="#add_report-21"><span class="linenos">21</span></a>
+</span><span id="add_report-22"><a href="#add_report-22"><span class="linenos">22</span></a><span class="sd">    Args:</span>
+</span><span id="add_report-23"><a href="#add_report-23"><span class="linenos">23</span></a><span class="sd">        report (dict): Словарь, содержащий информацию об отчете, который нужно добавить.</span>
+</span><span id="add_report-24"><a href="#add_report-24"><span class="linenos">24</span></a>
+</span><span id="add_report-25"><a href="#add_report-25"><span class="linenos">25</span></a><span class="sd">    Returns:</span>
+</span><span id="add_report-26"><a href="#add_report-26"><span class="linenos">26</span></a><span class="sd">        Reports: Добавленный отчет, если он успешно добавлен, иначе None.</span>
+</span><span id="add_report-27"><a href="#add_report-27"><span class="linenos">27</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="add_report-28"><a href="#add_report-28"><span class="linenos">28</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Reports</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">report</span><span class="p">)</span><span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Reports</span><span class="p">)</span>
+</span><span id="add_report-29"><a href="#add_report-29"><span class="linenos">29</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">Reports</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="add_report-30"><a href="#add_report-30"><span class="linenos">30</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Добавляет новый отчет в базу данных.</p>
+
+<p>Эта функция принимает словарь, представляющий отчет, и добавляет его в таблицу Reports.
+Возвращает добавленный отчет или None, если добавление не удалось.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>report (dict):</strong>  Словарь, содержащий информацию об отчете, который нужно добавить.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Reports: Добавленный отчет, если он успешно добавлен, иначе None.</p>
+</blockquote>
+</div>
+
 
                 </section>
     </main>

@@ -1,3 +1,5 @@
+"""Все кнопки и клавиатуры для хендлеров"""
+
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
                            KeyboardButton, ReplyKeyboardMarkup)
 from pytils.numeral import get_plural
@@ -86,10 +88,11 @@ static_start_button = ReplyKeyboardMarkup(
             KeyboardButton(text="Подключения"),
             KeyboardButton(text="Подписка"),
             KeyboardButton(text="Помощь"),
+            KeyboardButton(text="Чат"),
         ],
     ],
     resize_keyboard=True,
-    input_field_placeholder="Выберете действие или введите команду",
+    input_field_placeholder="Выберите действие или введите команду",
 )
 """Клавиатура для основных действий пользователя.
 

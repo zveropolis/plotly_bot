@@ -72,154 +72,229 @@
                     <h1 class="modulename">
 <a href="./../../../src.html">src</a><wbr>.<a href="./../../db.html">db</a><wbr>.<a href="./../utils.html">utils</a><wbr>.transactions    </h1>
 
-                
+                        <div class="docstring"><p>Функционал для работы с БД. Работа с транзакциями</p>
+</div>
+
                         <input id="mod-transactions-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-transactions-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">logging</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">and_</span><span class="p">,</span> <span class="n">insert</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">update</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;Функционал для работы с БД. Работа с транзакциями&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">logging</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">core.config</span> <span class="kn">import</span> <span class="n">settings</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">core.metric</span> <span class="kn">import</span> <span class="n">async_speed_metric</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">db.database</span> <span class="kn">import</span> <span class="n">execute_query</span><span class="p">,</span> <span class="n">iter_redis_keys</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">Transactions</span><span class="p">,</span> <span class="n">UserActivity</span><span class="p">,</span> <span class="n">UserData</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">db.utils.redis</span> <span class="kn">import</span> <span class="n">CashManager</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">and_</span><span class="p">,</span> <span class="n">insert</span><span class="p">,</span> <span class="n">select</span><span class="p">,</span> <span class="n">update</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">core.config</span> <span class="kn">import</span> <span class="n">settings</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">core.metric</span> <span class="kn">import</span> <span class="n">async_speed_metric</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">db.database</span> <span class="kn">import</span> <span class="n">execute_query</span><span class="p">,</span> <span class="n">iter_redis_keys</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">Transactions</span><span class="p">,</span> <span class="n">UserActivity</span><span class="p">,</span> <span class="n">UserData</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">db.utils.redis</span> <span class="kn">import</span> <span class="n">CashManager</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_cash_wg_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">cash</span> <span class="o">=</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>    <span class="n">tr_keys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">Transactions</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="k">async</span> <span class="k">for</span> <span class="n">trans_key</span> <span class="ow">in</span> <span class="n">tr_keys</span><span class="p">:</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>        <span class="n">cash</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="n">trans_key</span><span class="p">)</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">cash</span><span class="p">()</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">delete_cash_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>    <span class="n">rkeys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">Transactions</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>    <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>        <span class="o">*</span><span class="p">[</span><span class="n">key</span> <span class="k">async</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rkeys</span><span class="p">],</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="n">fullkey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>    <span class="p">)</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">insert_transaction</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;user_id&quot;</span><span class="p">])</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_cash_wg_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает транзакции пользователя из кеша.</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    Функция ищет транзакции пользователя в Redis, используя ключи,</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    соответствующие его идентификатору.</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    Args:</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">        user_id (str): Идентификатор пользователя.</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    Returns:</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">        list: Список транзакций пользователя.</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>    <span class="n">cash</span> <span class="o">=</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>    <span class="n">tr_keys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">Transactions</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>    <span class="k">async</span> <span class="k">for</span> <span class="n">trans_key</span> <span class="ow">in</span> <span class="n">tr_keys</span><span class="p">:</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>        <span class="n">cash</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="n">trans_key</span><span class="p">)</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">cash</span><span class="p">()</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>    <span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">delete_cash_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Удаляет кешированные транзакции пользователя.</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">confirm_success_pay</span><span class="p">(</span><span class="n">transaction</span><span class="p">:</span> <span class="n">Transactions</span><span class="p">):</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Transactions</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>    <span class="n">prev_result</span><span class="p">:</span> <span class="n">Transactions</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">prev_result</span><span class="p">,</span> <span class="s2">&quot;transaction_id&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>            <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>            <span class="o">.</span><span class="n">values</span><span class="p">(</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>                <span class="n">user_id</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>                <span class="n">date</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>                <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>                <span class="n">label</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>                <span class="n">transaction_id</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">transaction_id</span><span class="p">,</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>                <span class="n">sha1_hash</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sha1_hash</span><span class="p">,</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>                <span class="n">sender</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>                <span class="n">withdraw_amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">withdraw_amount</span><span class="p">,</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>                <span class="n">transaction_reference</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">transaction_reference</span><span class="p">,</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>            <span class="p">)</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>            <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="p">)</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>            <span class="n">update</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>            <span class="o">.</span><span class="n">values</span><span class="p">(</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>                <span class="n">date</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>                <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>                <span class="n">transaction_id</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">transaction_id</span><span class="p">,</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>                <span class="n">sha1_hash</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sha1_hash</span><span class="p">,</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>                <span class="n">sender</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>                <span class="n">withdraw_amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">withdraw_amount</span><span class="p">,</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>            <span class="p">)</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>            <span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>            <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="p">)</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">Transactions</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>        <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="k">return</span> <span class="n">result</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">close_free_trial</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="n">update</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">and_</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">telegram_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">UserData</span><span class="o">.</span><span class="n">stage</span> <span class="o">==</span> <span class="mf">0.3</span><span class="p">))</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="p">)</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="c1"># NOTE не удаляется из кеша потому что кеш чистится после пополнения баланса</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="k">return</span> <span class="n">result</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_user_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">trans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transactions</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="k">if</span> <span class="n">trans</span><span class="p">:</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>        <span class="k">return</span> <span class="n">trans</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Transactions</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transactions</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>            <span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">__ustr_dict__</span> <span class="k">for</span> <span class="n">trans</span> <span class="ow">in</span> <span class="n">result</span><span class="p">}</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>        <span class="p">)</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>    <span class="k">return</span> <span class="n">result</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">raise_money</span><span class="p">():</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">active</span><span class="o">=</span><span class="n">UserActivity</span><span class="o">.</span><span class="n">active</span><span class="p">)</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="n">users</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UserData</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="nb">dict</span><span class="p">(</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>            <span class="n">user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>            <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>            <span class="n">amount</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">user</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="n">settings</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>            <span class="n">withdraw_amount</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">user</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="n">settings</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>            <span class="n">label</span><span class="o">=</span><span class="n">uuid4</span><span class="p">(),</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>            <span class="n">transaction_id</span><span class="o">=</span><span class="s2">&quot;Ежедневное списание&quot;</span><span class="p">,</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>            <span class="n">transaction_reference</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>        <span class="p">)</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="p">]</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">)</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">)</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">    Функция удаляет все кешированные транзакции пользователя из Redis.</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">    Args:</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd">        user_id (str): Идентификатор пользователя.</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">    Returns:</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">        None</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>    <span class="n">rkeys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">Transactions</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>    <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">key</span> <span class="k">async</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rkeys</span><span class="p">],</span> <span class="n">fullkey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">insert_transaction</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Вставляет новую транзакцию в базу данных.</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">    Функция сначала удаляет кешированные транзакции пользователя,</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    а затем добавляет новую транзакцию в базу данных.</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">    Args:</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">        conf (dict): Словарь, содержащий данные транзакции.</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">    Returns:</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">        None</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;user_id&quot;</span><span class="p">])</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">confirm_success_pay</span><span class="p">(</span><span class="n">transaction</span><span class="p">:</span> <span class="n">Transactions</span><span class="p">):</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Подтверждает успешную оплату транзакции.</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">    Функция проверяет, существует ли предыдущая транзакция с таким же</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">    ярлыком, и либо создает новую транзакцию, либо обновляет существующую.</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">    Args:</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">        transaction (Transactions): Объект транзакции.</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">    Returns:</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">        Transactions: Объект транзакции, который был создан или обновлен.</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Transactions</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="n">prev_result</span><span class="p">:</span> <span class="n">Transactions</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">prev_result</span><span class="p">,</span> <span class="s2">&quot;transaction_id&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>            <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>            <span class="o">.</span><span class="n">values</span><span class="p">(</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>                <span class="n">user_id</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>                <span class="n">date</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>                <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>                <span class="n">label</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>                <span class="n">transaction_id</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">transaction_id</span><span class="p">,</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>                <span class="n">sha1_hash</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sha1_hash</span><span class="p">,</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>                <span class="n">sender</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>                <span class="n">withdraw_amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">withdraw_amount</span><span class="p">,</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>                <span class="n">transaction_reference</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">transaction_reference</span><span class="p">,</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>            <span class="p">)</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>            <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="p">)</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>            <span class="n">update</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>            <span class="o">.</span><span class="n">values</span><span class="p">(</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>                <span class="n">date</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>                <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>                <span class="n">transaction_id</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">transaction_id</span><span class="p">,</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>                <span class="n">sha1_hash</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sha1_hash</span><span class="p">,</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>                <span class="n">sender</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>                <span class="n">withdraw_amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">withdraw_amount</span><span class="p">,</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>            <span class="p">)</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>            <span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>            <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>        <span class="p">)</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">Transactions</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="k">return</span> <span class="n">result</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">close_free_trial</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Закрывает бесплатный пробный период пользователя.</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="sd">    Функция обновляет тариф пользователя, переводя его в состояние</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="sd">    завершенного пробного периода.</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a><span class="sd">    Args:</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="sd">        user_id (str): Идентификатор пользователя.</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="sd">    Returns:</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="sd">        UserData: Объект данных пользователя, обновленный после завершения пробного периода.</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>        <span class="n">update</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">and_</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">telegram_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">UserData</span><span class="o">.</span><span class="n">stage</span> <span class="o">==</span> <span class="mf">0.3</span><span class="p">))</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>    <span class="p">)</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="c1"># NOTE не удаляется из кеша потому что кеш чистится после пополнения баланса</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="k">return</span> <span class="n">result</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_user_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает транзакции пользователя.</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="sd">    Функция сначала пытается получить транзакции из кеша,</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="sd">    а если они отсутствуют, то извлекает их из базы данных.</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="sd">    Args:</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a><span class="sd">        user_id (str): Идентификатор пользователя.</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="sd">    Returns:</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="sd">        list: Список транзакций пользователя.</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>    <span class="n">trans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transactions</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>    <span class="k">if</span> <span class="n">trans</span><span class="p">:</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>        <span class="k">return</span> <span class="n">trans</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Transactions</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transactions</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>            <span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">__ustr_dict__</span> <span class="k">for</span> <span class="n">trans</span> <span class="ow">in</span> <span class="n">result</span><span class="p">}</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>        <span class="p">)</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>    <span class="k">return</span> <span class="n">result</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">raise_money</span><span class="p">():</span>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Списывает деньги с активных пользователей.</span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a><span class="sd">    Функция выбирает всех активных пользователей и списывает</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="sd">    с их баланса определенную сумму в соответствии с их стадией.</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="sd">    Returns:</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a><span class="sd">        None</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">active</span><span class="o">=</span><span class="n">UserActivity</span><span class="o">.</span><span class="n">active</span><span class="p">)</span>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="n">users</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UserData</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>
+</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>        <span class="nb">dict</span><span class="p">(</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>            <span class="n">user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>            <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>            <span class="n">amount</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">user</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="n">settings</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span>
+</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>            <span class="n">withdraw_amount</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">user</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="n">settings</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span>
+</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>            <span class="n">label</span><span class="o">=</span><span class="n">uuid4</span><span class="p">(),</span>
+</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>            <span class="n">transaction_id</span><span class="o">=</span><span class="s2">&quot;Ежедневное списание&quot;</span><span class="p">,</span>
+</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>            <span class="n">transaction_reference</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>        <span class="p">)</span>
+</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="p">]</span>
+</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>    <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>        <span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a>        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a>            <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">)</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>            <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -248,19 +323,47 @@
 
     </div>
     <a class="headerlink" href="#get_cash_wg_transactions"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_cash_wg_transactions-17"><a href="#get_cash_wg_transactions-17"><span class="linenos">17</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="get_cash_wg_transactions-18"><a href="#get_cash_wg_transactions-18"><span class="linenos">18</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_cash_wg_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="get_cash_wg_transactions-19"><a href="#get_cash_wg_transactions-19"><span class="linenos">19</span></a>    <span class="n">cash</span> <span class="o">=</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="get_cash_wg_transactions-20"><a href="#get_cash_wg_transactions-20"><span class="linenos">20</span></a>
-</span><span id="get_cash_wg_transactions-21"><a href="#get_cash_wg_transactions-21"><span class="linenos">21</span></a>    <span class="n">tr_keys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">Transactions</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="get_cash_wg_transactions-22"><a href="#get_cash_wg_transactions-22"><span class="linenos">22</span></a>    <span class="k">async</span> <span class="k">for</span> <span class="n">trans_key</span> <span class="ow">in</span> <span class="n">tr_keys</span><span class="p">:</span>
-</span><span id="get_cash_wg_transactions-23"><a href="#get_cash_wg_transactions-23"><span class="linenos">23</span></a>        <span class="n">cash</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="n">trans_key</span><span class="p">)</span>
-</span><span id="get_cash_wg_transactions-24"><a href="#get_cash_wg_transactions-24"><span class="linenos">24</span></a>
-</span><span id="get_cash_wg_transactions-25"><a href="#get_cash_wg_transactions-25"><span class="linenos">25</span></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">cash</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_cash_wg_transactions-19"><a href="#get_cash_wg_transactions-19"><span class="linenos">19</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="get_cash_wg_transactions-20"><a href="#get_cash_wg_transactions-20"><span class="linenos">20</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_cash_wg_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="get_cash_wg_transactions-21"><a href="#get_cash_wg_transactions-21"><span class="linenos">21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает транзакции пользователя из кеша.</span>
+</span><span id="get_cash_wg_transactions-22"><a href="#get_cash_wg_transactions-22"><span class="linenos">22</span></a>
+</span><span id="get_cash_wg_transactions-23"><a href="#get_cash_wg_transactions-23"><span class="linenos">23</span></a><span class="sd">    Функция ищет транзакции пользователя в Redis, используя ключи,</span>
+</span><span id="get_cash_wg_transactions-24"><a href="#get_cash_wg_transactions-24"><span class="linenos">24</span></a><span class="sd">    соответствующие его идентификатору.</span>
+</span><span id="get_cash_wg_transactions-25"><a href="#get_cash_wg_transactions-25"><span class="linenos">25</span></a>
+</span><span id="get_cash_wg_transactions-26"><a href="#get_cash_wg_transactions-26"><span class="linenos">26</span></a><span class="sd">    Args:</span>
+</span><span id="get_cash_wg_transactions-27"><a href="#get_cash_wg_transactions-27"><span class="linenos">27</span></a><span class="sd">        user_id (str): Идентификатор пользователя.</span>
+</span><span id="get_cash_wg_transactions-28"><a href="#get_cash_wg_transactions-28"><span class="linenos">28</span></a>
+</span><span id="get_cash_wg_transactions-29"><a href="#get_cash_wg_transactions-29"><span class="linenos">29</span></a><span class="sd">    Returns:</span>
+</span><span id="get_cash_wg_transactions-30"><a href="#get_cash_wg_transactions-30"><span class="linenos">30</span></a><span class="sd">        list: Список транзакций пользователя.</span>
+</span><span id="get_cash_wg_transactions-31"><a href="#get_cash_wg_transactions-31"><span class="linenos">31</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_cash_wg_transactions-32"><a href="#get_cash_wg_transactions-32"><span class="linenos">32</span></a>    <span class="n">cash</span> <span class="o">=</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="get_cash_wg_transactions-33"><a href="#get_cash_wg_transactions-33"><span class="linenos">33</span></a>
+</span><span id="get_cash_wg_transactions-34"><a href="#get_cash_wg_transactions-34"><span class="linenos">34</span></a>    <span class="n">tr_keys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">Transactions</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="get_cash_wg_transactions-35"><a href="#get_cash_wg_transactions-35"><span class="linenos">35</span></a>    <span class="k">async</span> <span class="k">for</span> <span class="n">trans_key</span> <span class="ow">in</span> <span class="n">tr_keys</span><span class="p">:</span>
+</span><span id="get_cash_wg_transactions-36"><a href="#get_cash_wg_transactions-36"><span class="linenos">36</span></a>        <span class="n">cash</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="n">trans_key</span><span class="p">)</span>
+</span><span id="get_cash_wg_transactions-37"><a href="#get_cash_wg_transactions-37"><span class="linenos">37</span></a>
+</span><span id="get_cash_wg_transactions-38"><a href="#get_cash_wg_transactions-38"><span class="linenos">38</span></a>    <span class="k">return</span> <span class="k">await</span> <span class="n">cash</span><span class="p">()</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Получает транзакции пользователя из кеша.</p>
+
+<p>Функция ищет транзакции пользователя в Redis, используя ключи,
+соответствующие его идентификатору.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>user_id (str):</strong>  Идентификатор пользователя.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>list: Список транзакций пользователя.</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="delete_cash_transactions">
@@ -275,17 +378,40 @@
 
     </div>
     <a class="headerlink" href="#delete_cash_transactions"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="delete_cash_transactions-28"><a href="#delete_cash_transactions-28"><span class="linenos">28</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="delete_cash_transactions-29"><a href="#delete_cash_transactions-29"><span class="linenos">29</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">delete_cash_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="delete_cash_transactions-30"><a href="#delete_cash_transactions-30"><span class="linenos">30</span></a>    <span class="n">rkeys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">Transactions</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="delete_cash_transactions-31"><a href="#delete_cash_transactions-31"><span class="linenos">31</span></a>    <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
-</span><span id="delete_cash_transactions-32"><a href="#delete_cash_transactions-32"><span class="linenos">32</span></a>        <span class="o">*</span><span class="p">[</span><span class="n">key</span> <span class="k">async</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rkeys</span><span class="p">],</span>
-</span><span id="delete_cash_transactions-33"><a href="#delete_cash_transactions-33"><span class="linenos">33</span></a>        <span class="n">fullkey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="delete_cash_transactions-34"><a href="#delete_cash_transactions-34"><span class="linenos">34</span></a>    <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="delete_cash_transactions-41"><a href="#delete_cash_transactions-41"><span class="linenos">41</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="delete_cash_transactions-42"><a href="#delete_cash_transactions-42"><span class="linenos">42</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">delete_cash_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="delete_cash_transactions-43"><a href="#delete_cash_transactions-43"><span class="linenos">43</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Удаляет кешированные транзакции пользователя.</span>
+</span><span id="delete_cash_transactions-44"><a href="#delete_cash_transactions-44"><span class="linenos">44</span></a>
+</span><span id="delete_cash_transactions-45"><a href="#delete_cash_transactions-45"><span class="linenos">45</span></a><span class="sd">    Функция удаляет все кешированные транзакции пользователя из Redis.</span>
+</span><span id="delete_cash_transactions-46"><a href="#delete_cash_transactions-46"><span class="linenos">46</span></a>
+</span><span id="delete_cash_transactions-47"><a href="#delete_cash_transactions-47"><span class="linenos">47</span></a><span class="sd">    Args:</span>
+</span><span id="delete_cash_transactions-48"><a href="#delete_cash_transactions-48"><span class="linenos">48</span></a><span class="sd">        user_id (str): Идентификатор пользователя.</span>
+</span><span id="delete_cash_transactions-49"><a href="#delete_cash_transactions-49"><span class="linenos">49</span></a>
+</span><span id="delete_cash_transactions-50"><a href="#delete_cash_transactions-50"><span class="linenos">50</span></a><span class="sd">    Returns:</span>
+</span><span id="delete_cash_transactions-51"><a href="#delete_cash_transactions-51"><span class="linenos">51</span></a><span class="sd">        None</span>
+</span><span id="delete_cash_transactions-52"><a href="#delete_cash_transactions-52"><span class="linenos">52</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="delete_cash_transactions-53"><a href="#delete_cash_transactions-53"><span class="linenos">53</span></a>    <span class="n">rkeys</span> <span class="o">=</span> <span class="k">await</span> <span class="n">iter_redis_keys</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data:</span><span class="si">{</span><span class="n">Transactions</span><span class="o">.</span><span class="n">__tablename__</span><span class="si">}</span><span class="s2">:*:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="delete_cash_transactions-54"><a href="#delete_cash_transactions-54"><span class="linenos">54</span></a>    <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">key</span> <span class="k">async</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">rkeys</span><span class="p">],</span> <span class="n">fullkey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Удаляет кешированные транзакции пользователя.</p>
+
+<p>Функция удаляет все кешированные транзакции пользователя из Redis.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>user_id (str):</strong>  Идентификатор пользователя.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>None</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="insert_transaction">
@@ -300,16 +426,44 @@
 
     </div>
     <a class="headerlink" href="#insert_transaction"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="insert_transaction-37"><a href="#insert_transaction-37"><span class="linenos">37</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="insert_transaction-38"><a href="#insert_transaction-38"><span class="linenos">38</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">insert_transaction</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
-</span><span id="insert_transaction-39"><a href="#insert_transaction-39"><span class="linenos">39</span></a>    <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;user_id&quot;</span><span class="p">])</span>
-</span><span id="insert_transaction-40"><a href="#insert_transaction-40"><span class="linenos">40</span></a>
-</span><span id="insert_transaction-41"><a href="#insert_transaction-41"><span class="linenos">41</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span>
-</span><span id="insert_transaction-42"><a href="#insert_transaction-42"><span class="linenos">42</span></a>    <span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="insert_transaction-57"><a href="#insert_transaction-57"><span class="linenos">57</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="insert_transaction-58"><a href="#insert_transaction-58"><span class="linenos">58</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">insert_transaction</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+</span><span id="insert_transaction-59"><a href="#insert_transaction-59"><span class="linenos">59</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Вставляет новую транзакцию в базу данных.</span>
+</span><span id="insert_transaction-60"><a href="#insert_transaction-60"><span class="linenos">60</span></a>
+</span><span id="insert_transaction-61"><a href="#insert_transaction-61"><span class="linenos">61</span></a><span class="sd">    Функция сначала удаляет кешированные транзакции пользователя,</span>
+</span><span id="insert_transaction-62"><a href="#insert_transaction-62"><span class="linenos">62</span></a><span class="sd">    а затем добавляет новую транзакцию в базу данных.</span>
+</span><span id="insert_transaction-63"><a href="#insert_transaction-63"><span class="linenos">63</span></a>
+</span><span id="insert_transaction-64"><a href="#insert_transaction-64"><span class="linenos">64</span></a><span class="sd">    Args:</span>
+</span><span id="insert_transaction-65"><a href="#insert_transaction-65"><span class="linenos">65</span></a><span class="sd">        conf (dict): Словарь, содержащий данные транзакции.</span>
+</span><span id="insert_transaction-66"><a href="#insert_transaction-66"><span class="linenos">66</span></a>
+</span><span id="insert_transaction-67"><a href="#insert_transaction-67"><span class="linenos">67</span></a><span class="sd">    Returns:</span>
+</span><span id="insert_transaction-68"><a href="#insert_transaction-68"><span class="linenos">68</span></a><span class="sd">        None</span>
+</span><span id="insert_transaction-69"><a href="#insert_transaction-69"><span class="linenos">69</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="insert_transaction-70"><a href="#insert_transaction-70"><span class="linenos">70</span></a>    <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">conf</span><span class="p">[</span><span class="s2">&quot;user_id&quot;</span><span class="p">])</span>
+</span><span id="insert_transaction-71"><a href="#insert_transaction-71"><span class="linenos">71</span></a>
+</span><span id="insert_transaction-72"><a href="#insert_transaction-72"><span class="linenos">72</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="p">)</span>
+</span><span id="insert_transaction-73"><a href="#insert_transaction-73"><span class="linenos">73</span></a>    <span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Вставляет новую транзакцию в базу данных.</p>
+
+<p>Функция сначала удаляет кешированные транзакции пользователя,
+а затем добавляет новую транзакцию в базу данных.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>conf (dict):</strong>  Словарь, содержащий данные транзакции.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>None</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="confirm_success_pay">
@@ -317,59 +471,87 @@
 <div class="attr function">
             
         <span class="def">async def</span>
-        <span class="name">confirm_success_pay</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">transaction</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">Transactions</span></span><span class="return-annotation">):</span></span>
+        <span class="name">confirm_success_pay</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">transaction</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">transactions</span><span class="o">.</span><span class="n">Transactions</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="confirm_success_pay-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#confirm_success_pay"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="confirm_success_pay-45"><a href="#confirm_success_pay-45"><span class="linenos">45</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">confirm_success_pay</span><span class="p">(</span><span class="n">transaction</span><span class="p">:</span> <span class="n">Transactions</span><span class="p">):</span>
-</span><span id="confirm_success_pay-46"><a href="#confirm_success_pay-46"><span class="linenos">46</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Transactions</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
-</span><span id="confirm_success_pay-47"><a href="#confirm_success_pay-47"><span class="linenos">47</span></a>    <span class="n">prev_result</span><span class="p">:</span> <span class="n">Transactions</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-</span><span id="confirm_success_pay-48"><a href="#confirm_success_pay-48"><span class="linenos">48</span></a>
-</span><span id="confirm_success_pay-49"><a href="#confirm_success_pay-49"><span class="linenos">49</span></a>    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">prev_result</span><span class="p">,</span> <span class="s2">&quot;transaction_id&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-</span><span id="confirm_success_pay-50"><a href="#confirm_success_pay-50"><span class="linenos">50</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="confirm_success_pay-51"><a href="#confirm_success_pay-51"><span class="linenos">51</span></a>            <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="confirm_success_pay-52"><a href="#confirm_success_pay-52"><span class="linenos">52</span></a>            <span class="o">.</span><span class="n">values</span><span class="p">(</span>
-</span><span id="confirm_success_pay-53"><a href="#confirm_success_pay-53"><span class="linenos">53</span></a>                <span class="n">user_id</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
-</span><span id="confirm_success_pay-54"><a href="#confirm_success_pay-54"><span class="linenos">54</span></a>                <span class="n">date</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
-</span><span id="confirm_success_pay-55"><a href="#confirm_success_pay-55"><span class="linenos">55</span></a>                <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
-</span><span id="confirm_success_pay-56"><a href="#confirm_success_pay-56"><span class="linenos">56</span></a>                <span class="n">label</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
-</span><span id="confirm_success_pay-57"><a href="#confirm_success_pay-57"><span class="linenos">57</span></a>                <span class="n">transaction_id</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">transaction_id</span><span class="p">,</span>
-</span><span id="confirm_success_pay-58"><a href="#confirm_success_pay-58"><span class="linenos">58</span></a>                <span class="n">sha1_hash</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sha1_hash</span><span class="p">,</span>
-</span><span id="confirm_success_pay-59"><a href="#confirm_success_pay-59"><span class="linenos">59</span></a>                <span class="n">sender</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span>
-</span><span id="confirm_success_pay-60"><a href="#confirm_success_pay-60"><span class="linenos">60</span></a>                <span class="n">withdraw_amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">withdraw_amount</span><span class="p">,</span>
-</span><span id="confirm_success_pay-61"><a href="#confirm_success_pay-61"><span class="linenos">61</span></a>                <span class="n">transaction_reference</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">transaction_reference</span><span class="p">,</span>
-</span><span id="confirm_success_pay-62"><a href="#confirm_success_pay-62"><span class="linenos">62</span></a>            <span class="p">)</span>
-</span><span id="confirm_success_pay-63"><a href="#confirm_success_pay-63"><span class="linenos">63</span></a>            <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="confirm_success_pay-64"><a href="#confirm_success_pay-64"><span class="linenos">64</span></a>        <span class="p">)</span>
-</span><span id="confirm_success_pay-65"><a href="#confirm_success_pay-65"><span class="linenos">65</span></a>
-</span><span id="confirm_success_pay-66"><a href="#confirm_success_pay-66"><span class="linenos">66</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="confirm_success_pay-67"><a href="#confirm_success_pay-67"><span class="linenos">67</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="confirm_success_pay-68"><a href="#confirm_success_pay-68"><span class="linenos">68</span></a>            <span class="n">update</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="confirm_success_pay-69"><a href="#confirm_success_pay-69"><span class="linenos">69</span></a>            <span class="o">.</span><span class="n">values</span><span class="p">(</span>
-</span><span id="confirm_success_pay-70"><a href="#confirm_success_pay-70"><span class="linenos">70</span></a>                <span class="n">date</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
-</span><span id="confirm_success_pay-71"><a href="#confirm_success_pay-71"><span class="linenos">71</span></a>                <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
-</span><span id="confirm_success_pay-72"><a href="#confirm_success_pay-72"><span class="linenos">72</span></a>                <span class="n">transaction_id</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">transaction_id</span><span class="p">,</span>
-</span><span id="confirm_success_pay-73"><a href="#confirm_success_pay-73"><span class="linenos">73</span></a>                <span class="n">sha1_hash</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sha1_hash</span><span class="p">,</span>
-</span><span id="confirm_success_pay-74"><a href="#confirm_success_pay-74"><span class="linenos">74</span></a>                <span class="n">sender</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span>
-</span><span id="confirm_success_pay-75"><a href="#confirm_success_pay-75"><span class="linenos">75</span></a>                <span class="n">withdraw_amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">withdraw_amount</span><span class="p">,</span>
-</span><span id="confirm_success_pay-76"><a href="#confirm_success_pay-76"><span class="linenos">76</span></a>            <span class="p">)</span>
-</span><span id="confirm_success_pay-77"><a href="#confirm_success_pay-77"><span class="linenos">77</span></a>            <span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
-</span><span id="confirm_success_pay-78"><a href="#confirm_success_pay-78"><span class="linenos">78</span></a>            <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
-</span><span id="confirm_success_pay-79"><a href="#confirm_success_pay-79"><span class="linenos">79</span></a>        <span class="p">)</span>
-</span><span id="confirm_success_pay-80"><a href="#confirm_success_pay-80"><span class="linenos">80</span></a>
-</span><span id="confirm_success_pay-81"><a href="#confirm_success_pay-81"><span class="linenos">81</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">Transactions</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="confirm_success_pay-82"><a href="#confirm_success_pay-82"><span class="linenos">82</span></a>
-</span><span id="confirm_success_pay-83"><a href="#confirm_success_pay-83"><span class="linenos">83</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="confirm_success_pay-84"><a href="#confirm_success_pay-84"><span class="linenos">84</span></a>        <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="confirm_success_pay-85"><a href="#confirm_success_pay-85"><span class="linenos">85</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="confirm_success_pay-86"><a href="#confirm_success_pay-86"><span class="linenos">86</span></a>
-</span><span id="confirm_success_pay-87"><a href="#confirm_success_pay-87"><span class="linenos">87</span></a>    <span class="k">return</span> <span class="n">result</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="confirm_success_pay-76"><a href="#confirm_success_pay-76"><span class="linenos"> 76</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">confirm_success_pay</span><span class="p">(</span><span class="n">transaction</span><span class="p">:</span> <span class="n">Transactions</span><span class="p">):</span>
+</span><span id="confirm_success_pay-77"><a href="#confirm_success_pay-77"><span class="linenos"> 77</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Подтверждает успешную оплату транзакции.</span>
+</span><span id="confirm_success_pay-78"><a href="#confirm_success_pay-78"><span class="linenos"> 78</span></a>
+</span><span id="confirm_success_pay-79"><a href="#confirm_success_pay-79"><span class="linenos"> 79</span></a><span class="sd">    Функция проверяет, существует ли предыдущая транзакция с таким же</span>
+</span><span id="confirm_success_pay-80"><a href="#confirm_success_pay-80"><span class="linenos"> 80</span></a><span class="sd">    ярлыком, и либо создает новую транзакцию, либо обновляет существующую.</span>
+</span><span id="confirm_success_pay-81"><a href="#confirm_success_pay-81"><span class="linenos"> 81</span></a>
+</span><span id="confirm_success_pay-82"><a href="#confirm_success_pay-82"><span class="linenos"> 82</span></a><span class="sd">    Args:</span>
+</span><span id="confirm_success_pay-83"><a href="#confirm_success_pay-83"><span class="linenos"> 83</span></a><span class="sd">        transaction (Transactions): Объект транзакции.</span>
+</span><span id="confirm_success_pay-84"><a href="#confirm_success_pay-84"><span class="linenos"> 84</span></a>
+</span><span id="confirm_success_pay-85"><a href="#confirm_success_pay-85"><span class="linenos"> 85</span></a><span class="sd">    Returns:</span>
+</span><span id="confirm_success_pay-86"><a href="#confirm_success_pay-86"><span class="linenos"> 86</span></a><span class="sd">        Transactions: Объект транзакции, который был создан или обновлен.</span>
+</span><span id="confirm_success_pay-87"><a href="#confirm_success_pay-87"><span class="linenos"> 87</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="confirm_success_pay-88"><a href="#confirm_success_pay-88"><span class="linenos"> 88</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Transactions</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+</span><span id="confirm_success_pay-89"><a href="#confirm_success_pay-89"><span class="linenos"> 89</span></a>    <span class="n">prev_result</span><span class="p">:</span> <span class="n">Transactions</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</span><span id="confirm_success_pay-90"><a href="#confirm_success_pay-90"><span class="linenos"> 90</span></a>
+</span><span id="confirm_success_pay-91"><a href="#confirm_success_pay-91"><span class="linenos"> 91</span></a>    <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">prev_result</span><span class="p">,</span> <span class="s2">&quot;transaction_id&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="confirm_success_pay-92"><a href="#confirm_success_pay-92"><span class="linenos"> 92</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="confirm_success_pay-93"><a href="#confirm_success_pay-93"><span class="linenos"> 93</span></a>            <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="confirm_success_pay-94"><a href="#confirm_success_pay-94"><span class="linenos"> 94</span></a>            <span class="o">.</span><span class="n">values</span><span class="p">(</span>
+</span><span id="confirm_success_pay-95"><a href="#confirm_success_pay-95"><span class="linenos"> 95</span></a>                <span class="n">user_id</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">user_id</span><span class="p">,</span>
+</span><span id="confirm_success_pay-96"><a href="#confirm_success_pay-96"><span class="linenos"> 96</span></a>                <span class="n">date</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
+</span><span id="confirm_success_pay-97"><a href="#confirm_success_pay-97"><span class="linenos"> 97</span></a>                <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
+</span><span id="confirm_success_pay-98"><a href="#confirm_success_pay-98"><span class="linenos"> 98</span></a>                <span class="n">label</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+</span><span id="confirm_success_pay-99"><a href="#confirm_success_pay-99"><span class="linenos"> 99</span></a>                <span class="n">transaction_id</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">transaction_id</span><span class="p">,</span>
+</span><span id="confirm_success_pay-100"><a href="#confirm_success_pay-100"><span class="linenos">100</span></a>                <span class="n">sha1_hash</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sha1_hash</span><span class="p">,</span>
+</span><span id="confirm_success_pay-101"><a href="#confirm_success_pay-101"><span class="linenos">101</span></a>                <span class="n">sender</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span>
+</span><span id="confirm_success_pay-102"><a href="#confirm_success_pay-102"><span class="linenos">102</span></a>                <span class="n">withdraw_amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">withdraw_amount</span><span class="p">,</span>
+</span><span id="confirm_success_pay-103"><a href="#confirm_success_pay-103"><span class="linenos">103</span></a>                <span class="n">transaction_reference</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">transaction_reference</span><span class="p">,</span>
+</span><span id="confirm_success_pay-104"><a href="#confirm_success_pay-104"><span class="linenos">104</span></a>            <span class="p">)</span>
+</span><span id="confirm_success_pay-105"><a href="#confirm_success_pay-105"><span class="linenos">105</span></a>            <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="confirm_success_pay-106"><a href="#confirm_success_pay-106"><span class="linenos">106</span></a>        <span class="p">)</span>
+</span><span id="confirm_success_pay-107"><a href="#confirm_success_pay-107"><span class="linenos">107</span></a>
+</span><span id="confirm_success_pay-108"><a href="#confirm_success_pay-108"><span class="linenos">108</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="confirm_success_pay-109"><a href="#confirm_success_pay-109"><span class="linenos">109</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="confirm_success_pay-110"><a href="#confirm_success_pay-110"><span class="linenos">110</span></a>            <span class="n">update</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="confirm_success_pay-111"><a href="#confirm_success_pay-111"><span class="linenos">111</span></a>            <span class="o">.</span><span class="n">values</span><span class="p">(</span>
+</span><span id="confirm_success_pay-112"><a href="#confirm_success_pay-112"><span class="linenos">112</span></a>                <span class="n">date</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">date</span><span class="p">,</span>
+</span><span id="confirm_success_pay-113"><a href="#confirm_success_pay-113"><span class="linenos">113</span></a>                <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
+</span><span id="confirm_success_pay-114"><a href="#confirm_success_pay-114"><span class="linenos">114</span></a>                <span class="n">transaction_id</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">transaction_id</span><span class="p">,</span>
+</span><span id="confirm_success_pay-115"><a href="#confirm_success_pay-115"><span class="linenos">115</span></a>                <span class="n">sha1_hash</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sha1_hash</span><span class="p">,</span>
+</span><span id="confirm_success_pay-116"><a href="#confirm_success_pay-116"><span class="linenos">116</span></a>                <span class="n">sender</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">sender</span><span class="p">,</span>
+</span><span id="confirm_success_pay-117"><a href="#confirm_success_pay-117"><span class="linenos">117</span></a>                <span class="n">withdraw_amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">withdraw_amount</span><span class="p">,</span>
+</span><span id="confirm_success_pay-118"><a href="#confirm_success_pay-118"><span class="linenos">118</span></a>            <span class="p">)</span>
+</span><span id="confirm_success_pay-119"><a href="#confirm_success_pay-119"><span class="linenos">119</span></a>            <span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+</span><span id="confirm_success_pay-120"><a href="#confirm_success_pay-120"><span class="linenos">120</span></a>            <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span>
+</span><span id="confirm_success_pay-121"><a href="#confirm_success_pay-121"><span class="linenos">121</span></a>        <span class="p">)</span>
+</span><span id="confirm_success_pay-122"><a href="#confirm_success_pay-122"><span class="linenos">122</span></a>
+</span><span id="confirm_success_pay-123"><a href="#confirm_success_pay-123"><span class="linenos">123</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">Transactions</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="confirm_success_pay-124"><a href="#confirm_success_pay-124"><span class="linenos">124</span></a>
+</span><span id="confirm_success_pay-125"><a href="#confirm_success_pay-125"><span class="linenos">125</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="confirm_success_pay-126"><a href="#confirm_success_pay-126"><span class="linenos">126</span></a>        <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="confirm_success_pay-127"><a href="#confirm_success_pay-127"><span class="linenos">127</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="confirm_success_pay-128"><a href="#confirm_success_pay-128"><span class="linenos">128</span></a>
+</span><span id="confirm_success_pay-129"><a href="#confirm_success_pay-129"><span class="linenos">129</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Подтверждает успешную оплату транзакции.</p>
+
+<p>Функция проверяет, существует ли предыдущая транзакция с таким же
+ярлыком, и либо создает новую транзакцию, либо обновляет существующую.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>transaction (Transactions):</strong>  Объект транзакции.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Transactions: Объект транзакции, который был создан или обновлен.</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="close_free_trial">
@@ -383,21 +565,49 @@
 
     </div>
     <a class="headerlink" href="#close_free_trial"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="close_free_trial-90"><a href="#close_free_trial-90"><span class="linenos"> 90</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">close_free_trial</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="close_free_trial-91"><a href="#close_free_trial-91"><span class="linenos"> 91</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="close_free_trial-92"><a href="#close_free_trial-92"><span class="linenos"> 92</span></a>        <span class="n">update</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
-</span><span id="close_free_trial-93"><a href="#close_free_trial-93"><span class="linenos"> 93</span></a>        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="close_free_trial-94"><a href="#close_free_trial-94"><span class="linenos"> 94</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">and_</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">telegram_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">UserData</span><span class="o">.</span><span class="n">stage</span> <span class="o">==</span> <span class="mf">0.3</span><span class="p">))</span>
-</span><span id="close_free_trial-95"><a href="#close_free_trial-95"><span class="linenos"> 95</span></a>        <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
-</span><span id="close_free_trial-96"><a href="#close_free_trial-96"><span class="linenos"> 96</span></a>    <span class="p">)</span>
-</span><span id="close_free_trial-97"><a href="#close_free_trial-97"><span class="linenos"> 97</span></a>
-</span><span id="close_free_trial-98"><a href="#close_free_trial-98"><span class="linenos"> 98</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
-</span><span id="close_free_trial-99"><a href="#close_free_trial-99"><span class="linenos"> 99</span></a>    <span class="c1"># NOTE не удаляется из кеша потому что кеш чистится после пополнения баланса</span>
-</span><span id="close_free_trial-100"><a href="#close_free_trial-100"><span class="linenos">100</span></a>    <span class="k">return</span> <span class="n">result</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="close_free_trial-132"><a href="#close_free_trial-132"><span class="linenos">132</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">close_free_trial</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="close_free_trial-133"><a href="#close_free_trial-133"><span class="linenos">133</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Закрывает бесплатный пробный период пользователя.</span>
+</span><span id="close_free_trial-134"><a href="#close_free_trial-134"><span class="linenos">134</span></a>
+</span><span id="close_free_trial-135"><a href="#close_free_trial-135"><span class="linenos">135</span></a><span class="sd">    Функция обновляет тариф пользователя, переводя его в состояние</span>
+</span><span id="close_free_trial-136"><a href="#close_free_trial-136"><span class="linenos">136</span></a><span class="sd">    завершенного пробного периода.</span>
+</span><span id="close_free_trial-137"><a href="#close_free_trial-137"><span class="linenos">137</span></a>
+</span><span id="close_free_trial-138"><a href="#close_free_trial-138"><span class="linenos">138</span></a><span class="sd">    Args:</span>
+</span><span id="close_free_trial-139"><a href="#close_free_trial-139"><span class="linenos">139</span></a><span class="sd">        user_id (str): Идентификатор пользователя.</span>
+</span><span id="close_free_trial-140"><a href="#close_free_trial-140"><span class="linenos">140</span></a>
+</span><span id="close_free_trial-141"><a href="#close_free_trial-141"><span class="linenos">141</span></a><span class="sd">    Returns:</span>
+</span><span id="close_free_trial-142"><a href="#close_free_trial-142"><span class="linenos">142</span></a><span class="sd">        UserData: Объект данных пользователя, обновленный после завершения пробного периода.</span>
+</span><span id="close_free_trial-143"><a href="#close_free_trial-143"><span class="linenos">143</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="close_free_trial-144"><a href="#close_free_trial-144"><span class="linenos">144</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="close_free_trial-145"><a href="#close_free_trial-145"><span class="linenos">145</span></a>        <span class="n">update</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
+</span><span id="close_free_trial-146"><a href="#close_free_trial-146"><span class="linenos">146</span></a>        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="close_free_trial-147"><a href="#close_free_trial-147"><span class="linenos">147</span></a>        <span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">and_</span><span class="p">(</span><span class="n">UserData</span><span class="o">.</span><span class="n">telegram_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">UserData</span><span class="o">.</span><span class="n">stage</span> <span class="o">==</span> <span class="mf">0.3</span><span class="p">))</span>
+</span><span id="close_free_trial-148"><a href="#close_free_trial-148"><span class="linenos">148</span></a>        <span class="o">.</span><span class="n">returning</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span>
+</span><span id="close_free_trial-149"><a href="#close_free_trial-149"><span class="linenos">149</span></a>    <span class="p">)</span>
+</span><span id="close_free_trial-150"><a href="#close_free_trial-150"><span class="linenos">150</span></a>
+</span><span id="close_free_trial-151"><a href="#close_free_trial-151"><span class="linenos">151</span></a>    <span class="n">result</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+</span><span id="close_free_trial-152"><a href="#close_free_trial-152"><span class="linenos">152</span></a>    <span class="c1"># NOTE не удаляется из кеша потому что кеш чистится после пополнения баланса</span>
+</span><span id="close_free_trial-153"><a href="#close_free_trial-153"><span class="linenos">153</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Закрывает бесплатный пробный период пользователя.</p>
+
+<p>Функция обновляет тариф пользователя, переводя его в состояние
+завершенного пробного периода.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>user_id (str):</strong>  Идентификатор пользователя.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>UserData: Объект данных пользователя, обновленный после завершения пробного периода.</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="get_user_transactions">
@@ -411,26 +621,54 @@
 
     </div>
     <a class="headerlink" href="#get_user_transactions"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_user_transactions-103"><a href="#get_user_transactions-103"><span class="linenos">103</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_user_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
-</span><span id="get_user_transactions-104"><a href="#get_user_transactions-104"><span class="linenos">104</span></a>    <span class="n">trans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transactions</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
-</span><span id="get_user_transactions-105"><a href="#get_user_transactions-105"><span class="linenos">105</span></a>
-</span><span id="get_user_transactions-106"><a href="#get_user_transactions-106"><span class="linenos">106</span></a>    <span class="k">if</span> <span class="n">trans</span><span class="p">:</span>
-</span><span id="get_user_transactions-107"><a href="#get_user_transactions-107"><span class="linenos">107</span></a>        <span class="k">return</span> <span class="n">trans</span>
-</span><span id="get_user_transactions-108"><a href="#get_user_transactions-108"><span class="linenos">108</span></a>
-</span><span id="get_user_transactions-109"><a href="#get_user_transactions-109"><span class="linenos">109</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Transactions</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
-</span><span id="get_user_transactions-110"><a href="#get_user_transactions-110"><span class="linenos">110</span></a>
-</span><span id="get_user_transactions-111"><a href="#get_user_transactions-111"><span class="linenos">111</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transactions</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="get_user_transactions-112"><a href="#get_user_transactions-112"><span class="linenos">112</span></a>
-</span><span id="get_user_transactions-113"><a href="#get_user_transactions-113"><span class="linenos">113</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-</span><span id="get_user_transactions-114"><a href="#get_user_transactions-114"><span class="linenos">114</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-</span><span id="get_user_transactions-115"><a href="#get_user_transactions-115"><span class="linenos">115</span></a>            <span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">__ustr_dict__</span> <span class="k">for</span> <span class="n">trans</span> <span class="ow">in</span> <span class="n">result</span><span class="p">}</span>
-</span><span id="get_user_transactions-116"><a href="#get_user_transactions-116"><span class="linenos">116</span></a>        <span class="p">)</span>
-</span><span id="get_user_transactions-117"><a href="#get_user_transactions-117"><span class="linenos">117</span></a>
-</span><span id="get_user_transactions-118"><a href="#get_user_transactions-118"><span class="linenos">118</span></a>    <span class="k">return</span> <span class="n">result</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_user_transactions-156"><a href="#get_user_transactions-156"><span class="linenos">156</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_user_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+</span><span id="get_user_transactions-157"><a href="#get_user_transactions-157"><span class="linenos">157</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает транзакции пользователя.</span>
+</span><span id="get_user_transactions-158"><a href="#get_user_transactions-158"><span class="linenos">158</span></a>
+</span><span id="get_user_transactions-159"><a href="#get_user_transactions-159"><span class="linenos">159</span></a><span class="sd">    Функция сначала пытается получить транзакции из кеша,</span>
+</span><span id="get_user_transactions-160"><a href="#get_user_transactions-160"><span class="linenos">160</span></a><span class="sd">    а если они отсутствуют, то извлекает их из базы данных.</span>
+</span><span id="get_user_transactions-161"><a href="#get_user_transactions-161"><span class="linenos">161</span></a>
+</span><span id="get_user_transactions-162"><a href="#get_user_transactions-162"><span class="linenos">162</span></a><span class="sd">    Args:</span>
+</span><span id="get_user_transactions-163"><a href="#get_user_transactions-163"><span class="linenos">163</span></a><span class="sd">        user_id (str): Идентификатор пользователя.</span>
+</span><span id="get_user_transactions-164"><a href="#get_user_transactions-164"><span class="linenos">164</span></a>
+</span><span id="get_user_transactions-165"><a href="#get_user_transactions-165"><span class="linenos">165</span></a><span class="sd">    Returns:</span>
+</span><span id="get_user_transactions-166"><a href="#get_user_transactions-166"><span class="linenos">166</span></a><span class="sd">        list: Список транзакций пользователя.</span>
+</span><span id="get_user_transactions-167"><a href="#get_user_transactions-167"><span class="linenos">167</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="get_user_transactions-168"><a href="#get_user_transactions-168"><span class="linenos">168</span></a>    <span class="n">trans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transactions</span><span class="p">]</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_cash_wg_transactions</span><span class="p">(</span><span class="n">user_id</span><span class="p">)</span>
+</span><span id="get_user_transactions-169"><a href="#get_user_transactions-169"><span class="linenos">169</span></a>
+</span><span id="get_user_transactions-170"><a href="#get_user_transactions-170"><span class="linenos">170</span></a>    <span class="k">if</span> <span class="n">trans</span><span class="p">:</span>
+</span><span id="get_user_transactions-171"><a href="#get_user_transactions-171"><span class="linenos">171</span></a>        <span class="k">return</span> <span class="n">trans</span>
+</span><span id="get_user_transactions-172"><a href="#get_user_transactions-172"><span class="linenos">172</span></a>
+</span><span id="get_user_transactions-173"><a href="#get_user_transactions-173"><span class="linenos">173</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Transactions</span><span class="o">.</span><span class="n">user_id</span> <span class="o">==</span> <span class="n">user_id</span><span class="p">)</span>
+</span><span id="get_user_transactions-174"><a href="#get_user_transactions-174"><span class="linenos">174</span></a>
+</span><span id="get_user_transactions-175"><a href="#get_user_transactions-175"><span class="linenos">175</span></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Transactions</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="get_user_transactions-176"><a href="#get_user_transactions-176"><span class="linenos">176</span></a>
+</span><span id="get_user_transactions-177"><a href="#get_user_transactions-177"><span class="linenos">177</span></a>    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+</span><span id="get_user_transactions-178"><a href="#get_user_transactions-178"><span class="linenos">178</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+</span><span id="get_user_transactions-179"><a href="#get_user_transactions-179"><span class="linenos">179</span></a>            <span class="o">**</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">trans</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">trans</span><span class="o">.</span><span class="n">__ustr_dict__</span> <span class="k">for</span> <span class="n">trans</span> <span class="ow">in</span> <span class="n">result</span><span class="p">}</span>
+</span><span id="get_user_transactions-180"><a href="#get_user_transactions-180"><span class="linenos">180</span></a>        <span class="p">)</span>
+</span><span id="get_user_transactions-181"><a href="#get_user_transactions-181"><span class="linenos">181</span></a>
+</span><span id="get_user_transactions-182"><a href="#get_user_transactions-182"><span class="linenos">182</span></a>    <span class="k">return</span> <span class="n">result</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Получает транзакции пользователя.</p>
+
+<p>Функция сначала пытается получить транзакции из кеша,
+а если они отсутствуют, то извлекает их из базы данных.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>user_id (str):</strong>  Идентификатор пользователя.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>list: Список транзакций пользователя.</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="raise_money">
@@ -445,34 +683,54 @@
 
     </div>
     <a class="headerlink" href="#raise_money"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="raise_money-121"><a href="#raise_money-121"><span class="linenos">121</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="raise_money-122"><a href="#raise_money-122"><span class="linenos">122</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">raise_money</span><span class="p">():</span>
-</span><span id="raise_money-123"><a href="#raise_money-123"><span class="linenos">123</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">active</span><span class="o">=</span><span class="n">UserActivity</span><span class="o">.</span><span class="n">active</span><span class="p">)</span>
-</span><span id="raise_money-124"><a href="#raise_money-124"><span class="linenos">124</span></a>    <span class="n">users</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UserData</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-</span><span id="raise_money-125"><a href="#raise_money-125"><span class="linenos">125</span></a>
-</span><span id="raise_money-126"><a href="#raise_money-126"><span class="linenos">126</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
-</span><span id="raise_money-127"><a href="#raise_money-127"><span class="linenos">127</span></a>        <span class="nb">dict</span><span class="p">(</span>
-</span><span id="raise_money-128"><a href="#raise_money-128"><span class="linenos">128</span></a>            <span class="n">user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
-</span><span id="raise_money-129"><a href="#raise_money-129"><span class="linenos">129</span></a>            <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
-</span><span id="raise_money-130"><a href="#raise_money-130"><span class="linenos">130</span></a>            <span class="n">amount</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">user</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="n">settings</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span>
-</span><span id="raise_money-131"><a href="#raise_money-131"><span class="linenos">131</span></a>            <span class="n">withdraw_amount</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">user</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="n">settings</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span>
-</span><span id="raise_money-132"><a href="#raise_money-132"><span class="linenos">132</span></a>            <span class="n">label</span><span class="o">=</span><span class="n">uuid4</span><span class="p">(),</span>
-</span><span id="raise_money-133"><a href="#raise_money-133"><span class="linenos">133</span></a>            <span class="n">transaction_id</span><span class="o">=</span><span class="s2">&quot;Ежедневное списание&quot;</span><span class="p">,</span>
-</span><span id="raise_money-134"><a href="#raise_money-134"><span class="linenos">134</span></a>            <span class="n">transaction_reference</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-</span><span id="raise_money-135"><a href="#raise_money-135"><span class="linenos">135</span></a>        <span class="p">)</span>
-</span><span id="raise_money-136"><a href="#raise_money-136"><span class="linenos">136</span></a>        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
-</span><span id="raise_money-137"><a href="#raise_money-137"><span class="linenos">137</span></a>    <span class="p">]</span>
-</span><span id="raise_money-138"><a href="#raise_money-138"><span class="linenos">138</span></a>
-</span><span id="raise_money-139"><a href="#raise_money-139"><span class="linenos">139</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="raise_money-140"><a href="#raise_money-140"><span class="linenos">140</span></a>    <span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
-</span><span id="raise_money-141"><a href="#raise_money-141"><span class="linenos">141</span></a>
-</span><span id="raise_money-142"><a href="#raise_money-142"><span class="linenos">142</span></a>    <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
-</span><span id="raise_money-143"><a href="#raise_money-143"><span class="linenos">143</span></a>        <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">)</span>
-</span><span id="raise_money-144"><a href="#raise_money-144"><span class="linenos">144</span></a>        <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="raise_money-185"><a href="#raise_money-185"><span class="linenos">185</span></a><span class="nd">@async_speed_metric</span>
+</span><span id="raise_money-186"><a href="#raise_money-186"><span class="linenos">186</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">raise_money</span><span class="p">():</span>
+</span><span id="raise_money-187"><a href="#raise_money-187"><span class="linenos">187</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Списывает деньги с активных пользователей.</span>
+</span><span id="raise_money-188"><a href="#raise_money-188"><span class="linenos">188</span></a>
+</span><span id="raise_money-189"><a href="#raise_money-189"><span class="linenos">189</span></a><span class="sd">    Функция выбирает всех активных пользователей и списывает</span>
+</span><span id="raise_money-190"><a href="#raise_money-190"><span class="linenos">190</span></a><span class="sd">    с их баланса определенную сумму в соответствии с их стадией.</span>
+</span><span id="raise_money-191"><a href="#raise_money-191"><span class="linenos">191</span></a>
+</span><span id="raise_money-192"><a href="#raise_money-192"><span class="linenos">192</span></a><span class="sd">    Returns:</span>
+</span><span id="raise_money-193"><a href="#raise_money-193"><span class="linenos">193</span></a><span class="sd">        None</span>
+</span><span id="raise_money-194"><a href="#raise_money-194"><span class="linenos">194</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="raise_money-195"><a href="#raise_money-195"><span class="linenos">195</span></a>    <span class="n">query</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">active</span><span class="o">=</span><span class="n">UserActivity</span><span class="o">.</span><span class="n">active</span><span class="p">)</span>
+</span><span id="raise_money-196"><a href="#raise_money-196"><span class="linenos">196</span></a>    <span class="n">users</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UserData</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">))</span><span class="o">.</span><span class="n">scalars</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+</span><span id="raise_money-197"><a href="#raise_money-197"><span class="linenos">197</span></a>
+</span><span id="raise_money-198"><a href="#raise_money-198"><span class="linenos">198</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="raise_money-199"><a href="#raise_money-199"><span class="linenos">199</span></a>        <span class="nb">dict</span><span class="p">(</span>
+</span><span id="raise_money-200"><a href="#raise_money-200"><span class="linenos">200</span></a>            <span class="n">user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
+</span><span id="raise_money-201"><a href="#raise_money-201"><span class="linenos">201</span></a>            <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+</span><span id="raise_money-202"><a href="#raise_money-202"><span class="linenos">202</span></a>            <span class="n">amount</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">user</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="n">settings</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span>
+</span><span id="raise_money-203"><a href="#raise_money-203"><span class="linenos">203</span></a>            <span class="n">withdraw_amount</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">user</span><span class="o">.</span><span class="n">stage</span> <span class="o">*</span> <span class="n">settings</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span>
+</span><span id="raise_money-204"><a href="#raise_money-204"><span class="linenos">204</span></a>            <span class="n">label</span><span class="o">=</span><span class="n">uuid4</span><span class="p">(),</span>
+</span><span id="raise_money-205"><a href="#raise_money-205"><span class="linenos">205</span></a>            <span class="n">transaction_id</span><span class="o">=</span><span class="s2">&quot;Ежедневное списание&quot;</span><span class="p">,</span>
+</span><span id="raise_money-206"><a href="#raise_money-206"><span class="linenos">206</span></a>            <span class="n">transaction_reference</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="raise_money-207"><a href="#raise_money-207"><span class="linenos">207</span></a>        <span class="p">)</span>
+</span><span id="raise_money-208"><a href="#raise_money-208"><span class="linenos">208</span></a>        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span>
+</span><span id="raise_money-209"><a href="#raise_money-209"><span class="linenos">209</span></a>    <span class="p">]</span>
+</span><span id="raise_money-210"><a href="#raise_money-210"><span class="linenos">210</span></a>
+</span><span id="raise_money-211"><a href="#raise_money-211"><span class="linenos">211</span></a>    <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+</span><span id="raise_money-212"><a href="#raise_money-212"><span class="linenos">212</span></a>        <span class="n">query</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Transactions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="raise_money-213"><a href="#raise_money-213"><span class="linenos">213</span></a>        <span class="k">await</span> <span class="n">execute_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+</span><span id="raise_money-214"><a href="#raise_money-214"><span class="linenos">214</span></a>
+</span><span id="raise_money-215"><a href="#raise_money-215"><span class="linenos">215</span></a>        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+</span><span id="raise_money-216"><a href="#raise_money-216"><span class="linenos">216</span></a>            <span class="k">await</span> <span class="n">delete_cash_transactions</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">)</span>
+</span><span id="raise_money-217"><a href="#raise_money-217"><span class="linenos">217</span></a>            <span class="k">await</span> <span class="n">CashManager</span><span class="p">(</span><span class="n">UserData</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Списывает деньги с активных пользователей.</p>
+
+<p>Функция выбирает всех активных пользователей и списывает
+с их баланса определенную сумму в соответствии с их стадией.</p>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>None</p>
+</blockquote>
+</div>
+
 
                 </section>
     </main>

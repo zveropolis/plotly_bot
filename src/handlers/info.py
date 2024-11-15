@@ -4,7 +4,7 @@ from datetime import timedelta
 from typing import Union
 
 from aiogram import Bot, F, Router
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
@@ -12,6 +12,7 @@ from aiogram.utils.formatting import Bold, as_list, as_marked_section
 import kb
 import text
 from core.config import settings
+from core.err import bot_exceptor
 from core.exceptions import BaseBotError, DatabaseError, WireguardError
 from db.models import UserData
 from db.utils import get_user, test_server_speed
@@ -62,6 +63,7 @@ async def post_help_book(
 @router.message(Command("help"))
 @router.message(F.text == "Помощь")
 @router.callback_query(F.data == "main_help")
+@bot_exceptor
 async def help_me(trigger: Union[Message, CallbackQuery]):
     await getattr(trigger, "message", trigger).answer(
         "Чем вам помочь?",
@@ -72,12 +74,14 @@ async def help_me(trigger: Union[Message, CallbackQuery]):
 
 
 @router.callback_query(F.data == "bot_info")
+@bot_exceptor
 async def bot_info(callback: CallbackQuery):
     await callback.message.answer(text.BOT_INFO, reply_markup=kb.static_join_button)
     await more_help_info(callback)
 
 
 @router.callback_query(F.data.startswith("first_help_info_"))
+@bot_exceptor
 async def next_help(callback: CallbackQuery):
     current_step: str = callback.data.split("_")[-1]
 
@@ -91,6 +95,7 @@ async def next_help(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == "wg_help_info")
+@bot_exceptor
 async def wg_help(callback: CallbackQuery):
     await callback.message.answer(
         "На какую платформу вы хотите установить WireGuard?",
@@ -99,6 +104,7 @@ async def wg_help(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("wg_help_info_"))
+@bot_exceptor
 async def wg_help_platform(callback: CallbackQuery):
     *_, current_platform, current_step = callback.data.split("_")
 
@@ -112,6 +118,7 @@ async def wg_help_platform(callback: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("error_help_info"))
+@bot_exceptor
 async def error_help(callback: CallbackQuery):
     current_step: str = callback.data.split("_")[-1]
 
@@ -125,12 +132,14 @@ async def error_help(callback: CallbackQuery):
 
 
 @router.message(Command("time"))
+@bot_exceptor
 async def started(message: Message, started_at):
     await message.answer(f"Время начала работы бота: {started_at}")
 
 
 @router.message(Command("id"))
 @router.callback_query(F.data == "user_id_info")
+@bot_exceptor
 async def start_bot(trigger: Union[Message, CallbackQuery]):
     await getattr(trigger, "message", trigger).answer("Ваш Telegram ID")
     await getattr(trigger, "message", trigger).answer(str(trigger.from_user.id))
@@ -140,6 +149,7 @@ async def start_bot(trigger: Union[Message, CallbackQuery]):
 @router.message(Command("commands"))
 @router.message(F.text == "Команды")
 @router.callback_query(F.data == "cmd_help_info")
+@bot_exceptor
 async def commands_list(trigger: Union[Message, CallbackQuery]):
     help_t = as_list(
         Bold("Запуск:"),
@@ -188,6 +198,7 @@ async def commands_list(trigger: Union[Message, CallbackQuery]):
 
 
 @router.callback_query(F.data == "freeze_info")
+@bot_exceptor
 async def freeze_config_info(callback: CallbackQuery):
     await callback.message.answer(
         "Конфигурации замораживаются, когда становятся недоступными. "
@@ -198,6 +209,7 @@ async def freeze_config_info(callback: CallbackQuery):
 
 
 @router.callback_query(F.data == "freeze_account_info")
+@bot_exceptor
 async def freeze_user_info(callback: CallbackQuery):
     await callback.message.answer(
         "Заморозка аккаунта подразумевает приостановку ежедневных списаний "
@@ -211,6 +223,7 @@ async def freeze_user_info(callback: CallbackQuery):
 
 @router.message(Command("server"))
 @router.callback_query(F.data == "server_status")
+@bot_exceptor
 async def server_status(trigger: Union[Message, CallbackQuery], bot: Bot):
     await bot.send_chat_action(trigger.from_user.id, "typing")
 
@@ -244,6 +257,7 @@ async def server_status(trigger: Union[Message, CallbackQuery], bot: Bot):
 
 @router.message(Command("speed"))
 @router.callback_query(F.data == "server_speed")
+@bot_exceptor
 async def server_speed(trigger: Union[Message, CallbackQuery], bot: Bot):
     await bot.send_chat_action(trigger.from_user.id, "typing")
 
@@ -282,8 +296,9 @@ async def server_speed(trigger: Union[Message, CallbackQuery], bot: Bot):
 
 
 @router.message(Command("chat"))
-@router.message(F.text == 'Чат')
+@router.message(F.text == "Чат")
 @router.callback_query(F.data == "invite_to_chat")
+@bot_exceptor
 async def get_chat_invite(trigger: Union[Message, CallbackQuery], bot: Bot):
     user_data = await get_user(trigger.from_user.id)
 
@@ -293,11 +308,14 @@ async def get_chat_invite(trigger: Union[Message, CallbackQuery], bot: Bot):
             "Для начала выполните команду /reg"
         )
     else:
-        link = await bot.create_chat_invite_link(
-            settings.BOT_CHAT, "chat", timedelta(hours=12), member_limit=1
-        )
-
-        await getattr(trigger, "message", trigger).answer(
-            "🎉Поздравляем! Вам открыт доступ в клиентский чат.",
-            reply_markup=kb.get_chat_button(link.invite_link),
-        )
+        try:
+            link = await bot.create_chat_invite_link(
+                settings.BOT_CHAT, "chat", timedelta(hours=12), member_limit=1
+            )
+        except TelegramBadRequest:
+            logger.exception("Недоступен пользовательский чат")
+        else:
+            await getattr(trigger, "message", trigger).answer(
+                "🎉Поздравляем! Вам открыт доступ в клиентский чат.",
+                reply_markup=kb.get_chat_button(link.invite_link),
+            )

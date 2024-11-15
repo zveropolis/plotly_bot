@@ -16,20 +16,11 @@ logger = logging.getLogger()
 
 
 sentry_sdk.init(
-    dsn="https://34c9143c835da94d4353ab25d53697c1@o4507927167631360.ingest.de.sentry.io/4508013489619024",
-    release="dan-vpn-0.3",  # Релизная версия приложения
-    environment="dev",  # Возможность добавить среду выполнения
-    traces_sample_rate=1.0,
-    # send_default_pii=True,
+    dsn="https://81a6f6b105d24e61a39e5aff703d0473@app.glitchtip.com/9074",
     integrations=[
         AsyncioIntegration(),
-        LoggingIntegration(
-            level=logging.ERROR,  # Capture info and above as breadcrumbs
-            event_level=logging.ERROR,  # Send records as events
-        ),
+        LoggingIntegration(level=logging.ERROR, event_level=logging.ERROR),
     ],
-    profiles_sample_rate=1.0,
-    # before_send=USERNAME,
 )
 
 

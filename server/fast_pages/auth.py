@@ -80,12 +80,6 @@ async def profile(
     return bot_page(
         c.Paragraph(text=f'You are logged in as "{user.login}".'),
         c.Button(text="Logout", on_click=PageEvent(name="submit-form")),
-        c.Button(
-            text="Таблицы",
-            on_click=GoToEvent(url=f"/bot/tables/{mod.UserData.__tablename__}"),
-            named_style="secondary",
-            class_name="+ ms-2",
-        ),
         c.Form(
             submit_url="/api/bot/auth/logout",
             form_fields=[

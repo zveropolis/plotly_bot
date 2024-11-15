@@ -1,3 +1,5 @@
+"""Функционал для работы с БД. Резервирование"""
+
 import asyncio
 import logging
 import os
@@ -16,6 +18,17 @@ logger = logging.getLogger()
 
 
 async def async_backup():
+    """Создает резервную копию базы данных в формате Excel.
+
+    Функция извлекает данные из всех таблиц, определенных в TABLES_SCHEMA,
+    и сохраняет их в файл Excel. Даты в столбцах преобразуются в локальное время.
+
+    Returns:
+        str: Путь к созданному файлу резервной копии.
+
+    Raises:
+        BackupError: Если произошла ошибка при создании резервной копии.
+    """
     filename = os.path.join(
         PATH,
         "src",
@@ -50,6 +63,20 @@ async def async_backup():
 
 
 async def dump(regular=False):
+    """Создает дамп базы данных в формате SQL.
+
+    Функция выполняет команду pg_dump для создания дампа базы данных.
+    Дамп сохраняется в файл с указанием, является ли он регулярным.
+
+    Args:
+        regular (bool): Указывает, является ли дамп регулярным. По умолчанию False.
+
+    Returns:
+        None
+
+    Raises:
+        DumpError: Если произошла ошибка при создании дампа.
+    """
     filename = os.path.join(
         PATH,
         "src",

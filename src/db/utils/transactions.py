@@ -1,3 +1,5 @@
+"""Функционал для работы с БД. Работа с транзакциями"""
+
 import logging
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -15,6 +17,17 @@ logger = logging.getLogger()
 
 @async_speed_metric
 async def get_cash_wg_transactions(user_id):
+    """Получает транзакции пользователя из кеша.
+
+    Функция ищет транзакции пользователя в Redis, используя ключи,
+    соответствующие его идентификатору.
+
+    Args:
+        user_id (str): Идентификатор пользователя.
+
+    Returns:
+        list: Список транзакций пользователя.
+    """
     cash = CashManager(Transactions)
 
     tr_keys = await iter_redis_keys(f"data:{Transactions.__tablename__}:*:{user_id}")
@@ -26,15 +39,33 @@ async def get_cash_wg_transactions(user_id):
 
 @async_speed_metric
 async def delete_cash_transactions(user_id):
+    """Удаляет кешированные транзакции пользователя.
+
+    Функция удаляет все кешированные транзакции пользователя из Redis.
+
+    Args:
+        user_id (str): Идентификатор пользователя.
+
+    Returns:
+        None
+    """
     rkeys = await iter_redis_keys(f"data:{Transactions.__tablename__}:*:{user_id}")
-    await CashManager(Transactions).delete(
-        *[key async for key in rkeys],
-        fullkey=True,
-    )
+    await CashManager(Transactions).delete(*[key async for key in rkeys], fullkey=True)
 
 
 @async_speed_metric
 async def insert_transaction(conf: dict):
+    """Вставляет новую транзакцию в базу данных.
+
+    Функция сначала удаляет кешированные транзакции пользователя,
+    а затем добавляет новую транзакцию в базу данных.
+
+    Args:
+        conf (dict): Словарь, содержащий данные транзакции.
+
+    Returns:
+        None
+    """
     await delete_cash_transactions(conf["user_id"])
 
     query = insert(Transactions).values(**conf)
@@ -42,6 +73,17 @@ async def insert_transaction(conf: dict):
 
 
 async def confirm_success_pay(transaction: Transactions):
+    """Подтверждает успешную оплату транзакции.
+
+    Функция проверяет, существует ли предыдущая транзакция с таким же
+    ярлыком, и либо создает новую транзакцию, либо обновляет существующую.
+
+    Args:
+        transaction (Transactions): Объект транзакции.
+
+    Returns:
+        Transactions: Объект транзакции, который был создан или обновлен.
+    """
     query = select(Transactions).where(Transactions.label == transaction.label)
     prev_result: Transactions = (await execute_query(query)).scalars().first()
 
@@ -87,6 +129,17 @@ async def confirm_success_pay(transaction: Transactions):
 
 
 async def close_free_trial(user_id):
+    """Закрывает бесплатный пробный период пользователя.
+
+    Функция обновляет тариф пользователя, переводя его в состояние
+    завершенного пробного периода.
+
+    Args:
+        user_id (str): Идентификатор пользователя.
+
+    Returns:
+        UserData: Объект данных пользователя, обновленный после завершения пробного периода.
+    """
     query = (
         update(UserData)
         .values(stage=1)
@@ -100,6 +153,17 @@ async def close_free_trial(user_id):
 
 
 async def get_user_transactions(user_id):
+    """Получает транзакции пользователя.
+
+    Функция сначала пытается получить транзакции из кеша,
+    а если они отсутствуют, то извлекает их из базы данных.
+
+    Args:
+        user_id (str): Идентификатор пользователя.
+
+    Returns:
+        list: Список транзакций пользователя.
+    """
     trans: list[Transactions] = await get_cash_wg_transactions(user_id)
 
     if trans:
@@ -119,6 +183,14 @@ async def get_user_transactions(user_id):
 
 @async_speed_metric
 async def raise_money():
+    """Списывает деньги с активных пользователей.
+
+    Функция выбирает всех активных пользователей и списывает
+    с их баланса определенную сумму в соответствии с их стадией.
+
+    Returns:
+        None
+    """
     query = select(UserData).filter_by(active=UserActivity.active)
     users: list[UserData] = (await execute_query(query)).scalars().all()
 
@@ -135,9 +207,10 @@ async def raise_money():
         for user in users
     ]
 
-    query = insert(Transactions).values(data)
-    await execute_query(query)
+    if data:
+        query = insert(Transactions).values(data)
+        await execute_query(query)
 
-    for user in users:
-        await delete_cash_transactions(user.telegram_id)
-        await CashManager(UserData).delete(user.telegram_id)
+        for user in users:
+            await delete_cash_transactions(user.telegram_id)
+            await CashManager(UserData).delete(user.telegram_id)

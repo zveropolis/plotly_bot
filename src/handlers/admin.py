@@ -1,3 +1,5 @@
+"""Функционал администратора"""
+
 import logging
 
 from aiogram import Bot, F, Router
@@ -10,6 +12,7 @@ from pytils.numeral import get_plural
 import text
 from core import exceptions as exc
 from core.config import settings
+from core.err import bot_exceptor
 from core.metric import async_speed_metric
 from db import utils
 from db.models import UserData
@@ -22,7 +25,13 @@ router.message.filter(F.chat.type == "private")
 
 @router.message(Command("admin"))
 @async_speed_metric
+@bot_exceptor
 async def admin_actions(message: Message):
+    """Обрабатывает команду /admin и предоставляет список команд администратора.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+    """
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
         if getattr(user_data, "admin", False):
@@ -46,7 +55,14 @@ async def admin_actions(message: Message):
 
 @router.message(F.text == settings.ADMIN_PASS.get_secret_value())
 @async_speed_metric
+@bot_exceptor
 async def become_an_admin(message: Message, bot: Bot):
+    """Позволяет пользователю стать администратором, если введен правильный пароль.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+        bot (Bot): Экземпляр бота.
+    """
     try:
         user_data: UserData = await utils.set_admin(message.from_user.id)
     except exc.DatabaseError:
@@ -64,7 +80,13 @@ async def become_an_admin(message: Message, bot: Bot):
 
 @router.message(Command("backup"))
 @async_speed_metric
+@bot_exceptor
 async def get_backup(message: Message):
+    """Создает резервную копию базы данных и отправляет ее пользователю.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+    """
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
         if getattr(user_data, "admin", False):
@@ -80,7 +102,14 @@ async def get_backup(message: Message):
 
 @router.message(Command("send"))
 @async_speed_metric
+@bot_exceptor
 async def admin_mailing_start(message: Message, state: FSMContext):
+    """Запускает процесс рассылки сообщения всем зарегистрированным пользователям.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+        state (FSMContext): Контекст состояния для управления состоянием бота.
+    """
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
         if getattr(user_data, "admin", False):
@@ -96,7 +125,14 @@ async def admin_mailing_start(message: Message, state: FSMContext):
 
 @router.message(AdminService.mailing_confirm, F.text)
 @async_speed_metric
+@bot_exceptor
 async def admin_mailing_confirm(message: Message, state: FSMContext):
+    """Подтверждает сообщение для рассылки и запрашивает подтверждение статуса администратора.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+        state (FSMContext): Контекст состояния для управления состоянием бота.
+    """
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
         if getattr(user_data, "admin", False):
@@ -116,7 +152,15 @@ async def admin_mailing_confirm(message: Message, state: FSMContext):
 
 @router.message(AdminService.mailing_message, F.text.lower().in_(text.yes))
 @async_speed_metric
+@bot_exceptor
 async def admin_mailing_finish(message: Message, bot: Bot, state: FSMContext):
+    """Завершает процесс рассылки сообщения всем пользователям.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+        bot (Bot): Экземпляр бота.
+        state (FSMContext): Контекст состояния для управления состоянием бота.
+    """
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
         if getattr(user_data, "admin", False):
@@ -145,7 +189,14 @@ async def admin_mailing_finish(message: Message, bot: Bot, state: FSMContext):
 @router.message(AdminService.mailing_message, Command("cancel"))
 @router.message(AdminService.mailing_message, F.text.lower().in_(text.no))
 @async_speed_metric
+@bot_exceptor
 async def admin_mailing_cancel(message: Message, state: FSMContext):
+    """Отменяет процесс рассылки сообщения.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+        state (FSMContext): Контекст состояния для управления состоянием бота.
+    """
     await message.answer("Отменено")
 
     await state.clear()
@@ -154,12 +205,25 @@ async def admin_mailing_cancel(message: Message, state: FSMContext):
 
 @router.message(AdminService.mailing_message, F.text)
 @async_speed_metric
+@bot_exceptor
 async def admin_mailing_repeat(message: Message):
+    """Запрашивает повторное подтверждение от администратора.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+    """
     await message.answer("<b>ДА ИЛИ НЕТ?!</b>")
 
 
 @router.message(Command("close"))
+@bot_exceptor
 async def admin_mailing_stop_server(message: Message, bot: Bot):
+    """Уведомляет пользователей о технических работах на сервере.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+        bot (Bot): Экземпляр бота.
+    """
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
         if getattr(user_data, "admin", False):
@@ -181,7 +245,14 @@ async def admin_mailing_stop_server(message: Message, bot: Bot):
 
 
 @router.message(Command("open"))
+@bot_exceptor
 async def admin_mailing_start_server(message: Message, bot: Bot):
+    """Уведомляет пользователей об окончании технических работ на сервере.
+
+    Args:
+        message (Message): Сообщение от пользователя.
+        bot (Bot): Экземпляр бота.
+    """
     try:
         user_data: UserData = await utils.get_user(message.from_user.id)
         if getattr(user_data, "admin", False):

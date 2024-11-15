@@ -12,6 +12,7 @@ from pytils.numeral import get_plural
 import text
 from core import exceptions as exc
 from core.config import settings
+from core.err import bot_exceptor
 from core.metric import async_speed_metric
 from db import utils
 from db.models import FreezeSteps, UserActivity, UserData, WgConfig
@@ -29,6 +30,8 @@ router.message.filter(F.chat.type == "private")
 @router.message(F.text.lower().in_(text.me))
 @router.callback_query(F.data == "user_configurations")
 @async_speed_metric
+@bot_exceptor
+
 async def post_user_data(trigger: Union[Message, CallbackQuery]):
     user_data: UserData = await find_user(trigger, configs=True)
     if not user_data:
@@ -79,6 +82,8 @@ async def post_user_data(trigger: Union[Message, CallbackQuery]):
 @router.message(Command("create"))
 @router.callback_query(F.data == "create_configuration")
 @async_speed_metric
+@bot_exceptor
+
 async def create_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
     try:
         user_data: UserData = await find_user(trigger, configs=True)
@@ -141,6 +146,7 @@ async def create_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
 
 @router.callback_query(F.data == "create_conf_text")
 @async_speed_metric
+@bot_exceptor
 async def get_config_text(callback: CallbackQuery):
     user_config: WgConfig = await find_config(callback)
 
@@ -152,6 +158,7 @@ async def get_config_text(callback: CallbackQuery):
 
 @router.callback_query(F.data == "create_conf_file")
 @async_speed_metric
+@bot_exceptor
 async def get_config_file(callback: CallbackQuery):
     user_config: WgConfig = await find_config(callback)
 
@@ -167,6 +174,7 @@ async def get_config_file(callback: CallbackQuery):
 
 @router.callback_query(F.data == "create_conf_qr")
 @async_speed_metric
+@bot_exceptor
 async def get_config_qr(callback: CallbackQuery):
     user_config: WgConfig = await find_config(callback)
 

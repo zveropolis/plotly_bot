@@ -1,3 +1,5 @@
+"""Действия с аккаунтом пользователя"""
+
 import logging
 from contextlib import suppress
 from typing import Union
@@ -10,6 +12,7 @@ from aiogram.types import CallbackQuery, Message
 
 import text
 from core import exceptions as exc
+from core.err import bot_exceptor
 from core.metric import async_speed_metric
 from db import utils
 from db.models import UserData
@@ -28,7 +31,15 @@ router.message.filter(F.chat.type == "private")
 @router.message(F.text == "Перезагрузка")
 @router.callback_query(F.data == "start_app")
 @async_speed_metric
+@bot_exceptor
 async def start_bot(trigger: Union[Message, CallbackQuery], state: FSMContext):
+    """Обрабатывает команду запуска бота и приветствует пользователя.
+    (Очищает весь кеш пользователя)
+
+    Args:
+        trigger (Union[Message, CallbackQuery]): Сообщение или обратный вызов, инициирующий команду.
+        state (FSMContext): Контекст состояния для управления состоянием бота.
+    """
     await state.clear()
     await state.set_state()
 
@@ -54,11 +65,19 @@ async def start_bot(trigger: Union[Message, CallbackQuery], state: FSMContext):
 @router.message(Command("app"))
 @router.message(F.text == "Статус")
 @async_speed_metric
+@bot_exceptor
 async def account_actions(
     trigger: Union[Message, CallbackQuery],
     user_data: UserData = None,
     usr_id: int = None,
 ):
+    """Обрабатывает команды, связанные с аккаунтом пользователя.
+
+    Args:
+        trigger (Union[Message, CallbackQuery]): Сообщение или обратный вызов, инициирующий команду.
+        user_data (UserData, optional): Данные пользователя. По умолчанию None.
+        usr_id (int, optional): Идентификатор пользователя. По умолчанию None.
+    """
     if user_data is None:
         try:
             user_data = await utils.get_user(usr_id if usr_id else trigger.from_user.id)
@@ -94,7 +113,13 @@ async def account_actions(
 
 
 @router.callback_query(F.data.startswith("extra_function_"))
+@bot_exceptor
 async def get_extra_menu(callback: CallbackQuery):
+    """Раскрывает и закрывает панель инструментов в меню.
+
+    Args:
+        callback (CallbackQuery): Обратный вызов, содержащий информацию о функции.
+    """
     *_, mode = callback.data.split("_")
 
     user_data: UserData = await find_user(callback)

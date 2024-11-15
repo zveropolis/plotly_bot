@@ -4,6 +4,7 @@ import logging
 import os
 from functools import wraps
 
+from aiogram.exceptions import AiogramError
 from redis import exceptions as rexc
 from redis.asyncio.client import Pipeline
 
@@ -33,7 +34,7 @@ def exception_logging(
     custom_exception=Exception,
     message="Something went wrong",
 ):
-    """Декоратор для логирования исключений, возникающих в синхранных функциях.
+    """Декоратор для логирования исключений, возникающих в синхронных функциях.
 
     Args:
         ignore_raise (bool, optional): Прерывать ли выполнение программы при возникновении исключения. Defaults to False.
@@ -121,5 +122,25 @@ def redis_exceptor(func):
         except rexc.RedisError:
             rlogger.exception(f"Произошла неизвестная ошибка c Redis :: {logquery}")
             raise DatabaseError
+
+    return wrapper
+
+
+def bot_exceptor(func):
+    """Декоратор для логирования исключений, возникающих в асинхронных функциях."""
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            result = await func(*args, **kwargs)
+
+        except AiogramError:
+            logger.exception("Ошибка Aiogram API")
+            raise
+        except Exception:
+            logger.exception("Неизвестная ошибка")
+            raise
+        else:
+            return result
 
     return wrapper

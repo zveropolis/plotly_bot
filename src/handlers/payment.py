@@ -16,6 +16,7 @@ import kb
 import text
 from core import exceptions as exc
 from core.config import settings
+from core.err import bot_exceptor
 from core.metric import async_speed_metric
 from core.path import PATH
 from db import utils
@@ -34,6 +35,7 @@ router.message.filter(F.chat.type == "private")
 @router.callback_query(F.data == "user_payment")
 @router.message(F.text == "Подписка")
 @async_speed_metric
+@bot_exceptor
 async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMContext):
     user_data: UserData = await find_user(trigger)
     if not user_data:
@@ -57,6 +59,7 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
 
 @router.message(Command("history"))
 @router.callback_query(F.data == "transact_history")
+@bot_exceptor
 async def get_user_transact_choose(trigger: Union[Message, CallbackQuery]):
     await getattr(trigger, "message", trigger).answer(
         "Какие операции вам нужно увидеть?", reply_markup=kb.static_history_button
@@ -65,6 +68,7 @@ async def get_user_transact_choose(trigger: Union[Message, CallbackQuery]):
 
 @router.callback_query(F.data.startswith("transact_history_"))
 @async_speed_metric
+@bot_exceptor
 async def get_user_transact(callback: CallbackQuery):
     try:
         transactions: list[Transactions] = await utils.get_user_transactions(
@@ -162,6 +166,7 @@ async def get_user_transact(callback: CallbackQuery):
 
 @router.callback_query(F.data == "change_rate")
 @async_speed_metric
+@bot_exceptor
 async def post_rate_list(callback: CallbackQuery):
     user_data: UserData = await find_user(callback)
     if not user_data:
@@ -175,6 +180,7 @@ async def post_rate_list(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("rate_info_"))
 @async_speed_metric
+@bot_exceptor
 async def choose_rate(callback: CallbackQuery):
     user_data: UserData = await find_user(callback)
     rate_id = float(callback.data.split("_")[-1])
@@ -195,6 +201,7 @@ async def choose_rate(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("accept_rate_"))
 @async_speed_metric
+@bot_exceptor
 async def change_rate(callback: CallbackQuery, bot: Bot):
     user_data: UserData = await find_user(callback)
     rate_id = float(callback.data.split("_")[-1])
@@ -238,6 +245,7 @@ async def change_rate(callback: CallbackQuery, bot: Bot):
 
 
 @router.callback_query(F.data == "top_up_balance")
+@bot_exceptor
 async def input_balance(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         "Выберите сумму или введите вручную. Для отмены используйте /cancel."
@@ -248,6 +256,7 @@ async def input_balance(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(Service.balance, Command("cancel"))
+@bot_exceptor
 async def cancel_input_balance(message: Message, state: FSMContext):
     await state.clear()
     await state.set_state()
@@ -257,6 +266,7 @@ async def cancel_input_balance(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("pay_sub_"))
 @router.message(Service.balance)
 @async_speed_metric
+@bot_exceptor
 async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContext):
     try:
         client = Client(settings.YOO_TOKEN.get_secret_value())

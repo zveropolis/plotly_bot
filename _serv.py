@@ -7,12 +7,15 @@ import os
 import sys
 from datetime import datetime
 
+import sentry_sdk
 import uvicorn
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastui import prebuilt_html
 from fastui.auth import fastapi_auth_exception_handling
+from sentry_sdk.integrations.asyncio import AsyncioIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 sys.path.insert(1, os.path.join(sys.path[0], "server"))
 sys.path.insert(1, os.path.join(sys.path[0], "src"))
@@ -31,6 +34,19 @@ server_log = "./server/log.ini"
 logging.config.fileConfig(server_log, disable_existing_loggers=False)
 logger = logging.getLogger()
 queue = logging.getLogger("queue")
+
+sentry_sdk.init(
+    dsn="https://eda1429f1d444778a00f99681c553f7b@app.glitchtip.com/9075",
+    integrations=[
+        AsyncioIntegration(),
+        LoggingIntegration(
+            level=logging.ERROR,  # Capture info and above as breadcrumbs
+            event_level=logging.ERROR,  # Send records as events
+        ),
+    ],
+)
+
+
 app = FastAPI()
 static = StaticFiles(directory=os.path.join(PATH, "server", "static"))
 bugs = StaticFiles(directory=os.path.join(PATH, "bugs"))
@@ -127,8 +143,8 @@ if __name__ == "__main__":
         ...
     uvicorn.run(
         "_serv:app",
-        # host="127.0.0.1",
-        host="172.17.0.1",
+        host="127.0.0.1",
+        # host="172.17.0.1",
         port=5000,
         # workers=4,
         # reload=True,

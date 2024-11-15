@@ -138,6 +138,8 @@ async def userdata_view(
 
 
 class TransactionType(str, enum.Enum):
+    """Тип операции"""
+    
     inner = "Пополнение"
     outer = "Списание"
     success = "Исполнена"
