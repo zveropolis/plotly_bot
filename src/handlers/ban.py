@@ -7,7 +7,7 @@ from aiogram.types import ChatMemberUpdated
 
 import text
 from core import exceptions as exc
-from core.err import bot_exceptor
+from core.err import bot_except
 from db import utils
 
 router = Router()
@@ -15,7 +15,7 @@ router.my_chat_member.filter(F.chat.type == "private")
 
 
 @router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=KICKED))
-@bot_exceptor
+@bot_except
 async def user_blocked_bot(event: ChatMemberUpdated):
     """Обрабатывает событие, когда пользователь заблокировал бота.
 
@@ -26,7 +26,7 @@ async def user_blocked_bot(event: ChatMemberUpdated):
 
 
 @router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=MEMBER))
-@bot_exceptor
+@bot_except
 async def user_unblocked_bot(event: ChatMemberUpdated):
     """Обрабатывает событие, когда пользователь разблокировал бота.
 

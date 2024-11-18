@@ -1,3 +1,5 @@
+"""Действия в чате"""
+
 from aiogram import Bot, F, Router
 from aiogram.filters.chat_member_updated import (ADMINISTRATOR, IS_NOT_MEMBER,
                                                  MEMBER,
@@ -5,20 +7,24 @@ from aiogram.filters.chat_member_updated import (ADMINISTRATOR, IS_NOT_MEMBER,
 from aiogram.types import ChatMemberUpdated, Message
 
 from core.config import settings
-from core.err import bot_exceptor
+from core.err import bot_except
 
 router = Router()
 router.my_chat_member.filter(F.chat.type.in_({"group", "supergroup"}))
 router.message.filter(F.chat.type != "private")
-
 chats_variants = {"group": "группу", "supergroup": "супергруппу"}
 
 
 @router.my_chat_member(
     ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> ADMINISTRATOR)
 )
-@bot_exceptor
+@bot_except
 async def bot_added_as_admin(event: ChatMemberUpdated):
+    """Обработчик события, когда бот добавлен в чат как администратор.
+
+    Args:
+        event (ChatMemberUpdated): Событие, содержащее информацию о изменении статуса участника.
+    """
     await event.answer(
         text=f"Привет! Спасибо, что добавили меня в "
         f'{chats_variants[event.chat.type]} "{event.chat.title}" '
@@ -29,8 +35,14 @@ async def bot_added_as_admin(event: ChatMemberUpdated):
 @router.my_chat_member(
     ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> MEMBER)
 )
-@bot_exceptor
+@bot_except
 async def bot_added_as_member(event: ChatMemberUpdated, bot: Bot):
+    """Обработчик события, когда бот добавлен в чат как участник.
+
+    Args:
+        event (ChatMemberUpdated): Событие, содержащее информацию о изменении статуса участника.
+        bot (Bot): Экземпляр бота для выполнения действий.
+    """
     chat_info = await bot.get_chat(event.chat.id)
     if chat_info.permissions.can_send_messages:
         await event.answer(
@@ -43,8 +55,13 @@ async def bot_added_as_member(event: ChatMemberUpdated, bot: Bot):
 @router.chat_member(
     ChatMemberUpdatedFilter(member_status_changed=IS_NOT_MEMBER >> MEMBER)
 )
-@bot_exceptor
+@bot_except
 async def new_members_hi(event: ChatMemberUpdated):
+    """Обработчик события, когда новый участник присоединяется к чату.
+
+    Args:
+        event (ChatMemberUpdated): Событие, содержащее информацию о новом участнике.
+    """
     await event.answer(
         f"Добро пожаловать в чат нашего VPN сервиса, {event.new_chat_member.user.first_name}. 🫡\n\n"
         "Здесь вы можете задавать интересующие вас вопросы, "
@@ -54,7 +71,12 @@ async def new_members_hi(event: ChatMemberUpdated):
 
 
 @router.message(F.text)
-@bot_exceptor
+@bot_except
 async def leave_group(message: Message):
+    """Обработчик текстовых сообщений, который выводит бота из группы.
+
+    Args:
+        message (Message): Сообщение, содержащее текст.
+    """
     if message.chat.id != settings.BOT_CHAT:
         await message.chat.leave()

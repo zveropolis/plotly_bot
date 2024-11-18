@@ -7,7 +7,7 @@ from aiogram import F, Router
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery, Message
 
-from core.err import bot_exceptor
+from core.err import bot_except
 from kb import get_bug_report_url
 
 logger = logging.getLogger()
@@ -18,7 +18,7 @@ router.message.filter(F.chat.type == "private")
 @router.message(Command("bug"))
 @router.message(Command("refund"))
 @router.callback_query(F.data == "call_support")
-@bot_exceptor
+@bot_except
 async def call_support(trigger: Union[Message, CallbackQuery]):
     """Обрабатывает команды /bug и /refund, а также кнопку "call_support".
 

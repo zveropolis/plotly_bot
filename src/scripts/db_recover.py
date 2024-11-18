@@ -1,3 +1,5 @@
+"""Восстановление БД из дампа"""
+
 import asyncio
 import logging
 import logging.config
@@ -24,6 +26,14 @@ PLATFORM: Literal["Windows", "Linux"] = platform.system()
 
 
 async def postgresql_recover_tables():
+    """Восстанавливает таблицы PostgreSQL из дампа.
+
+    Эта функция выполняет последовательные команды для завершения всех подключений к базе данных,
+    удаления существующей базы данных, создания новой базы данных и восстановления данных из дампа.
+
+    Raises:
+        Exception: Если возникла ошибка при выполнении команд.
+    """
     terminate = (
         f"psql -U {settings.DB_USER} "
         f"-h {settings.DB_HOST} "
@@ -60,7 +70,6 @@ async def postgresql_recover_tables():
         f'-f {os.path.join(PATH, "src", "db", "dumps", DUMPNAME)}'
     )
     if PLATFORM == "Windows":
-        # cmd = f"$env:PGPASSWORD = {settings.DB_PASS.get_secret_value()}; " + recover
         logger.error(
             "ЭТА ПЛАТФОРМА НЕ ПОДДЕРЖИВАЕТСЯ",
         )
@@ -90,6 +99,14 @@ async def postgresql_recover_tables():
 
 
 async def create_new_tables():
+    """Создает новые таблицы в базе данных.
+
+    Эта функция создает все таблицы, определенные в метаданных базы данных,
+    если они еще не существуют.
+
+    Raises:
+        Exception: Если возникла ошибка при создании таблиц.
+    """
     async with async_engine.connect() as conn:
         async_engine.echo = True
         await conn.run_sync(Base.metadata.create_all)
@@ -99,6 +116,14 @@ async def create_new_tables():
 if __name__ == "__main__":
 
     async def start():
+        """Запускает процесс восстановления таблиц и их создания.
+
+        Эта функция собирает задачи для восстановления таблиц и создания новых,
+        обрабатывает возможные исключения и ведет журнал.
+
+        Raises:
+            Exception: Если возникла ошибка при подключении к БД.
+        """
         bases = await asyncio.gather(
             *(postgresql_recover_tables(),),
             return_exceptions=True,

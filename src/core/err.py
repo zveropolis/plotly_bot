@@ -126,7 +126,7 @@ def redis_exceptor(func):
     return wrapper
 
 
-def bot_exceptor(func):
+def bot_except(func):
     """Декоратор для логирования исключений, возникающих в асинхронных функциях."""
 
     @wraps(func)

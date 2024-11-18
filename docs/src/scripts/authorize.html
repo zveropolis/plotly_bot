@@ -29,6 +29,13 @@
 
 
 
+            <h2>API Documentation</h2>
+                <ul class="memberlist">
+            <li>
+                    <a class="function" href="#authorize">authorize</a>
+            </li>
+    </ul>
+
 
 
         <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
@@ -44,41 +51,113 @@
                     <h1 class="modulename">
 <a href="./../../src.html">src</a><wbr>.<a href="./../scripts.html">scripts</a><wbr>.authorize    </h1>
 
-                
+                        <div class="docstring"><p>Получение токенов Yoomoney</p>
+</div>
+
                         <input id="mod-authorize-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-authorize-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span> <span class="nn">os</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">import</span> <span class="nn">sys</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">from</span> <span class="nn">yoomoney</span> <span class="kn">import</span> <span class="n">Authorize</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;Получение токенов Yoomoney&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">import</span> <span class="nn">os</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">import</span> <span class="nn">sys</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span> <span class="nn">yoomoney</span> <span class="kn">import</span> <span class="n">Authorize</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="kn">from</span> <span class="nn">core.config</span> <span class="kn">import</span> <span class="n">AuthorizeVar</span><span class="p">,</span> <span class="n">settings</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="n">auth_v</span> <span class="o">=</span> <span class="n">AuthorizeVar</span><span class="p">()</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="n">Authorize</span><span class="p">(</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        <span class="n">client_id</span><span class="o">=</span><span class="n">auth_v</span><span class="o">.</span><span class="n">client_id</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">(),</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>        <span class="n">client_secret</span><span class="o">=</span><span class="n">auth_v</span><span class="o">.</span><span class="n">client_secret</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">(),</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>        <span class="n">redirect_uri</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">BOT_URL</span><span class="p">,</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="n">scope</span><span class="o">=</span><span class="p">[</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>            <span class="s2">&quot;account-info&quot;</span><span class="p">,</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>            <span class="s2">&quot;operation-history&quot;</span><span class="p">,</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>            <span class="s2">&quot;operation-details&quot;</span><span class="p">,</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>            <span class="s2">&quot;incoming-transfers&quot;</span><span class="p">,</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>            <span class="c1"># &quot;payment-p2p&quot;,</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>            <span class="c1"># &quot;payment-shop&quot;,</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        <span class="p">],</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="p">)</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="kn">from</span> <span class="nn">core.config</span> <span class="kn">import</span> <span class="n">AuthorizeVar</span><span class="p">,</span> <span class="n">settings</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="k">def</span> <span class="nf">authorize</span><span class="p">():</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Авторизует приложение для работы с API Yoomoney.</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">    Эта функция создает экземпляр класса Authorize из библиотеки yoomoney,</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">    используя значения client_id и client_secret, полученные из AuthorizeVar.</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">    Также устанавливает URL перенаправления и необходимые права доступа (scope).</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="sd">    Raises:</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="sd">        Exception: Если авторизация не удалась (например, из-за неверных</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="sd">        учетных данных или проблем с подключением).</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="n">auth_v</span> <span class="o">=</span> <span class="n">AuthorizeVar</span><span class="p">()</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="n">Authorize</span><span class="p">(</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="n">client_id</span><span class="o">=</span><span class="n">auth_v</span><span class="o">.</span><span class="n">client_id</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">(),</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="n">client_secret</span><span class="o">=</span><span class="n">auth_v</span><span class="o">.</span><span class="n">client_secret</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">(),</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        <span class="n">redirect_uri</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">BOT_URL</span><span class="p">,</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>        <span class="n">scope</span><span class="o">=</span><span class="p">[</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>            <span class="s2">&quot;account-info&quot;</span><span class="p">,</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>            <span class="s2">&quot;operation-history&quot;</span><span class="p">,</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>            <span class="s2">&quot;operation-details&quot;</span><span class="p">,</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>            <span class="s2">&quot;incoming-transfers&quot;</span><span class="p">,</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>            <span class="c1"># &quot;payment-p2p&quot;,</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>            <span class="c1"># &quot;payment-shop&quot;,</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>        <span class="p">],</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="p">)</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="n">authorize</span><span class="p">()</span>
 </span></pre></div>
 
 
             </section>
+                <section id="authorize">
+                            <input id="authorize-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">authorize</span><span class="signature pdoc-code condensed">(<span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="authorize-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#authorize"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="authorize-14"><a href="#authorize-14"><span class="linenos">14</span></a><span class="k">def</span> <span class="nf">authorize</span><span class="p">():</span>
+</span><span id="authorize-15"><a href="#authorize-15"><span class="linenos">15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Авторизует приложение для работы с API Yoomoney.</span>
+</span><span id="authorize-16"><a href="#authorize-16"><span class="linenos">16</span></a>
+</span><span id="authorize-17"><a href="#authorize-17"><span class="linenos">17</span></a><span class="sd">    Эта функция создает экземпляр класса Authorize из библиотеки yoomoney,</span>
+</span><span id="authorize-18"><a href="#authorize-18"><span class="linenos">18</span></a><span class="sd">    используя значения client_id и client_secret, полученные из AuthorizeVar.</span>
+</span><span id="authorize-19"><a href="#authorize-19"><span class="linenos">19</span></a><span class="sd">    Также устанавливает URL перенаправления и необходимые права доступа (scope).</span>
+</span><span id="authorize-20"><a href="#authorize-20"><span class="linenos">20</span></a>
+</span><span id="authorize-21"><a href="#authorize-21"><span class="linenos">21</span></a><span class="sd">    Raises:</span>
+</span><span id="authorize-22"><a href="#authorize-22"><span class="linenos">22</span></a><span class="sd">        Exception: Если авторизация не удалась (например, из-за неверных</span>
+</span><span id="authorize-23"><a href="#authorize-23"><span class="linenos">23</span></a><span class="sd">        учетных данных или проблем с подключением).</span>
+</span><span id="authorize-24"><a href="#authorize-24"><span class="linenos">24</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="authorize-25"><a href="#authorize-25"><span class="linenos">25</span></a>    <span class="n">auth_v</span> <span class="o">=</span> <span class="n">AuthorizeVar</span><span class="p">()</span>
+</span><span id="authorize-26"><a href="#authorize-26"><span class="linenos">26</span></a>    <span class="n">Authorize</span><span class="p">(</span>
+</span><span id="authorize-27"><a href="#authorize-27"><span class="linenos">27</span></a>        <span class="n">client_id</span><span class="o">=</span><span class="n">auth_v</span><span class="o">.</span><span class="n">client_id</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">(),</span>
+</span><span id="authorize-28"><a href="#authorize-28"><span class="linenos">28</span></a>        <span class="n">client_secret</span><span class="o">=</span><span class="n">auth_v</span><span class="o">.</span><span class="n">client_secret</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">(),</span>
+</span><span id="authorize-29"><a href="#authorize-29"><span class="linenos">29</span></a>        <span class="n">redirect_uri</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">BOT_URL</span><span class="p">,</span>
+</span><span id="authorize-30"><a href="#authorize-30"><span class="linenos">30</span></a>        <span class="n">scope</span><span class="o">=</span><span class="p">[</span>
+</span><span id="authorize-31"><a href="#authorize-31"><span class="linenos">31</span></a>            <span class="s2">&quot;account-info&quot;</span><span class="p">,</span>
+</span><span id="authorize-32"><a href="#authorize-32"><span class="linenos">32</span></a>            <span class="s2">&quot;operation-history&quot;</span><span class="p">,</span>
+</span><span id="authorize-33"><a href="#authorize-33"><span class="linenos">33</span></a>            <span class="s2">&quot;operation-details&quot;</span><span class="p">,</span>
+</span><span id="authorize-34"><a href="#authorize-34"><span class="linenos">34</span></a>            <span class="s2">&quot;incoming-transfers&quot;</span><span class="p">,</span>
+</span><span id="authorize-35"><a href="#authorize-35"><span class="linenos">35</span></a>            <span class="c1"># &quot;payment-p2p&quot;,</span>
+</span><span id="authorize-36"><a href="#authorize-36"><span class="linenos">36</span></a>            <span class="c1"># &quot;payment-shop&quot;,</span>
+</span><span id="authorize-37"><a href="#authorize-37"><span class="linenos">37</span></a>        <span class="p">],</span>
+</span><span id="authorize-38"><a href="#authorize-38"><span class="linenos">38</span></a>    <span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Авторизует приложение для работы с API Yoomoney.</p>
+
+<p>Эта функция создает экземпляр класса Authorize из библиотеки yoomoney,
+используя значения client_id и client_secret, полученные из AuthorizeVar.
+Также устанавливает URL перенаправления и необходимые права доступа (scope).</p>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>Exception:</strong>  Если авторизация не удалась (например, из-за неверных</li>
+<li>учетных данных или проблем с подключением).</li>
+</ul>
+</div>
+
+
+                </section>
     </main>
 <script>
     function escapeHTML(html) {

@@ -84,7 +84,7 @@
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">import</span> <span class="nn">text</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">core</span> <span class="kn">import</span> <span class="n">exceptions</span> <span class="k">as</span> <span class="n">exc</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span> <span class="nn">core.err</span> <span class="kn">import</span> <span class="n">bot_exceptor</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span> <span class="nn">core.err</span> <span class="kn">import</span> <span class="n">bot_except</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span> <span class="nn">core.metric</span> <span class="kn">import</span> <span class="n">async_speed_metric</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="kn">from</span> <span class="nn">db</span> <span class="kn">import</span> <span class="n">utils</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">UserData</span>
@@ -103,7 +103,7 @@
 </span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;Перезагрузка&quot;</span><span class="p">)</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">callback_query</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;start_app&quot;</span><span class="p">)</span>
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="nd">@bot_except</span>
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">start_bot</span><span class="p">(</span><span class="n">trigger</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="n">CallbackQuery</span><span class="p">],</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Обрабатывает команду запуска бота и приветствует пользователя.</span>
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    (Очищает весь кеш пользователя)</span>
@@ -137,7 +137,7 @@
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">))</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;Статус&quot;</span><span class="p">)</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="nd">@bot_except</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">account_actions</span><span class="p">(</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>    <span class="n">trigger</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="n">CallbackQuery</span><span class="p">],</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    <span class="n">user_data</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -185,7 +185,7 @@
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">callback_query</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;extra_function_&quot;</span><span class="p">))</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="nd">@bot_except</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_extra_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">CallbackQuery</span><span class="p">):</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Раскрывает и закрывает панель инструментов в меню.</span>
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
@@ -224,7 +224,7 @@
                 <section id="router">
                     <div class="attr variable">
             <span class="name">router</span>        =
-<span class="default_value">&lt;Router &#39;0x1f31cbf0&#39;&gt;</span>
+<span class="default_value">&lt;Router &#39;0x1f33b050&#39;&gt;</span>
 
         
     </div>
@@ -240,7 +240,7 @@
         <div class="decorator decorator-router.message">@router.message(F.text == &#39;Перезагрузка&#39;)</div>
         <div class="decorator decorator-router.callback_query">@router.callback_query(F.data == &#39;start_app&#39;)</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">start_bot</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">trigger</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span><span class="p">,</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">callback_query</span><span class="o">.</span><span class="n">CallbackQuery</span><span class="p">]</span>,</span><span class="param">	<span class="n">state</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">fsm</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">FSMContext</span></span><span class="return-annotation">):</span></span>
@@ -253,7 +253,7 @@
 </span><span id="start_bot-32"><a href="#start_bot-32"><span class="linenos">32</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;Перезагрузка&quot;</span><span class="p">)</span>
 </span><span id="start_bot-33"><a href="#start_bot-33"><span class="linenos">33</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">callback_query</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">data</span> <span class="o">==</span> <span class="s2">&quot;start_app&quot;</span><span class="p">)</span>
 </span><span id="start_bot-34"><a href="#start_bot-34"><span class="linenos">34</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="start_bot-35"><a href="#start_bot-35"><span class="linenos">35</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="start_bot-35"><a href="#start_bot-35"><span class="linenos">35</span></a><span class="nd">@bot_except</span>
 </span><span id="start_bot-36"><a href="#start_bot-36"><span class="linenos">36</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">start_bot</span><span class="p">(</span><span class="n">trigger</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="n">CallbackQuery</span><span class="p">],</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="start_bot-37"><a href="#start_bot-37"><span class="linenos">37</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Обрабатывает команду запуска бота и приветствует пользователя.</span>
 </span><span id="start_bot-38"><a href="#start_bot-38"><span class="linenos">38</span></a><span class="sd">    (Очищает весь кеш пользователя)</span>
@@ -304,7 +304,7 @@
         <div class="decorator decorator-router.message">@router.message(Command(&#39;app&#39;))</div>
         <div class="decorator decorator-router.message">@router.message(F.text == &#39;Статус&#39;)</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">account_actions</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">trigger</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span><span class="p">,</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">callback_query</span><span class="o">.</span><span class="n">CallbackQuery</span><span class="p">]</span>,</span><span class="param">	<span class="n">user_data</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">userdata</span><span class="o">.</span><span class="n">UserData</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">usr_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">):</span></span>
@@ -317,7 +317,7 @@
 </span><span id="account_actions-66"><a href="#account_actions-66"><span class="linenos"> 66</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">))</span>
 </span><span id="account_actions-67"><a href="#account_actions-67"><span class="linenos"> 67</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="s2">&quot;Статус&quot;</span><span class="p">)</span>
 </span><span id="account_actions-68"><a href="#account_actions-68"><span class="linenos"> 68</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="account_actions-69"><a href="#account_actions-69"><span class="linenos"> 69</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="account_actions-69"><a href="#account_actions-69"><span class="linenos"> 69</span></a><span class="nd">@bot_except</span>
 </span><span id="account_actions-70"><a href="#account_actions-70"><span class="linenos"> 70</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">account_actions</span><span class="p">(</span>
 </span><span id="account_actions-71"><a href="#account_actions-71"><span class="linenos"> 71</span></a>    <span class="n">trigger</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Message</span><span class="p">,</span> <span class="n">CallbackQuery</span><span class="p">],</span>
 </span><span id="account_actions-72"><a href="#account_actions-72"><span class="linenos"> 72</span></a>    <span class="n">user_data</span><span class="p">:</span> <span class="n">UserData</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -382,7 +382,7 @@
                             <input id="get_extra_menu-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
                     <div class="decorator decorator-router.callback_query">@router.callback_query(F.data.startswith(&#39;extra_function_&#39;))</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">get_extra_menu</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">callback</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">callback_query</span><span class="o">.</span><span class="n">CallbackQuery</span></span><span class="return-annotation">):</span></span>
@@ -392,7 +392,7 @@
     </div>
     <a class="headerlink" href="#get_extra_menu"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_extra_menu-116"><a href="#get_extra_menu-116"><span class="linenos">116</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">callback_query</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;extra_function_&quot;</span><span class="p">))</span>
-</span><span id="get_extra_menu-117"><a href="#get_extra_menu-117"><span class="linenos">117</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="get_extra_menu-117"><a href="#get_extra_menu-117"><span class="linenos">117</span></a><span class="nd">@bot_except</span>
 </span><span id="get_extra_menu-118"><a href="#get_extra_menu-118"><span class="linenos">118</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_extra_menu</span><span class="p">(</span><span class="n">callback</span><span class="p">:</span> <span class="n">CallbackQuery</span><span class="p">):</span>
 </span><span id="get_extra_menu-119"><a href="#get_extra_menu-119"><span class="linenos">119</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Раскрывает и закрывает панель инструментов в меню.</span>
 </span><span id="get_extra_menu-120"><a href="#get_extra_menu-120"><span class="linenos">120</span></a>

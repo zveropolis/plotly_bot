@@ -105,7 +105,7 @@
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">import</span> <span class="nn">text</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">core</span> <span class="kn">import</span> <span class="n">exceptions</span> <span class="k">as</span> <span class="n">exc</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">core.config</span> <span class="kn">import</span> <span class="n">settings</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span> <span class="nn">core.err</span> <span class="kn">import</span> <span class="n">bot_exceptor</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span> <span class="nn">core.err</span> <span class="kn">import</span> <span class="n">bot_except</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span> <span class="nn">core.metric</span> <span class="kn">import</span> <span class="n">async_speed_metric</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="kn">from</span> <span class="nn">db</span> <span class="kn">import</span> <span class="n">utils</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">UserData</span>
@@ -118,7 +118,7 @@
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;admin&quot;</span><span class="p">))</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="nd">@bot_except</span>
 </span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_actions</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Обрабатывает команду /admin и предоставляет список команд администратора.</span>
 </span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>
@@ -148,7 +148,7 @@
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="n">settings</span><span class="o">.</span><span class="n">ADMIN_PASS</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">())</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="nd">@bot_except</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">become_an_admin</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Позволяет пользователю стать администратором, если введен правильный пароль.</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
@@ -173,7 +173,7 @@
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;backup&quot;</span><span class="p">))</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="nd">@bot_except</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_backup</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Создает резервную копию базы данных и отправляет ее пользователю.</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>
@@ -195,7 +195,7 @@
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;send&quot;</span><span class="p">))</span>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="nd">@bot_except</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_start</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Запускает процесс рассылки сообщения всем зарегистрированным пользователям.</span>
 </span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>
@@ -218,7 +218,7 @@
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_confirm</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="nd">@bot_except</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_confirm</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Подтверждает сообщение для рассылки и запрашивает подтверждение статуса администратора.</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
@@ -245,7 +245,7 @@
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_message</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">yes</span><span class="p">))</span>
 </span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="nd">@bot_except</span>
 </span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_finish</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Завершает процесс рассылки сообщения всем пользователям.</span>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
@@ -282,7 +282,7 @@
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_message</span><span class="p">,</span> <span class="n">Command</span><span class="p">(</span><span class="s2">&quot;cancel&quot;</span><span class="p">))</span>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_message</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">no</span><span class="p">))</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a><span class="nd">@bot_except</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_cancel</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Отменяет процесс рассылки сообщения.</span>
 </span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>
@@ -298,7 +298,7 @@
 </span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>
 </span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_message</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 </span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a><span class="nd">@bot_except</span>
 </span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_repeat</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
 </span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Запрашивает повторное подтверждение от администратора.</span>
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>
@@ -309,7 +309,7 @@
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>
 </span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;close&quot;</span><span class="p">))</span>
-</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="nd">@bot_except</span>
 </span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_stop_server</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
 </span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Уведомляет пользователей о технических работах на сервере.</span>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>
@@ -338,7 +338,7 @@
 </span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>
 </span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a>
 </span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">))</span>
-</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a><span class="nd">@bot_except</span>
 </span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_start_server</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
 </span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Уведомляет пользователей об окончании технических работ на сервере.</span>
 </span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>
@@ -383,7 +383,7 @@
                 <section id="router">
                     <div class="attr variable">
             <span class="name">router</span>        =
-<span class="default_value">&lt;Router &#39;0x20620ec0&#39;&gt;</span>
+<span class="default_value">&lt;Router &#39;0x20634a10&#39;&gt;</span>
 
         
     </div>
@@ -397,7 +397,7 @@
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(Command(&#39;admin&#39;))</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">admin_actions</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span></span><span class="return-annotation">):</span></span>
@@ -408,7 +408,7 @@
     <a class="headerlink" href="#admin_actions"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="admin_actions-27"><a href="#admin_actions-27"><span class="linenos">27</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;admin&quot;</span><span class="p">))</span>
 </span><span id="admin_actions-28"><a href="#admin_actions-28"><span class="linenos">28</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="admin_actions-29"><a href="#admin_actions-29"><span class="linenos">29</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="admin_actions-29"><a href="#admin_actions-29"><span class="linenos">29</span></a><span class="nd">@bot_except</span>
 </span><span id="admin_actions-30"><a href="#admin_actions-30"><span class="linenos">30</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_actions</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
 </span><span id="admin_actions-31"><a href="#admin_actions-31"><span class="linenos">31</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Обрабатывает команду /admin и предоставляет список команд администратора.</span>
 </span><span id="admin_actions-32"><a href="#admin_actions-32"><span class="linenos">32</span></a>
@@ -453,7 +453,7 @@
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(F.text == settings.ADMIN_PASS.get_secret_value())</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">become_an_admin</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span>, </span><span class="param"><span class="n">bot</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">Bot</span></span><span class="return-annotation">):</span></span>
@@ -464,7 +464,7 @@
     <a class="headerlink" href="#become_an_admin"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="become_an_admin-57"><a href="#become_an_admin-57"><span class="linenos">57</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">text</span> <span class="o">==</span> <span class="n">settings</span><span class="o">.</span><span class="n">ADMIN_PASS</span><span class="o">.</span><span class="n">get_secret_value</span><span class="p">())</span>
 </span><span id="become_an_admin-58"><a href="#become_an_admin-58"><span class="linenos">58</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="become_an_admin-59"><a href="#become_an_admin-59"><span class="linenos">59</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="become_an_admin-59"><a href="#become_an_admin-59"><span class="linenos">59</span></a><span class="nd">@bot_except</span>
 </span><span id="become_an_admin-60"><a href="#become_an_admin-60"><span class="linenos">60</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">become_an_admin</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
 </span><span id="become_an_admin-61"><a href="#become_an_admin-61"><span class="linenos">61</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Позволяет пользователю стать администратором, если введен правильный пароль.</span>
 </span><span id="become_an_admin-62"><a href="#become_an_admin-62"><span class="linenos">62</span></a>
@@ -505,7 +505,7 @@
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(Command(&#39;backup&#39;))</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">get_backup</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span></span><span class="return-annotation">):</span></span>
@@ -516,7 +516,7 @@
     <a class="headerlink" href="#get_backup"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_backup-82"><a href="#get_backup-82"><span class="linenos"> 82</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;backup&quot;</span><span class="p">))</span>
 </span><span id="get_backup-83"><a href="#get_backup-83"><span class="linenos"> 83</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="get_backup-84"><a href="#get_backup-84"><span class="linenos"> 84</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="get_backup-84"><a href="#get_backup-84"><span class="linenos"> 84</span></a><span class="nd">@bot_except</span>
 </span><span id="get_backup-85"><a href="#get_backup-85"><span class="linenos"> 85</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">get_backup</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
 </span><span id="get_backup-86"><a href="#get_backup-86"><span class="linenos"> 86</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Создает резервную копию базы данных и отправляет ее пользователю.</span>
 </span><span id="get_backup-87"><a href="#get_backup-87"><span class="linenos"> 87</span></a>
@@ -553,7 +553,7 @@
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(Command(&#39;send&#39;))</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">admin_mailing_start</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span>,</span><span class="param">	<span class="n">state</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">fsm</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">FSMContext</span></span><span class="return-annotation">):</span></span>
@@ -564,7 +564,7 @@
     <a class="headerlink" href="#admin_mailing_start"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="admin_mailing_start-104"><a href="#admin_mailing_start-104"><span class="linenos">104</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;send&quot;</span><span class="p">))</span>
 </span><span id="admin_mailing_start-105"><a href="#admin_mailing_start-105"><span class="linenos">105</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="admin_mailing_start-106"><a href="#admin_mailing_start-106"><span class="linenos">106</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="admin_mailing_start-106"><a href="#admin_mailing_start-106"><span class="linenos">106</span></a><span class="nd">@bot_except</span>
 </span><span id="admin_mailing_start-107"><a href="#admin_mailing_start-107"><span class="linenos">107</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_start</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="admin_mailing_start-108"><a href="#admin_mailing_start-108"><span class="linenos">108</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Запускает процесс рассылки сообщения всем зарегистрированным пользователям.</span>
 </span><span id="admin_mailing_start-109"><a href="#admin_mailing_start-109"><span class="linenos">109</span></a>
@@ -603,7 +603,7 @@
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(AdminService.mailing_confirm, F.text)</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">admin_mailing_confirm</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span>,</span><span class="param">	<span class="n">state</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">fsm</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">FSMContext</span></span><span class="return-annotation">):</span></span>
@@ -614,7 +614,7 @@
     <a class="headerlink" href="#admin_mailing_confirm"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="admin_mailing_confirm-127"><a href="#admin_mailing_confirm-127"><span class="linenos">127</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_confirm</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 </span><span id="admin_mailing_confirm-128"><a href="#admin_mailing_confirm-128"><span class="linenos">128</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="admin_mailing_confirm-129"><a href="#admin_mailing_confirm-129"><span class="linenos">129</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="admin_mailing_confirm-129"><a href="#admin_mailing_confirm-129"><span class="linenos">129</span></a><span class="nd">@bot_except</span>
 </span><span id="admin_mailing_confirm-130"><a href="#admin_mailing_confirm-130"><span class="linenos">130</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_confirm</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="admin_mailing_confirm-131"><a href="#admin_mailing_confirm-131"><span class="linenos">131</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Подтверждает сообщение для рассылки и запрашивает подтверждение статуса администратора.</span>
 </span><span id="admin_mailing_confirm-132"><a href="#admin_mailing_confirm-132"><span class="linenos">132</span></a>
@@ -657,7 +657,7 @@
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(AdminService.mailing_message, F.text.lower().in_(text.yes))</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">admin_mailing_finish</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span>,</span><span class="param">	<span class="n">bot</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">Bot</span>,</span><span class="param">	<span class="n">state</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">fsm</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">FSMContext</span></span><span class="return-annotation">):</span></span>
@@ -668,7 +668,7 @@
     <a class="headerlink" href="#admin_mailing_finish"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="admin_mailing_finish-154"><a href="#admin_mailing_finish-154"><span class="linenos">154</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_message</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">yes</span><span class="p">))</span>
 </span><span id="admin_mailing_finish-155"><a href="#admin_mailing_finish-155"><span class="linenos">155</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="admin_mailing_finish-156"><a href="#admin_mailing_finish-156"><span class="linenos">156</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="admin_mailing_finish-156"><a href="#admin_mailing_finish-156"><span class="linenos">156</span></a><span class="nd">@bot_except</span>
 </span><span id="admin_mailing_finish-157"><a href="#admin_mailing_finish-157"><span class="linenos">157</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_finish</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="admin_mailing_finish-158"><a href="#admin_mailing_finish-158"><span class="linenos">158</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Завершает процесс рассылки сообщения всем пользователям.</span>
 </span><span id="admin_mailing_finish-159"><a href="#admin_mailing_finish-159"><span class="linenos">159</span></a>
@@ -722,7 +722,7 @@
                     <div class="decorator decorator-router.message">@router.message(AdminService.mailing_message, Command(&#39;cancel&#39;))</div>
         <div class="decorator decorator-router.message">@router.message(AdminService.mailing_message, F.text.lower().in_(text.no))</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">admin_mailing_cancel</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span>,</span><span class="param">	<span class="n">state</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">fsm</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">FSMContext</span></span><span class="return-annotation">):</span></span>
@@ -734,7 +734,7 @@
             <div class="pdoc-code codehilite"><pre><span></span><span id="admin_mailing_cancel-190"><a href="#admin_mailing_cancel-190"><span class="linenos">190</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_message</span><span class="p">,</span> <span class="n">Command</span><span class="p">(</span><span class="s2">&quot;cancel&quot;</span><span class="p">))</span>
 </span><span id="admin_mailing_cancel-191"><a href="#admin_mailing_cancel-191"><span class="linenos">191</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_message</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">in_</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">no</span><span class="p">))</span>
 </span><span id="admin_mailing_cancel-192"><a href="#admin_mailing_cancel-192"><span class="linenos">192</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="admin_mailing_cancel-193"><a href="#admin_mailing_cancel-193"><span class="linenos">193</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="admin_mailing_cancel-193"><a href="#admin_mailing_cancel-193"><span class="linenos">193</span></a><span class="nd">@bot_except</span>
 </span><span id="admin_mailing_cancel-194"><a href="#admin_mailing_cancel-194"><span class="linenos">194</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_cancel</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">FSMContext</span><span class="p">):</span>
 </span><span id="admin_mailing_cancel-195"><a href="#admin_mailing_cancel-195"><span class="linenos">195</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Отменяет процесс рассылки сообщения.</span>
 </span><span id="admin_mailing_cancel-196"><a href="#admin_mailing_cancel-196"><span class="linenos">196</span></a>
@@ -766,7 +766,7 @@
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(AdminService.mailing_message, F.text)</div>
         <div class="decorator decorator-async_speed_metric">@async_speed_metric</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">admin_mailing_repeat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span></span><span class="return-annotation">):</span></span>
@@ -777,7 +777,7 @@
     <a class="headerlink" href="#admin_mailing_repeat"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="admin_mailing_repeat-207"><a href="#admin_mailing_repeat-207"><span class="linenos">207</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">AdminService</span><span class="o">.</span><span class="n">mailing_message</span><span class="p">,</span> <span class="n">F</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
 </span><span id="admin_mailing_repeat-208"><a href="#admin_mailing_repeat-208"><span class="linenos">208</span></a><span class="nd">@async_speed_metric</span>
-</span><span id="admin_mailing_repeat-209"><a href="#admin_mailing_repeat-209"><span class="linenos">209</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="admin_mailing_repeat-209"><a href="#admin_mailing_repeat-209"><span class="linenos">209</span></a><span class="nd">@bot_except</span>
 </span><span id="admin_mailing_repeat-210"><a href="#admin_mailing_repeat-210"><span class="linenos">210</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_repeat</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
 </span><span id="admin_mailing_repeat-211"><a href="#admin_mailing_repeat-211"><span class="linenos">211</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Запрашивает повторное подтверждение от администратора.</span>
 </span><span id="admin_mailing_repeat-212"><a href="#admin_mailing_repeat-212"><span class="linenos">212</span></a>
@@ -803,7 +803,7 @@
                             <input id="admin_mailing_stop_server-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(Command(&#39;close&#39;))</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">admin_mailing_stop_server</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span>, </span><span class="param"><span class="n">bot</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">Bot</span></span><span class="return-annotation">):</span></span>
@@ -813,7 +813,7 @@
     </div>
     <a class="headerlink" href="#admin_mailing_stop_server"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="admin_mailing_stop_server-219"><a href="#admin_mailing_stop_server-219"><span class="linenos">219</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;close&quot;</span><span class="p">))</span>
-</span><span id="admin_mailing_stop_server-220"><a href="#admin_mailing_stop_server-220"><span class="linenos">220</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="admin_mailing_stop_server-220"><a href="#admin_mailing_stop_server-220"><span class="linenos">220</span></a><span class="nd">@bot_except</span>
 </span><span id="admin_mailing_stop_server-221"><a href="#admin_mailing_stop_server-221"><span class="linenos">221</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_stop_server</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
 </span><span id="admin_mailing_stop_server-222"><a href="#admin_mailing_stop_server-222"><span class="linenos">222</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Уведомляет пользователей о технических работах на сервере.</span>
 </span><span id="admin_mailing_stop_server-223"><a href="#admin_mailing_stop_server-223"><span class="linenos">223</span></a>
@@ -858,7 +858,7 @@
                             <input id="admin_mailing_start_server-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
                     <div class="decorator decorator-router.message">@router.message(Command(&#39;open&#39;))</div>
-        <div class="decorator decorator-bot_exceptor">@bot_exceptor</div>
+        <div class="decorator decorator-bot_except">@bot_except</div>
 
         <span class="def">async def</span>
         <span class="name">admin_mailing_start_server</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">message</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">message</span><span class="o">.</span><span class="n">Message</span>, </span><span class="param"><span class="n">bot</span><span class="p">:</span> <span class="n">aiogram</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">Bot</span></span><span class="return-annotation">):</span></span>
@@ -868,7 +868,7 @@
     </div>
     <a class="headerlink" href="#admin_mailing_start_server"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="admin_mailing_start_server-248"><a href="#admin_mailing_start_server-248"><span class="linenos">248</span></a><span class="nd">@router</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">))</span>
-</span><span id="admin_mailing_start_server-249"><a href="#admin_mailing_start_server-249"><span class="linenos">249</span></a><span class="nd">@bot_exceptor</span>
+</span><span id="admin_mailing_start_server-249"><a href="#admin_mailing_start_server-249"><span class="linenos">249</span></a><span class="nd">@bot_except</span>
 </span><span id="admin_mailing_start_server-250"><a href="#admin_mailing_start_server-250"><span class="linenos">250</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">admin_mailing_start_server</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
 </span><span id="admin_mailing_start_server-251"><a href="#admin_mailing_start_server-251"><span class="linenos">251</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Уведомляет пользователей об окончании технических работ на сервере.</span>
 </span><span id="admin_mailing_start_server-252"><a href="#admin_mailing_start_server-252"><span class="linenos">252</span></a>

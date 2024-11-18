@@ -12,7 +12,7 @@ from pytils.numeral import get_plural
 import text
 from core import exceptions as exc
 from core.config import settings
-from core.err import bot_exceptor
+from core.err import bot_except
 from core.metric import async_speed_metric
 from db import utils
 from db.models import UserData
@@ -25,7 +25,7 @@ router.message.filter(F.chat.type == "private")
 
 @router.message(Command("admin"))
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def admin_actions(message: Message):
     """Обрабатывает команду /admin и предоставляет список команд администратора.
 
@@ -55,7 +55,7 @@ async def admin_actions(message: Message):
 
 @router.message(F.text == settings.ADMIN_PASS.get_secret_value())
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def become_an_admin(message: Message, bot: Bot):
     """Позволяет пользователю стать администратором, если введен правильный пароль.
 
@@ -80,7 +80,7 @@ async def become_an_admin(message: Message, bot: Bot):
 
 @router.message(Command("backup"))
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def get_backup(message: Message):
     """Создает резервную копию базы данных и отправляет ее пользователю.
 
@@ -102,7 +102,7 @@ async def get_backup(message: Message):
 
 @router.message(Command("send"))
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def admin_mailing_start(message: Message, state: FSMContext):
     """Запускает процесс рассылки сообщения всем зарегистрированным пользователям.
 
@@ -125,7 +125,7 @@ async def admin_mailing_start(message: Message, state: FSMContext):
 
 @router.message(AdminService.mailing_confirm, F.text)
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def admin_mailing_confirm(message: Message, state: FSMContext):
     """Подтверждает сообщение для рассылки и запрашивает подтверждение статуса администратора.
 
@@ -152,7 +152,7 @@ async def admin_mailing_confirm(message: Message, state: FSMContext):
 
 @router.message(AdminService.mailing_message, F.text.lower().in_(text.yes))
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def admin_mailing_finish(message: Message, bot: Bot, state: FSMContext):
     """Завершает процесс рассылки сообщения всем пользователям.
 
@@ -189,7 +189,7 @@ async def admin_mailing_finish(message: Message, bot: Bot, state: FSMContext):
 @router.message(AdminService.mailing_message, Command("cancel"))
 @router.message(AdminService.mailing_message, F.text.lower().in_(text.no))
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def admin_mailing_cancel(message: Message, state: FSMContext):
     """Отменяет процесс рассылки сообщения.
 
@@ -205,7 +205,7 @@ async def admin_mailing_cancel(message: Message, state: FSMContext):
 
 @router.message(AdminService.mailing_message, F.text)
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def admin_mailing_repeat(message: Message):
     """Запрашивает повторное подтверждение от администратора.
 
@@ -216,7 +216,7 @@ async def admin_mailing_repeat(message: Message):
 
 
 @router.message(Command("close"))
-@bot_exceptor
+@bot_except
 async def admin_mailing_stop_server(message: Message, bot: Bot):
     """Уведомляет пользователей о технических работах на сервере.
 
@@ -245,7 +245,7 @@ async def admin_mailing_stop_server(message: Message, bot: Bot):
 
 
 @router.message(Command("open"))
-@bot_exceptor
+@bot_except
 async def admin_mailing_start_server(message: Message, bot: Bot):
     """Уведомляет пользователей об окончании технических работ на сервере.
 

@@ -1,3 +1,5 @@
+"""Создание регулярного дампа"""
+
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -12,6 +14,15 @@ logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
 
 
 async def regular_dump():
+    """Создает регулярный дамп базы данных и управляет старыми дампами.
+
+    Эта функция выполняет создание дампа базы данных с помощью функции `dump`.
+    Затем она проверяет, превышает ли количество дампов максимальное количество,
+    установленное в конфигурации. Если да, то удаляет старые дампы.
+
+    Raises:
+        DumpError: Если произошла ошибка при создании дампа базы данных.
+    """
     try:
         await dump(regular=True)
 

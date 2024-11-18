@@ -47,7 +47,7 @@
                     <a class="function" href="#redis_exceptor">redis_exceptor</a>
             </li>
             <li>
-                    <a class="function" href="#bot_exceptor">bot_exceptor</a>
+                    <a class="function" href="#bot_except">bot_except</a>
             </li>
     </ul>
 
@@ -201,7 +201,7 @@
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="k">return</span> <span class="n">wrapper</span>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="k">def</span> <span class="nf">bot_exceptor</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="k">def</span> <span class="nf">bot_except</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Декоратор для логирования исключений, возникающих в асинхронных функциях.&quot;&quot;&quot;</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
 </span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
@@ -450,35 +450,35 @@
 
 
                 </section>
-                <section id="bot_exceptor">
-                            <input id="bot_exceptor-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                <section id="bot_except">
+                            <input id="bot_except-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">bot_exceptor</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">func</span></span><span class="return-annotation">):</span></span>
+        <span class="name">bot_except</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">func</span></span><span class="return-annotation">):</span></span>
 
-                <label class="view-source-button" for="bot_exceptor-view-source"><span>View Source</span></label>
+                <label class="view-source-button" for="bot_except-view-source"><span>View Source</span></label>
 
     </div>
-    <a class="headerlink" href="#bot_exceptor"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="bot_exceptor-130"><a href="#bot_exceptor-130"><span class="linenos">130</span></a><span class="k">def</span> <span class="nf">bot_exceptor</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-</span><span id="bot_exceptor-131"><a href="#bot_exceptor-131"><span class="linenos">131</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Декоратор для логирования исключений, возникающих в асинхронных функциях.&quot;&quot;&quot;</span>
-</span><span id="bot_exceptor-132"><a href="#bot_exceptor-132"><span class="linenos">132</span></a>
-</span><span id="bot_exceptor-133"><a href="#bot_exceptor-133"><span class="linenos">133</span></a>    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-</span><span id="bot_exceptor-134"><a href="#bot_exceptor-134"><span class="linenos">134</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-</span><span id="bot_exceptor-135"><a href="#bot_exceptor-135"><span class="linenos">135</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="bot_exceptor-136"><a href="#bot_exceptor-136"><span class="linenos">136</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</span><span id="bot_exceptor-137"><a href="#bot_exceptor-137"><span class="linenos">137</span></a>
-</span><span id="bot_exceptor-138"><a href="#bot_exceptor-138"><span class="linenos">138</span></a>        <span class="k">except</span> <span class="n">AiogramError</span><span class="p">:</span>
-</span><span id="bot_exceptor-139"><a href="#bot_exceptor-139"><span class="linenos">139</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Ошибка Aiogram API&quot;</span><span class="p">)</span>
-</span><span id="bot_exceptor-140"><a href="#bot_exceptor-140"><span class="linenos">140</span></a>            <span class="k">raise</span>
-</span><span id="bot_exceptor-141"><a href="#bot_exceptor-141"><span class="linenos">141</span></a>        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-</span><span id="bot_exceptor-142"><a href="#bot_exceptor-142"><span class="linenos">142</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Неизвестная ошибка&quot;</span><span class="p">)</span>
-</span><span id="bot_exceptor-143"><a href="#bot_exceptor-143"><span class="linenos">143</span></a>            <span class="k">raise</span>
-</span><span id="bot_exceptor-144"><a href="#bot_exceptor-144"><span class="linenos">144</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="bot_exceptor-145"><a href="#bot_exceptor-145"><span class="linenos">145</span></a>            <span class="k">return</span> <span class="n">result</span>
-</span><span id="bot_exceptor-146"><a href="#bot_exceptor-146"><span class="linenos">146</span></a>
-</span><span id="bot_exceptor-147"><a href="#bot_exceptor-147"><span class="linenos">147</span></a>    <span class="k">return</span> <span class="n">wrapper</span>
+    <a class="headerlink" href="#bot_except"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="bot_except-130"><a href="#bot_except-130"><span class="linenos">130</span></a><span class="k">def</span> <span class="nf">bot_except</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+</span><span id="bot_except-131"><a href="#bot_except-131"><span class="linenos">131</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Декоратор для логирования исключений, возникающих в асинхронных функциях.&quot;&quot;&quot;</span>
+</span><span id="bot_except-132"><a href="#bot_except-132"><span class="linenos">132</span></a>
+</span><span id="bot_except-133"><a href="#bot_except-133"><span class="linenos">133</span></a>    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+</span><span id="bot_except-134"><a href="#bot_except-134"><span class="linenos">134</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="bot_except-135"><a href="#bot_except-135"><span class="linenos">135</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="bot_except-136"><a href="#bot_except-136"><span class="linenos">136</span></a>            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="bot_except-137"><a href="#bot_except-137"><span class="linenos">137</span></a>
+</span><span id="bot_except-138"><a href="#bot_except-138"><span class="linenos">138</span></a>        <span class="k">except</span> <span class="n">AiogramError</span><span class="p">:</span>
+</span><span id="bot_except-139"><a href="#bot_except-139"><span class="linenos">139</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Ошибка Aiogram API&quot;</span><span class="p">)</span>
+</span><span id="bot_except-140"><a href="#bot_except-140"><span class="linenos">140</span></a>            <span class="k">raise</span>
+</span><span id="bot_except-141"><a href="#bot_except-141"><span class="linenos">141</span></a>        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span><span id="bot_except-142"><a href="#bot_except-142"><span class="linenos">142</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Неизвестная ошибка&quot;</span><span class="p">)</span>
+</span><span id="bot_except-143"><a href="#bot_except-143"><span class="linenos">143</span></a>            <span class="k">raise</span>
+</span><span id="bot_except-144"><a href="#bot_except-144"><span class="linenos">144</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="bot_except-145"><a href="#bot_except-145"><span class="linenos">145</span></a>            <span class="k">return</span> <span class="n">result</span>
+</span><span id="bot_except-146"><a href="#bot_except-146"><span class="linenos">146</span></a>
+</span><span id="bot_except-147"><a href="#bot_except-147"><span class="linenos">147</span></a>    <span class="k">return</span> <span class="n">wrapper</span>
 </span></pre></div>
 
 

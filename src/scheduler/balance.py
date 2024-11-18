@@ -1,3 +1,5 @@
+"""Уведомления и списания баланса"""
+
 import logging
 import os
 import pickle
@@ -16,11 +18,18 @@ logger = logging.getLogger("apscheduler")
 logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
 
 
-def check_time(timefile: str):
-    last_updated = datetime.today()
+def check_time(timeFile: str) -> bool:
+    """Проверяет, прошло ли больше суток с последнего обновления времени.
 
-    if os.path.isfile(timefile) and os.path.getsize(timefile) > 0:
-        with open(timefile, "rb") as file:
+    Args:
+        timeFile (str): Путь к файлу, содержащему время последнего обновления.
+
+    Returns:
+        bool: True, если прошло больше суток, иначе False.
+    """
+    last_updated = datetime.today()
+    if os.path.isfile(timeFile) and os.path.getsize(timeFile) > 0:
+        with open(timeFile, "rb") as file:
             prev_updated: datetime = pickle.load(file)
 
         diff = last_updated - prev_updated
@@ -33,14 +42,24 @@ def check_time(timefile: str):
     return False
 
 
-def increment_time(timefile: str):
-    with open(timefile, "rb+") as file:
+def increment_time(timeFile: str):
+    """Увеличивает время в файле на один день.
+
+    Args:
+        timeFile (str): Путь к файлу, содержащему время последнего обновления.
+    """
+    with open(timeFile, "rb+") as file:
         prev_updated: datetime = pickle.load(file)
         file.seek(0)
         pickle.dump(prev_updated + timedelta(days=1), file)
 
 
 async def balance_decrement():
+    """Осуществляет ежедневное списание средств с баланса пользователей.
+
+    Проверяет, прошло ли больше суток с последнего списания, и если да,
+    вызывает функцию для списания средств. Логирует информацию о проведенном списании.
+    """
     try:
         if check_time(decr_time):
             await raise_money()
@@ -54,6 +73,15 @@ async def balance_decrement():
 
 
 async def users_notice(bot: Bot):
+    """Отправляет уведомления пользователям о состоянии их аккаунтов.
+
+    Проверяет, прошло ли больше суток с последнего уведомления, и если да,
+    отправляет сообщения пользователям о состоянии их аккаунтов, включая
+    уведомления о блокировке и необходимости пополнения баланса.
+
+    Args:
+        bot (Bot): Экземпляр бота для отправки сообщений пользователям.
+    """
     try:
         if check_time(noticed_time):
             users = await get_valid_users(0)
@@ -106,6 +134,4 @@ async def users_notice(bot: Bot):
             increment_time(noticed_time)
 
     except DatabaseError:
-        logger.exception(
-            "Ошибка базы данных при отправке уведомлений пользователям"
-        )
+        logger.exception("Ошибка базы данных при отправке уведомлений пользователям")

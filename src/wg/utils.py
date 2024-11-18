@@ -24,14 +24,34 @@ SSH = WgConnection()
 
 
 class WgServerTools:
+    """Класс для управления пирами и состоянием сервера WireGuard.
+
+    Этот класс предоставляет методы для добавления, блокировки и разблокировки пиров,
+    а также для получения информации о состоянии сервера WireGuard.
+    """
+
     peer_counter = "~/Scripts/LastPeerAddress"
 
     def __init__(self) -> None:
+        """Инициализирует экземпляр WgServerTools.
+
+        Устанавливает значения для приватного и публичного ключей, а также счетчика пиров.
+        """
         self.private_key: str = None
         self.public_key: str = None
         self.countpeers: int = None
 
-    async def _create_peer(self, conn: SSHClientConnection):
+    async def create_peer(self, conn: SSHClientConnection):
+        """Создает нового пира на сервере WireGuard.
+
+        Эта функция генерирует ключи для нового пира и добавляет его в конфигурацию сервера.
+
+        Args:
+            conn (SSHClientConnection): Установленное SSH-соединение с сервером.
+
+        Raises:
+            WireguardError: Если возникла ошибка при добавлении пира.
+        """
         try:
             cmd = (
                 "tmp_private_key=$(wg genkey)",
@@ -54,7 +74,16 @@ class WgServerTools:
             )
             raise WireguardError from e
 
-    async def _ban_peer(self, conn: SSHClientConnection, reverse=False):
+    async def ban_peer(self, conn: SSHClientConnection, reverse=False):
+        """Блокирует или разблокирует пира на сервере WireGuard.
+
+        Args:
+            conn (SSHClientConnection): Установленное SSH-соединение с сервером.
+            reverse (bool): Если True, разблокирует пира, иначе блокирует.
+
+        Raises:
+            WireguardError: Если возникла ошибка при изменении состояния пира.
+        """
         if reverse:
             ban = "unban"
         else:
@@ -69,7 +98,15 @@ class WgServerTools:
             logger.exception("Сбой при изменении пира в конфигурации сервера wireguard")
             raise WireguardError from e
 
-    def _create_db_wg_model(self, user_id):
+    def create_db_wg_model(self, user_id):
+        """Создает модель базы данных для нового пира.
+
+        Args:
+            user_id (int): Идентификатор пользователя.
+
+        Returns:
+            dict: Словарь с данными о пользователе и пире.
+        """
         self.user_config = dict(
             user_id=user_id,
             user_private_key=self.private_key,
@@ -78,7 +115,17 @@ class WgServerTools:
         )
         return self.user_config
 
-    async def _check_connection(self):
+    async def check_connection(self):
+        """Проверяет и устанавливает соединение с сервером.
+
+        Если соединение закрыто, то повторно подключается к серверу.
+
+        Returns:
+            SSHClientConnection: Установленное SSH-соединение.
+
+        Raises:
+            WireguardError: Если не удалось установить соединение.
+        """
         conn = SSH.connection
 
         if conn.is_closed():
@@ -99,23 +146,44 @@ class WgServerTools:
         user_id: int = None,
         user_pubkey: str = None,
     ):
-        conn = await self._check_connection()
+        """Добавляет, блокирует или разблокирует пира.
+
+        Args:
+            move (Literal["add", "ban", "unban"]): Действие для выполнения.
+            user_id (int, optional): Идентификатор пользователя.
+            user_pubkey (str, optional): Публичный ключ пользователя.
+
+        Returns:
+            dict: Конфигурация пользователя, если действие - добавление.
+
+        Raises:
+            WireguardError: Если возникла ошибка при выполнении действия.
+        """
+        conn = await self.check_connection()
 
         match move:
             case "add":
-                await self._create_peer(conn)
-                usr_cfg = self._create_db_wg_model(user_id)
+                await self.create_peer(conn)
+                usr_cfg = self.create_db_wg_model(user_id)
                 logger.info(f"{usr_cfg['address']=}")
                 return usr_cfg
             case "ban":
                 self.public_key = user_pubkey
-                await self._ban_peer(conn)
+                await self.ban_peer(conn)
             case "unban":
                 self.public_key = user_pubkey
-                await self._ban_peer(conn, reverse=True)
+                await self.ban_peer(conn, reverse=True)
 
     async def get_peer_list(self):
-        conn = await self._check_connection()
+        """Получает список пиров на сервере WireGuard.
+
+        Returns:
+            list: Список пиров с их конфигурациями.
+
+        Raises:
+            WireguardError: Если возникла ошибка при получении списка пиров.
+        """
+        conn = await self.check_connection()
         try:
             cmd = f"echo {escape(settings.WG_PASS.get_secret_value())} | sudo -S ~/Scripts/pywg.py -l --raises"
             completed_proc = await conn.run(f"\n{cmd}", check=True)
@@ -148,13 +216,21 @@ class WgServerTools:
             return clean_peers
 
     async def get_server_status(self):
-        conn = await self._check_connection()
+        """Получает статус сервера WireGuard.
+
+        Returns:
+            str: Статус сервера ("active" или "inactive").
+
+        Raises:
+            WireguardError: Если возникла ошибка при получении статуса сервера.
+        """
+        conn = await self.check_connection()
         try:
             cmd = f"echo {escape(settings.WG_PASS.get_secret_value())} | sudo -S systemctl status wg-quick@wg1.service | grep Active:"
             completed_proc = await conn.run(f"\n{cmd}", check=True)
             _, status, *_ = completed_proc.stdout.strip("\n ").split()
 
-        except (OSError, asyncssh.Error) as e:
+        except (OSError, asyncssh.Error):
             logger.exception("Сбой при получении статуса сервера wireguard")
             logger.info("Server status: inactive")
             return "inactive"
@@ -162,8 +238,16 @@ class WgServerTools:
             logger.info(f"Server status: {status}")
             return status
 
-    async def get_server_сpu_usage(self):
-        conn = await self._check_connection()
+    async def get_server_cpu_usage(self):
+        """Получает загрузку CPU сервера WireGuard.
+
+        Returns:
+            str: Процент загрузки CPU.
+
+        Raises:
+            WireguardError: Если возникла ошибка при получении загрузки CPU.
+        """
+        conn = await self.check_connection()
         try:
             cmd = "top -bn2 | grep '%Cpu' | tail -1 | grep -P '(....|...) id,'|awk '{print 100-$8 \"%\"}'"
             completed_proc = await conn.run(f"\n{cmd}", check=True)
@@ -179,22 +263,19 @@ class WgServerTools:
 
 
 async def test_100():
+    """Тестирует производительность методов WgServerTools.
+
+    Выполняет несколько асинхронных вызовов для проверки производительности
+    методов получения загрузки CPU сервера.
+
+    Raises:
+        Exception: Если возникает ошибка при выполнении теста.
+    """
     wg = WgServerTools()
     start = time()
 
     await SSH.connect()
-
-    coros = [wg.get_server_сpu_usage() for _ in range(1)]
-    # coros = [wg.move_user(user_id=6987832296, move="add") for _ in range(15)]
-    # coros = [
-    #     wg.move_user(
-    #         user_pubkey="CkMG0Cx+T4IQzpN8q7D02Nq15om8OGPDWEB1wlpkkjs=",
-    #         move="unban",
-    #         conn=conn,
-    #     )
-    #     for _ in range(1)
-    # ]
-
+    coros = [wg.get_server_cpu_usage() for _ in range(1)]
     coros_gen = time() - start
 
     await asyncio.gather(*coros)

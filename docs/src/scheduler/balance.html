@@ -63,122 +63,150 @@
                     <h1 class="modulename">
 <a href="./../../src.html">src</a><wbr>.<a href="./../scheduler.html">scheduler</a><wbr>.balance    </h1>
 
-                
+                        <div class="docstring"><p>Уведомления и списания баланса</p>
+</div>
+
                         <input id="mod-balance-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-balance-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">logging</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">import</span> <span class="nn">os</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">pickle</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">aiogram</span> <span class="kn">import</span> <span class="n">Bot</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;Уведомления и списания баланса&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">logging</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">os</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">pickle</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">core.config</span> <span class="kn">import</span> <span class="n">decr_time</span><span class="p">,</span> <span class="n">noticed_time</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span> <span class="nn">core.exceptions</span> <span class="kn">import</span> <span class="n">DatabaseError</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">UserActivity</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">db.utils</span> <span class="kn">import</span> <span class="n">get_valid_users</span><span class="p">,</span> <span class="n">raise_money</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">kb</span> <span class="kn">import</span> <span class="n">static_balance_button</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">text</span> <span class="kn">import</span> <span class="n">get_end_sub</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;apscheduler&quot;</span><span class="p">)</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;apscheduler.executors.default&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="k">def</span> <span class="nf">check_time</span><span class="p">(</span><span class="n">timefile</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>    <span class="n">last_updated</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">timefile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">timefile</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">timefile</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>            <span class="n">prev_updated</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>        <span class="n">diff</span> <span class="o">=</span> <span class="n">last_updated</span> <span class="o">-</span> <span class="n">prev_updated</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>        <span class="n">diff</span> <span class="o">=</span> <span class="n">last_updated</span> <span class="o">-</span> <span class="n">last_updated</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>    <span class="k">if</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="k">return</span> <span class="kc">True</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>    <span class="k">return</span> <span class="kc">False</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span> <span class="nn">aiogram</span> <span class="kn">import</span> <span class="n">Bot</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span> <span class="nn">core.config</span> <span class="kn">import</span> <span class="n">decr_time</span><span class="p">,</span> <span class="n">noticed_time</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span> <span class="nn">core.exceptions</span> <span class="kn">import</span> <span class="n">DatabaseError</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">db.models</span> <span class="kn">import</span> <span class="n">UserActivity</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">db.utils</span> <span class="kn">import</span> <span class="n">get_valid_users</span><span class="p">,</span> <span class="n">raise_money</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="kn">from</span> <span class="nn">kb</span> <span class="kn">import</span> <span class="n">static_balance_button</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span> <span class="nn">text</span> <span class="kn">import</span> <span class="n">get_end_sub</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;apscheduler&quot;</span><span class="p">)</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;apscheduler.executors.default&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="k">def</span> <span class="nf">check_time</span><span class="p">(</span><span class="n">timeFile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Проверяет, прошло ли больше суток с последнего обновления времени.</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">    Args:</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">        timeFile (str): Путь к файлу, содержащему время последнего обновления.</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    Returns:</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">        bool: True, если прошло больше суток, иначе False.</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>    <span class="n">last_updated</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">timeFile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">timeFile</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">timeFile</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>            <span class="n">prev_updated</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="k">def</span> <span class="nf">increment_time</span><span class="p">(</span><span class="n">timefile</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">timefile</span><span class="p">,</span> <span class="s2">&quot;rb+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="n">prev_updated</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>        <span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">prev_updated</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">file</span><span class="p">)</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">balance_decrement</span><span class="p">():</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="k">if</span> <span class="n">check_time</span><span class="p">(</span><span class="n">decr_time</span><span class="p">):</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>            <span class="k">await</span> <span class="n">raise_money</span><span class="p">()</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Произведено ежедневное списание&quot;</span><span class="p">)</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>            <span class="n">increment_time</span><span class="p">(</span><span class="n">decr_time</span><span class="p">)</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>            <span class="s2">&quot;Ошибка базы данных при осуществлении декремента баланса пользователей&quot;</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>        <span class="p">)</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>        <span class="n">diff</span> <span class="o">=</span> <span class="n">last_updated</span> <span class="o">-</span> <span class="n">prev_updated</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="n">diff</span> <span class="o">=</span> <span class="n">last_updated</span> <span class="o">-</span> <span class="n">last_updated</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>    <span class="k">if</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>        <span class="k">return</span> <span class="kc">True</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="k">return</span> <span class="kc">False</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="k">def</span> <span class="nf">increment_time</span><span class="p">(</span><span class="n">timeFile</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Увеличивает время в файле на один день.</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">    Args:</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">        timeFile (str): Путь к файлу, содержащему время последнего обновления.</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">timeFile</span><span class="p">,</span> <span class="s2">&quot;rb+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>        <span class="n">prev_updated</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>        <span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">prev_updated</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">file</span><span class="p">)</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">users_notice</span><span class="p">(</span><span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="k">if</span> <span class="n">check_time</span><span class="p">(</span><span class="n">noticed_time</span><span class="p">):</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>            <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_valid_users</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>                <span class="n">end</span> <span class="o">=</span> <span class="n">get_end_sub</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>                <span class="n">diff</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="n">user</span><span class="o">.</span><span class="n">updated</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>                <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">active</span> <span class="o">==</span> <span class="n">UserActivity</span><span class="o">.</span><span class="n">inactive</span><span class="p">:</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>                    <span class="k">if</span> <span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>                        <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>                        <span class="ow">or</span> <span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>                    <span class="p">):</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>                        <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>                            <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>                            <span class="s2">&quot;Здравствуйте, ваш аккаунт заблокирован, однако если вы пополните баланс, то снова сможете пользоваться своими конфигурациями!&quot;</span><span class="p">,</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>                            <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>                        <span class="p">)</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>                            <span class="s2">&quot;Отправлено уведомление о возврате в сервис&quot;</span><span class="p">,</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>                            <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;trigger&quot;</span><span class="p">:</span> <span class="n">diff</span><span class="p">},</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>                        <span class="p">)</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">balance_decrement</span><span class="p">():</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Осуществляет ежедневное списание средств с баланса пользователей.</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">    Проверяет, прошло ли больше суток с последнего списания, и если да,</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    вызывает функцию для списания средств. Логирует информацию о проведенном списании.</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="k">if</span> <span class="n">check_time</span><span class="p">(</span><span class="n">decr_time</span><span class="p">):</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>            <span class="k">await</span> <span class="n">raise_money</span><span class="p">()</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Произведено ежедневное списание&quot;</span><span class="p">)</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>            <span class="n">increment_time</span><span class="p">(</span><span class="n">decr_time</span><span class="p">)</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>            <span class="s2">&quot;Ошибка базы данных при осуществлении декремента баланса пользователей&quot;</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="p">)</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">users_notice</span><span class="p">(</span><span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Отправляет уведомления пользователям о состоянии их аккаунтов.</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">    Проверяет, прошло ли больше суток с последнего уведомления, и если да,</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">    отправляет сообщения пользователям о состоянии их аккаунтов, включая</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">    уведомления о блокировке и необходимости пополнения баланса.</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>                <span class="k">elif</span> <span class="n">end</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># TODO twice executed</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>                    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>                        <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>                        <span class="s2">&quot;Здравствуйте, пополните баланс, иначе в скором времени вы будете заблокированы.&quot;</span><span class="p">,</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>                        <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>                    <span class="p">)</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    Args:</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">        bot (Bot): Экземпляр бота для отправки сообщений пользователям.</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="k">if</span> <span class="n">check_time</span><span class="p">(</span><span class="n">noticed_time</span><span class="p">):</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>            <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_valid_users</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>                        <span class="s2">&quot;Отправлено уведомление о блокировке&quot;</span><span class="p">,</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">},</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>                    <span class="p">)</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>                <span class="k">elif</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>                    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>                        <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>                        <span class="s2">&quot;Здравствуйте, ваши средства на балансе в скором времени закончатся.&quot;</span>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>                        <span class="s2">&quot;По окончании этого периода ваш аккаунт будет заблокирован системой (пока вы снова не пополните баланс 🙄)&quot;</span><span class="p">,</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>                        <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>                    <span class="p">)</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>                        <span class="s2">&quot;Отправлено уведомление о скорой блокировке&quot;</span><span class="p">,</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">},</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>                    <span class="p">)</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>            <span class="n">increment_time</span><span class="p">(</span><span class="n">noticed_time</span><span class="p">)</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>            <span class="s2">&quot;Ошибка базы данных при отправке уведомлений пользователям&quot;</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="p">)</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>                <span class="n">end</span> <span class="o">=</span> <span class="n">get_end_sub</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>                <span class="n">diff</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="n">user</span><span class="o">.</span><span class="n">updated</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>                <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">active</span> <span class="o">==</span> <span class="n">UserActivity</span><span class="o">.</span><span class="n">inactive</span><span class="p">:</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>                    <span class="k">if</span> <span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>                        <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>                        <span class="ow">or</span> <span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>                    <span class="p">):</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>                        <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>                            <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>                            <span class="s2">&quot;Здравствуйте, ваш аккаунт заблокирован, однако если вы пополните баланс, то снова сможете пользоваться своими конфигурациями!&quot;</span><span class="p">,</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>                            <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>                        <span class="p">)</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>                            <span class="s2">&quot;Отправлено уведомление о возврате в сервис&quot;</span><span class="p">,</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>                            <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;trigger&quot;</span><span class="p">:</span> <span class="n">diff</span><span class="p">},</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>                        <span class="p">)</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>                <span class="k">elif</span> <span class="n">end</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># TODO twice executed</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>                    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>                        <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>                        <span class="s2">&quot;Здравствуйте, пополните баланс, иначе в скором времени вы будете заблокированы.&quot;</span><span class="p">,</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>                        <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>                    <span class="p">)</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>                        <span class="s2">&quot;Отправлено уведомление о блокировке&quot;</span><span class="p">,</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">},</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>                    <span class="p">)</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>                <span class="k">elif</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>                    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>                        <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>                        <span class="s2">&quot;Здравствуйте, ваши средства на балансе в скором времени закончатся.&quot;</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>                        <span class="s2">&quot;По окончании этого периода ваш аккаунт будет заблокирован системой (пока вы снова не пополните баланс 🙄)&quot;</span><span class="p">,</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>                        <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>                    <span class="p">)</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>                        <span class="s2">&quot;Отправлено уведомление о скорой блокировке&quot;</span><span class="p">,</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">},</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>                    <span class="p">)</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>            <span class="n">increment_time</span><span class="p">(</span><span class="n">noticed_time</span><span class="p">)</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Ошибка базы данных при отправке уведомлений пользователям&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -200,31 +228,52 @@
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">check_time</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">timefile</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">):</span></span>
+        <span class="name">check_time</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">timeFile</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="nb">bool</span>:</span></span>
 
                 <label class="view-source-button" for="check_time-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#check_time"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="check_time-20"><a href="#check_time-20"><span class="linenos">20</span></a><span class="k">def</span> <span class="nf">check_time</span><span class="p">(</span><span class="n">timefile</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="check_time-21"><a href="#check_time-21"><span class="linenos">21</span></a>    <span class="n">last_updated</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
-</span><span id="check_time-22"><a href="#check_time-22"><span class="linenos">22</span></a>
-</span><span id="check_time-23"><a href="#check_time-23"><span class="linenos">23</span></a>    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">timefile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">timefile</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="check_time-24"><a href="#check_time-24"><span class="linenos">24</span></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">timefile</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-</span><span id="check_time-25"><a href="#check_time-25"><span class="linenos">25</span></a>            <span class="n">prev_updated</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-</span><span id="check_time-26"><a href="#check_time-26"><span class="linenos">26</span></a>
-</span><span id="check_time-27"><a href="#check_time-27"><span class="linenos">27</span></a>        <span class="n">diff</span> <span class="o">=</span> <span class="n">last_updated</span> <span class="o">-</span> <span class="n">prev_updated</span>
-</span><span id="check_time-28"><a href="#check_time-28"><span class="linenos">28</span></a>
-</span><span id="check_time-29"><a href="#check_time-29"><span class="linenos">29</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="check_time-30"><a href="#check_time-30"><span class="linenos">30</span></a>        <span class="n">diff</span> <span class="o">=</span> <span class="n">last_updated</span> <span class="o">-</span> <span class="n">last_updated</span>
-</span><span id="check_time-31"><a href="#check_time-31"><span class="linenos">31</span></a>
-</span><span id="check_time-32"><a href="#check_time-32"><span class="linenos">32</span></a>    <span class="k">if</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-</span><span id="check_time-33"><a href="#check_time-33"><span class="linenos">33</span></a>        <span class="k">return</span> <span class="kc">True</span>
-</span><span id="check_time-34"><a href="#check_time-34"><span class="linenos">34</span></a>    <span class="k">return</span> <span class="kc">False</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="check_time-22"><a href="#check_time-22"><span class="linenos">22</span></a><span class="k">def</span> <span class="nf">check_time</span><span class="p">(</span><span class="n">timeFile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="check_time-23"><a href="#check_time-23"><span class="linenos">23</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Проверяет, прошло ли больше суток с последнего обновления времени.</span>
+</span><span id="check_time-24"><a href="#check_time-24"><span class="linenos">24</span></a>
+</span><span id="check_time-25"><a href="#check_time-25"><span class="linenos">25</span></a><span class="sd">    Args:</span>
+</span><span id="check_time-26"><a href="#check_time-26"><span class="linenos">26</span></a><span class="sd">        timeFile (str): Путь к файлу, содержащему время последнего обновления.</span>
+</span><span id="check_time-27"><a href="#check_time-27"><span class="linenos">27</span></a>
+</span><span id="check_time-28"><a href="#check_time-28"><span class="linenos">28</span></a><span class="sd">    Returns:</span>
+</span><span id="check_time-29"><a href="#check_time-29"><span class="linenos">29</span></a><span class="sd">        bool: True, если прошло больше суток, иначе False.</span>
+</span><span id="check_time-30"><a href="#check_time-30"><span class="linenos">30</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="check_time-31"><a href="#check_time-31"><span class="linenos">31</span></a>    <span class="n">last_updated</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+</span><span id="check_time-32"><a href="#check_time-32"><span class="linenos">32</span></a>    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">timeFile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">timeFile</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="check_time-33"><a href="#check_time-33"><span class="linenos">33</span></a>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">timeFile</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+</span><span id="check_time-34"><a href="#check_time-34"><span class="linenos">34</span></a>            <span class="n">prev_updated</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+</span><span id="check_time-35"><a href="#check_time-35"><span class="linenos">35</span></a>
+</span><span id="check_time-36"><a href="#check_time-36"><span class="linenos">36</span></a>        <span class="n">diff</span> <span class="o">=</span> <span class="n">last_updated</span> <span class="o">-</span> <span class="n">prev_updated</span>
+</span><span id="check_time-37"><a href="#check_time-37"><span class="linenos">37</span></a>
+</span><span id="check_time-38"><a href="#check_time-38"><span class="linenos">38</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="check_time-39"><a href="#check_time-39"><span class="linenos">39</span></a>        <span class="n">diff</span> <span class="o">=</span> <span class="n">last_updated</span> <span class="o">-</span> <span class="n">last_updated</span>
+</span><span id="check_time-40"><a href="#check_time-40"><span class="linenos">40</span></a>
+</span><span id="check_time-41"><a href="#check_time-41"><span class="linenos">41</span></a>    <span class="k">if</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="check_time-42"><a href="#check_time-42"><span class="linenos">42</span></a>        <span class="k">return</span> <span class="kc">True</span>
+</span><span id="check_time-43"><a href="#check_time-43"><span class="linenos">43</span></a>    <span class="k">return</span> <span class="kc">False</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Проверяет, прошло ли больше суток с последнего обновления времени.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>timeFile (str):</strong>  Путь к файлу, содержащему время последнего обновления.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>bool: True, если прошло больше суток, иначе False.</p>
+</blockquote>
+</div>
+
 
                 </section>
                 <section id="increment_time">
@@ -232,21 +281,34 @@
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">increment_time</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">timefile</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">):</span></span>
+        <span class="name">increment_time</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">timeFile</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="increment_time-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#increment_time"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="increment_time-37"><a href="#increment_time-37"><span class="linenos">37</span></a><span class="k">def</span> <span class="nf">increment_time</span><span class="p">(</span><span class="n">timefile</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="increment_time-38"><a href="#increment_time-38"><span class="linenos">38</span></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">timefile</span><span class="p">,</span> <span class="s2">&quot;rb+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-</span><span id="increment_time-39"><a href="#increment_time-39"><span class="linenos">39</span></a>        <span class="n">prev_updated</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-</span><span id="increment_time-40"><a href="#increment_time-40"><span class="linenos">40</span></a>        <span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</span><span id="increment_time-41"><a href="#increment_time-41"><span class="linenos">41</span></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">prev_updated</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">file</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="increment_time-46"><a href="#increment_time-46"><span class="linenos">46</span></a><span class="k">def</span> <span class="nf">increment_time</span><span class="p">(</span><span class="n">timeFile</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="increment_time-47"><a href="#increment_time-47"><span class="linenos">47</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Увеличивает время в файле на один день.</span>
+</span><span id="increment_time-48"><a href="#increment_time-48"><span class="linenos">48</span></a>
+</span><span id="increment_time-49"><a href="#increment_time-49"><span class="linenos">49</span></a><span class="sd">    Args:</span>
+</span><span id="increment_time-50"><a href="#increment_time-50"><span class="linenos">50</span></a><span class="sd">        timeFile (str): Путь к файлу, содержащему время последнего обновления.</span>
+</span><span id="increment_time-51"><a href="#increment_time-51"><span class="linenos">51</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="increment_time-52"><a href="#increment_time-52"><span class="linenos">52</span></a>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">timeFile</span><span class="p">,</span> <span class="s2">&quot;rb+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+</span><span id="increment_time-53"><a href="#increment_time-53"><span class="linenos">53</span></a>        <span class="n">prev_updated</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+</span><span id="increment_time-54"><a href="#increment_time-54"><span class="linenos">54</span></a>        <span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="increment_time-55"><a href="#increment_time-55"><span class="linenos">55</span></a>        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">prev_updated</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">file</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Увеличивает время в файле на один день.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>timeFile (str):</strong>  Путь к файлу, содержащему время последнего обновления.</li>
+</ul>
+</div>
+
 
                 </section>
                 <section id="balance_decrement">
@@ -260,21 +322,31 @@
 
     </div>
     <a class="headerlink" href="#balance_decrement"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="balance_decrement-44"><a href="#balance_decrement-44"><span class="linenos">44</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">balance_decrement</span><span class="p">():</span>
-</span><span id="balance_decrement-45"><a href="#balance_decrement-45"><span class="linenos">45</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="balance_decrement-46"><a href="#balance_decrement-46"><span class="linenos">46</span></a>        <span class="k">if</span> <span class="n">check_time</span><span class="p">(</span><span class="n">decr_time</span><span class="p">):</span>
-</span><span id="balance_decrement-47"><a href="#balance_decrement-47"><span class="linenos">47</span></a>            <span class="k">await</span> <span class="n">raise_money</span><span class="p">()</span>
-</span><span id="balance_decrement-48"><a href="#balance_decrement-48"><span class="linenos">48</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Произведено ежедневное списание&quot;</span><span class="p">)</span>
-</span><span id="balance_decrement-49"><a href="#balance_decrement-49"><span class="linenos">49</span></a>
-</span><span id="balance_decrement-50"><a href="#balance_decrement-50"><span class="linenos">50</span></a>            <span class="n">increment_time</span><span class="p">(</span><span class="n">decr_time</span><span class="p">)</span>
-</span><span id="balance_decrement-51"><a href="#balance_decrement-51"><span class="linenos">51</span></a>    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
-</span><span id="balance_decrement-52"><a href="#balance_decrement-52"><span class="linenos">52</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
-</span><span id="balance_decrement-53"><a href="#balance_decrement-53"><span class="linenos">53</span></a>            <span class="s2">&quot;Ошибка базы данных при осуществлении декремента баланса пользователей&quot;</span>
-</span><span id="balance_decrement-54"><a href="#balance_decrement-54"><span class="linenos">54</span></a>        <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="balance_decrement-58"><a href="#balance_decrement-58"><span class="linenos">58</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">balance_decrement</span><span class="p">():</span>
+</span><span id="balance_decrement-59"><a href="#balance_decrement-59"><span class="linenos">59</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Осуществляет ежедневное списание средств с баланса пользователей.</span>
+</span><span id="balance_decrement-60"><a href="#balance_decrement-60"><span class="linenos">60</span></a>
+</span><span id="balance_decrement-61"><a href="#balance_decrement-61"><span class="linenos">61</span></a><span class="sd">    Проверяет, прошло ли больше суток с последнего списания, и если да,</span>
+</span><span id="balance_decrement-62"><a href="#balance_decrement-62"><span class="linenos">62</span></a><span class="sd">    вызывает функцию для списания средств. Логирует информацию о проведенном списании.</span>
+</span><span id="balance_decrement-63"><a href="#balance_decrement-63"><span class="linenos">63</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="balance_decrement-64"><a href="#balance_decrement-64"><span class="linenos">64</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="balance_decrement-65"><a href="#balance_decrement-65"><span class="linenos">65</span></a>        <span class="k">if</span> <span class="n">check_time</span><span class="p">(</span><span class="n">decr_time</span><span class="p">):</span>
+</span><span id="balance_decrement-66"><a href="#balance_decrement-66"><span class="linenos">66</span></a>            <span class="k">await</span> <span class="n">raise_money</span><span class="p">()</span>
+</span><span id="balance_decrement-67"><a href="#balance_decrement-67"><span class="linenos">67</span></a>            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Произведено ежедневное списание&quot;</span><span class="p">)</span>
+</span><span id="balance_decrement-68"><a href="#balance_decrement-68"><span class="linenos">68</span></a>
+</span><span id="balance_decrement-69"><a href="#balance_decrement-69"><span class="linenos">69</span></a>            <span class="n">increment_time</span><span class="p">(</span><span class="n">decr_time</span><span class="p">)</span>
+</span><span id="balance_decrement-70"><a href="#balance_decrement-70"><span class="linenos">70</span></a>    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
+</span><span id="balance_decrement-71"><a href="#balance_decrement-71"><span class="linenos">71</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
+</span><span id="balance_decrement-72"><a href="#balance_decrement-72"><span class="linenos">72</span></a>            <span class="s2">&quot;Ошибка базы данных при осуществлении декремента баланса пользователей&quot;</span>
+</span><span id="balance_decrement-73"><a href="#balance_decrement-73"><span class="linenos">73</span></a>        <span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Осуществляет ежедневное списание средств с баланса пользователей.</p>
+
+<p>Проверяет, прошло ли больше суток с последнего списания, и если да,
+вызывает функцию для списания средств. Логирует информацию о проведенном списании.</p>
+</div>
+
 
                 </section>
                 <section id="users_notice">
@@ -288,66 +360,85 @@
 
     </div>
     <a class="headerlink" href="#users_notice"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="users_notice-57"><a href="#users_notice-57"><span class="linenos"> 57</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">users_notice</span><span class="p">(</span><span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
-</span><span id="users_notice-58"><a href="#users_notice-58"><span class="linenos"> 58</span></a>    <span class="k">try</span><span class="p">:</span>
-</span><span id="users_notice-59"><a href="#users_notice-59"><span class="linenos"> 59</span></a>        <span class="k">if</span> <span class="n">check_time</span><span class="p">(</span><span class="n">noticed_time</span><span class="p">):</span>
-</span><span id="users_notice-60"><a href="#users_notice-60"><span class="linenos"> 60</span></a>            <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_valid_users</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</span><span id="users_notice-61"><a href="#users_notice-61"><span class="linenos"> 61</span></a>
-</span><span id="users_notice-62"><a href="#users_notice-62"><span class="linenos"> 62</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
-</span><span id="users_notice-63"><a href="#users_notice-63"><span class="linenos"> 63</span></a>                <span class="n">end</span> <span class="o">=</span> <span class="n">get_end_sub</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-</span><span id="users_notice-64"><a href="#users_notice-64"><span class="linenos"> 64</span></a>
-</span><span id="users_notice-65"><a href="#users_notice-65"><span class="linenos"> 65</span></a>                <span class="n">diff</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="n">user</span><span class="o">.</span><span class="n">updated</span>
-</span><span id="users_notice-66"><a href="#users_notice-66"><span class="linenos"> 66</span></a>
-</span><span id="users_notice-67"><a href="#users_notice-67"><span class="linenos"> 67</span></a>                <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">active</span> <span class="o">==</span> <span class="n">UserActivity</span><span class="o">.</span><span class="n">inactive</span><span class="p">:</span>
-</span><span id="users_notice-68"><a href="#users_notice-68"><span class="linenos"> 68</span></a>                    <span class="k">if</span> <span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
-</span><span id="users_notice-69"><a href="#users_notice-69"><span class="linenos"> 69</span></a>                        <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-</span><span id="users_notice-70"><a href="#users_notice-70"><span class="linenos"> 70</span></a>                        <span class="ow">or</span> <span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span>
-</span><span id="users_notice-71"><a href="#users_notice-71"><span class="linenos"> 71</span></a>                    <span class="p">):</span>
-</span><span id="users_notice-72"><a href="#users_notice-72"><span class="linenos"> 72</span></a>                        <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
-</span><span id="users_notice-73"><a href="#users_notice-73"><span class="linenos"> 73</span></a>                            <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
-</span><span id="users_notice-74"><a href="#users_notice-74"><span class="linenos"> 74</span></a>                            <span class="s2">&quot;Здравствуйте, ваш аккаунт заблокирован, однако если вы пополните баланс, то снова сможете пользоваться своими конфигурациями!&quot;</span><span class="p">,</span>
-</span><span id="users_notice-75"><a href="#users_notice-75"><span class="linenos"> 75</span></a>                            <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
-</span><span id="users_notice-76"><a href="#users_notice-76"><span class="linenos"> 76</span></a>                        <span class="p">)</span>
-</span><span id="users_notice-77"><a href="#users_notice-77"><span class="linenos"> 77</span></a>
-</span><span id="users_notice-78"><a href="#users_notice-78"><span class="linenos"> 78</span></a>                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-</span><span id="users_notice-79"><a href="#users_notice-79"><span class="linenos"> 79</span></a>                            <span class="s2">&quot;Отправлено уведомление о возврате в сервис&quot;</span><span class="p">,</span>
-</span><span id="users_notice-80"><a href="#users_notice-80"><span class="linenos"> 80</span></a>                            <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;trigger&quot;</span><span class="p">:</span> <span class="n">diff</span><span class="p">},</span>
-</span><span id="users_notice-81"><a href="#users_notice-81"><span class="linenos"> 81</span></a>                        <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="users_notice-76"><a href="#users_notice-76"><span class="linenos"> 76</span></a><span class="k">async</span> <span class="k">def</span> <span class="nf">users_notice</span><span class="p">(</span><span class="n">bot</span><span class="p">:</span> <span class="n">Bot</span><span class="p">):</span>
+</span><span id="users_notice-77"><a href="#users_notice-77"><span class="linenos"> 77</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Отправляет уведомления пользователям о состоянии их аккаунтов.</span>
+</span><span id="users_notice-78"><a href="#users_notice-78"><span class="linenos"> 78</span></a>
+</span><span id="users_notice-79"><a href="#users_notice-79"><span class="linenos"> 79</span></a><span class="sd">    Проверяет, прошло ли больше суток с последнего уведомления, и если да,</span>
+</span><span id="users_notice-80"><a href="#users_notice-80"><span class="linenos"> 80</span></a><span class="sd">    отправляет сообщения пользователям о состоянии их аккаунтов, включая</span>
+</span><span id="users_notice-81"><a href="#users_notice-81"><span class="linenos"> 81</span></a><span class="sd">    уведомления о блокировке и необходимости пополнения баланса.</span>
 </span><span id="users_notice-82"><a href="#users_notice-82"><span class="linenos"> 82</span></a>
-</span><span id="users_notice-83"><a href="#users_notice-83"><span class="linenos"> 83</span></a>                <span class="k">elif</span> <span class="n">end</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># TODO twice executed</span>
-</span><span id="users_notice-84"><a href="#users_notice-84"><span class="linenos"> 84</span></a>                    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
-</span><span id="users_notice-85"><a href="#users_notice-85"><span class="linenos"> 85</span></a>                        <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
-</span><span id="users_notice-86"><a href="#users_notice-86"><span class="linenos"> 86</span></a>                        <span class="s2">&quot;Здравствуйте, пополните баланс, иначе в скором времени вы будете заблокированы.&quot;</span><span class="p">,</span>
-</span><span id="users_notice-87"><a href="#users_notice-87"><span class="linenos"> 87</span></a>                        <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
-</span><span id="users_notice-88"><a href="#users_notice-88"><span class="linenos"> 88</span></a>                    <span class="p">)</span>
+</span><span id="users_notice-83"><a href="#users_notice-83"><span class="linenos"> 83</span></a><span class="sd">    Args:</span>
+</span><span id="users_notice-84"><a href="#users_notice-84"><span class="linenos"> 84</span></a><span class="sd">        bot (Bot): Экземпляр бота для отправки сообщений пользователям.</span>
+</span><span id="users_notice-85"><a href="#users_notice-85"><span class="linenos"> 85</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="users_notice-86"><a href="#users_notice-86"><span class="linenos"> 86</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="users_notice-87"><a href="#users_notice-87"><span class="linenos"> 87</span></a>        <span class="k">if</span> <span class="n">check_time</span><span class="p">(</span><span class="n">noticed_time</span><span class="p">):</span>
+</span><span id="users_notice-88"><a href="#users_notice-88"><span class="linenos"> 88</span></a>            <span class="n">users</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_valid_users</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 </span><span id="users_notice-89"><a href="#users_notice-89"><span class="linenos"> 89</span></a>
-</span><span id="users_notice-90"><a href="#users_notice-90"><span class="linenos"> 90</span></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-</span><span id="users_notice-91"><a href="#users_notice-91"><span class="linenos"> 91</span></a>                        <span class="s2">&quot;Отправлено уведомление о блокировке&quot;</span><span class="p">,</span>
-</span><span id="users_notice-92"><a href="#users_notice-92"><span class="linenos"> 92</span></a>                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">},</span>
-</span><span id="users_notice-93"><a href="#users_notice-93"><span class="linenos"> 93</span></a>                    <span class="p">)</span>
-</span><span id="users_notice-94"><a href="#users_notice-94"><span class="linenos"> 94</span></a>                <span class="k">elif</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
-</span><span id="users_notice-95"><a href="#users_notice-95"><span class="linenos"> 95</span></a>                    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
-</span><span id="users_notice-96"><a href="#users_notice-96"><span class="linenos"> 96</span></a>                        <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
-</span><span id="users_notice-97"><a href="#users_notice-97"><span class="linenos"> 97</span></a>                        <span class="s2">&quot;Здравствуйте, ваши средства на балансе в скором времени закончатся.&quot;</span>
-</span><span id="users_notice-98"><a href="#users_notice-98"><span class="linenos"> 98</span></a>                        <span class="s2">&quot;По окончании этого периода ваш аккаунт будет заблокирован системой (пока вы снова не пополните баланс 🙄)&quot;</span><span class="p">,</span>
-</span><span id="users_notice-99"><a href="#users_notice-99"><span class="linenos"> 99</span></a>                        <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
-</span><span id="users_notice-100"><a href="#users_notice-100"><span class="linenos">100</span></a>                    <span class="p">)</span>
-</span><span id="users_notice-101"><a href="#users_notice-101"><span class="linenos">101</span></a>
-</span><span id="users_notice-102"><a href="#users_notice-102"><span class="linenos">102</span></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-</span><span id="users_notice-103"><a href="#users_notice-103"><span class="linenos">103</span></a>                        <span class="s2">&quot;Отправлено уведомление о скорой блокировке&quot;</span><span class="p">,</span>
-</span><span id="users_notice-104"><a href="#users_notice-104"><span class="linenos">104</span></a>                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">},</span>
-</span><span id="users_notice-105"><a href="#users_notice-105"><span class="linenos">105</span></a>                    <span class="p">)</span>
-</span><span id="users_notice-106"><a href="#users_notice-106"><span class="linenos">106</span></a>
-</span><span id="users_notice-107"><a href="#users_notice-107"><span class="linenos">107</span></a>            <span class="n">increment_time</span><span class="p">(</span><span class="n">noticed_time</span><span class="p">)</span>
-</span><span id="users_notice-108"><a href="#users_notice-108"><span class="linenos">108</span></a>
-</span><span id="users_notice-109"><a href="#users_notice-109"><span class="linenos">109</span></a>    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
-</span><span id="users_notice-110"><a href="#users_notice-110"><span class="linenos">110</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
-</span><span id="users_notice-111"><a href="#users_notice-111"><span class="linenos">111</span></a>            <span class="s2">&quot;Ошибка базы данных при отправке уведомлений пользователям&quot;</span>
-</span><span id="users_notice-112"><a href="#users_notice-112"><span class="linenos">112</span></a>        <span class="p">)</span>
+</span><span id="users_notice-90"><a href="#users_notice-90"><span class="linenos"> 90</span></a>            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+</span><span id="users_notice-91"><a href="#users_notice-91"><span class="linenos"> 91</span></a>                <span class="n">end</span> <span class="o">=</span> <span class="n">get_end_sub</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span id="users_notice-92"><a href="#users_notice-92"><span class="linenos"> 92</span></a>
+</span><span id="users_notice-93"><a href="#users_notice-93"><span class="linenos"> 93</span></a>                <span class="n">diff</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span> <span class="o">-</span> <span class="n">user</span><span class="o">.</span><span class="n">updated</span>
+</span><span id="users_notice-94"><a href="#users_notice-94"><span class="linenos"> 94</span></a>
+</span><span id="users_notice-95"><a href="#users_notice-95"><span class="linenos"> 95</span></a>                <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">active</span> <span class="o">==</span> <span class="n">UserActivity</span><span class="o">.</span><span class="n">inactive</span><span class="p">:</span>
+</span><span id="users_notice-96"><a href="#users_notice-96"><span class="linenos"> 96</span></a>                    <span class="k">if</span> <span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+</span><span id="users_notice-97"><a href="#users_notice-97"><span class="linenos"> 97</span></a>                        <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</span><span id="users_notice-98"><a href="#users_notice-98"><span class="linenos"> 98</span></a>                        <span class="ow">or</span> <span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">8</span><span class="p">))</span>
+</span><span id="users_notice-99"><a href="#users_notice-99"><span class="linenos"> 99</span></a>                    <span class="p">):</span>
+</span><span id="users_notice-100"><a href="#users_notice-100"><span class="linenos">100</span></a>                        <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
+</span><span id="users_notice-101"><a href="#users_notice-101"><span class="linenos">101</span></a>                            <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
+</span><span id="users_notice-102"><a href="#users_notice-102"><span class="linenos">102</span></a>                            <span class="s2">&quot;Здравствуйте, ваш аккаунт заблокирован, однако если вы пополните баланс, то снова сможете пользоваться своими конфигурациями!&quot;</span><span class="p">,</span>
+</span><span id="users_notice-103"><a href="#users_notice-103"><span class="linenos">103</span></a>                            <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
+</span><span id="users_notice-104"><a href="#users_notice-104"><span class="linenos">104</span></a>                        <span class="p">)</span>
+</span><span id="users_notice-105"><a href="#users_notice-105"><span class="linenos">105</span></a>
+</span><span id="users_notice-106"><a href="#users_notice-106"><span class="linenos">106</span></a>                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+</span><span id="users_notice-107"><a href="#users_notice-107"><span class="linenos">107</span></a>                            <span class="s2">&quot;Отправлено уведомление о возврате в сервис&quot;</span><span class="p">,</span>
+</span><span id="users_notice-108"><a href="#users_notice-108"><span class="linenos">108</span></a>                            <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;trigger&quot;</span><span class="p">:</span> <span class="n">diff</span><span class="p">},</span>
+</span><span id="users_notice-109"><a href="#users_notice-109"><span class="linenos">109</span></a>                        <span class="p">)</span>
+</span><span id="users_notice-110"><a href="#users_notice-110"><span class="linenos">110</span></a>
+</span><span id="users_notice-111"><a href="#users_notice-111"><span class="linenos">111</span></a>                <span class="k">elif</span> <span class="n">end</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># TODO twice executed</span>
+</span><span id="users_notice-112"><a href="#users_notice-112"><span class="linenos">112</span></a>                    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
+</span><span id="users_notice-113"><a href="#users_notice-113"><span class="linenos">113</span></a>                        <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
+</span><span id="users_notice-114"><a href="#users_notice-114"><span class="linenos">114</span></a>                        <span class="s2">&quot;Здравствуйте, пополните баланс, иначе в скором времени вы будете заблокированы.&quot;</span><span class="p">,</span>
+</span><span id="users_notice-115"><a href="#users_notice-115"><span class="linenos">115</span></a>                        <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
+</span><span id="users_notice-116"><a href="#users_notice-116"><span class="linenos">116</span></a>                    <span class="p">)</span>
+</span><span id="users_notice-117"><a href="#users_notice-117"><span class="linenos">117</span></a>
+</span><span id="users_notice-118"><a href="#users_notice-118"><span class="linenos">118</span></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+</span><span id="users_notice-119"><a href="#users_notice-119"><span class="linenos">119</span></a>                        <span class="s2">&quot;Отправлено уведомление о блокировке&quot;</span><span class="p">,</span>
+</span><span id="users_notice-120"><a href="#users_notice-120"><span class="linenos">120</span></a>                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">},</span>
+</span><span id="users_notice-121"><a href="#users_notice-121"><span class="linenos">121</span></a>                    <span class="p">)</span>
+</span><span id="users_notice-122"><a href="#users_notice-122"><span class="linenos">122</span></a>                <span class="k">elif</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="users_notice-123"><a href="#users_notice-123"><span class="linenos">123</span></a>                    <span class="k">await</span> <span class="n">bot</span><span class="o">.</span><span class="n">send_message</span><span class="p">(</span>
+</span><span id="users_notice-124"><a href="#users_notice-124"><span class="linenos">124</span></a>                        <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span>
+</span><span id="users_notice-125"><a href="#users_notice-125"><span class="linenos">125</span></a>                        <span class="s2">&quot;Здравствуйте, ваши средства на балансе в скором времени закончатся.&quot;</span>
+</span><span id="users_notice-126"><a href="#users_notice-126"><span class="linenos">126</span></a>                        <span class="s2">&quot;По окончании этого периода ваш аккаунт будет заблокирован системой (пока вы снова не пополните баланс 🙄)&quot;</span><span class="p">,</span>
+</span><span id="users_notice-127"><a href="#users_notice-127"><span class="linenos">127</span></a>                        <span class="n">reply_markup</span><span class="o">=</span><span class="n">static_balance_button</span><span class="p">,</span>
+</span><span id="users_notice-128"><a href="#users_notice-128"><span class="linenos">128</span></a>                    <span class="p">)</span>
+</span><span id="users_notice-129"><a href="#users_notice-129"><span class="linenos">129</span></a>
+</span><span id="users_notice-130"><a href="#users_notice-130"><span class="linenos">130</span></a>                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+</span><span id="users_notice-131"><a href="#users_notice-131"><span class="linenos">131</span></a>                        <span class="s2">&quot;Отправлено уведомление о скорой блокировке&quot;</span><span class="p">,</span>
+</span><span id="users_notice-132"><a href="#users_notice-132"><span class="linenos">132</span></a>                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">telegram_id</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">},</span>
+</span><span id="users_notice-133"><a href="#users_notice-133"><span class="linenos">133</span></a>                    <span class="p">)</span>
+</span><span id="users_notice-134"><a href="#users_notice-134"><span class="linenos">134</span></a>
+</span><span id="users_notice-135"><a href="#users_notice-135"><span class="linenos">135</span></a>            <span class="n">increment_time</span><span class="p">(</span><span class="n">noticed_time</span><span class="p">)</span>
+</span><span id="users_notice-136"><a href="#users_notice-136"><span class="linenos">136</span></a>
+</span><span id="users_notice-137"><a href="#users_notice-137"><span class="linenos">137</span></a>    <span class="k">except</span> <span class="n">DatabaseError</span><span class="p">:</span>
+</span><span id="users_notice-138"><a href="#users_notice-138"><span class="linenos">138</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Ошибка базы данных при отправке уведомлений пользователям&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Отправляет уведомления пользователям о состоянии их аккаунтов.</p>
+
+<p>Проверяет, прошло ли больше суток с последнего уведомления, и если да,
+отправляет сообщения пользователям о состоянии их аккаунтов, включая
+уведомления о блокировке и необходимости пополнения баланса.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>bot (Bot):</strong>  Экземпляр бота для отправки сообщений пользователям.</li>
+</ul>
+</div>
+
 
                 </section>
     </main>

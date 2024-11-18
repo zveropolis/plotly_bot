@@ -1,3 +1,5 @@
+"""Действия с конфигурациями WireGuard"""
+
 import logging
 import os
 from contextlib import suppress
@@ -12,7 +14,7 @@ from pytils.numeral import get_plural
 import text
 from core import exceptions as exc
 from core.config import settings
-from core.err import bot_exceptor
+from core.err import bot_except
 from core.metric import async_speed_metric
 from db import utils
 from db.models import FreezeSteps, UserActivity, UserData, WgConfig
@@ -30,9 +32,16 @@ router.message.filter(F.chat.type == "private")
 @router.message(F.text.lower().in_(text.me))
 @router.callback_query(F.data == "user_configurations")
 @async_speed_metric
-@bot_exceptor
-
+@bot_except
 async def post_user_data(trigger: Union[Message, CallbackQuery]):
+    """Отправляет данные о конфигурациях пользователя.
+
+    Args:
+        trigger (Union[Message, CallbackQuery]): Сообщение или событие обратного вызова, инициировавшее команду.
+
+    Если у пользователя есть конфигурации, отправляет их список. Если конфигурации заморожены, отправляет сообщение об этом.
+    Также информирует пользователя о максимальном количестве конфигураций для его тарифа.
+    """
     user_data: UserData = await find_user(trigger, configs=True)
     if not user_data:
         return
@@ -70,7 +79,7 @@ async def post_user_data(trigger: Union[Message, CallbackQuery]):
                 )
             else:
                 await getattr(trigger, "message", trigger).answer(
-                    f"Вы можете создать еще {get_plural(cfg_number,"конфигурацию, конфигурации, конфигураций")}",
+                    f"Вы можете создать еще {get_plural(cfg_number, 'конфигурацию, конфигурации, конфигураций')}",
                     reply_markup=create_cfg_btn,
                 )
         elif user_data.active == UserActivity.inactive:
@@ -82,9 +91,17 @@ async def post_user_data(trigger: Union[Message, CallbackQuery]):
 @router.message(Command("create"))
 @router.callback_query(F.data == "create_configuration")
 @async_speed_metric
-@bot_exceptor
-
+@bot_except
 async def create_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
+    """Создает новую конфигурацию для пользователя.
+
+    Args:
+        trigger (Union[Message, CallbackQuery]): Сообщение или событие обратного вызова, инициировавшее команду.
+        bot (Bot): Экземпляр бота для выполнения действий.
+
+    Проверяет, может ли пользователь создать новую конфигурацию, и создает ее, если это возможно.
+    В случае ошибок отправляет соответствующие сообщения.
+    """
     try:
         user_data: UserData = await find_user(trigger, configs=True)
         if not user_data:
@@ -146,8 +163,15 @@ async def create_config_data(trigger: Union[Message, CallbackQuery], bot: Bot):
 
 @router.callback_query(F.data == "create_conf_text")
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def get_config_text(callback: CallbackQuery):
+    """Отправляет текст конфигурации пользователю.
+
+    Args:
+        callback (CallbackQuery): Событие обратного вызова, инициировавшее команду.
+
+    Отправляет текст конфигурации, связанный с пользователем, в формате, удобном для чтения.
+    """
     user_config: WgConfig = await find_config(callback)
 
     config = text.get_config_data(user_config)
@@ -158,8 +182,15 @@ async def get_config_text(callback: CallbackQuery):
 
 @router.callback_query(F.data == "create_conf_file")
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def get_config_file(callback: CallbackQuery):
+    """Отправляет файл конфигурации пользователю.
+
+    Args:
+        callback (CallbackQuery): Событие обратного вызова, инициировавшее команду.
+
+    Создает файл конфигурации и отправляет его пользователю в виде документа.
+    """
     user_config: WgConfig = await find_config(callback)
 
     config = text.get_config_data(user_config)
@@ -174,8 +205,15 @@ async def get_config_file(callback: CallbackQuery):
 
 @router.callback_query(F.data == "create_conf_qr")
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def get_config_qr(callback: CallbackQuery):
+    """Отправляет QR-код конфигурации пользователю.
+
+    Args:
+        callback (CallbackQuery): Событие обратного вызова, инициировавшее команду.
+
+    Создает QR-код конфигурации и отправляет его пользователю в виде изображения.
+    """
     user_config: WgConfig = await find_config(callback)
 
     config = text.get_config_data(user_config)

@@ -1,3 +1,5 @@
+"""Действия с оплатой"""
+
 import logging
 import os
 from datetime import datetime, timedelta, timezone
@@ -16,7 +18,7 @@ import kb
 import text
 from core import exceptions as exc
 from core.config import settings
-from core.err import bot_exceptor
+from core.err import bot_except
 from core.metric import async_speed_metric
 from core.path import PATH
 from db import utils
@@ -35,8 +37,16 @@ router.message.filter(F.chat.type == "private")
 @router.callback_query(F.data == "user_payment")
 @router.message(F.text == "Подписка")
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMContext):
+    """Управляет подпиской пользователя.
+
+    Args:
+        trigger (Union[Message, CallbackQuery]): Сообщение или событие обратного вызова, инициировавшее команду.
+        state (FSMContext): Контекст состояния для управления состоянием пользователя.
+
+    Если подписка активна, отправляет информацию о текущем статусе подписки, тарифе и балансе пользователя.
+    """
     user_data: UserData = await find_user(trigger)
     if not user_data:
         return
@@ -59,8 +69,15 @@ async def subscribe_manager(trigger: Union[Message, CallbackQuery], state: FSMCo
 
 @router.message(Command("history"))
 @router.callback_query(F.data == "transact_history")
-@bot_exceptor
+@bot_except
 async def get_user_transact_choose(trigger: Union[Message, CallbackQuery]):
+    """Запрашивает у пользователя, какие операции он хочет увидеть.
+
+    Args:
+        trigger (Union[Message, CallbackQuery]): Сообщение или событие обратного вызова, инициировавшее команду.
+
+    Отправляет сообщение с предложением выбрать тип операции для отображения истории транзакций.
+    """
     await getattr(trigger, "message", trigger).answer(
         "Какие операции вам нужно увидеть?", reply_markup=kb.static_history_button
     )
@@ -68,8 +85,15 @@ async def get_user_transact_choose(trigger: Union[Message, CallbackQuery]):
 
 @router.callback_query(F.data.startswith("transact_history_"))
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def get_user_transact(callback: CallbackQuery):
+    """Получает и отображает историю транзакций пользователя.
+
+    Args:
+        callback (CallbackQuery): Событие обратного вызова, инициировавшее команду.
+
+    Отправляет последние 10 транзакций пользователя и предоставляет возможность скачать полный список транзакций в формате Excel.
+    """
     try:
         transactions: list[Transactions] = await utils.get_user_transactions(
             callback.from_user.id
@@ -166,8 +190,15 @@ async def get_user_transact(callback: CallbackQuery):
 
 @router.callback_query(F.data == "change_rate")
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def post_rate_list(callback: CallbackQuery):
+    """Отправляет список доступных тарифов пользователю.
+
+    Args:
+        callback (CallbackQuery): Событие обратного вызова, инициировавшее команду.
+
+    Отправляет сообщение с предложением выбрать тариф.
+    """
     user_data: UserData = await find_user(callback)
     if not user_data:
         return
@@ -180,8 +211,15 @@ async def post_rate_list(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("rate_info_"))
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def choose_rate(callback: CallbackQuery):
+    """Отправляет информацию о выбранном тарифе.
+
+    Args:
+        callback (CallbackQuery): Событие обратного вызова, инициировавшее команду.
+
+    Отправляет сообщение с описанием выбранного тарифа и информацией о комиссии.
+    """
     user_data: UserData = await find_user(callback)
     rate_id = float(callback.data.split("_")[-1])
 
@@ -201,8 +239,16 @@ async def choose_rate(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("accept_rate_"))
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def change_rate(callback: CallbackQuery, bot: Bot):
+    """Изменяет тариф пользователя.
+
+    Args:
+        callback (CallbackQuery): Событие обратного вызова, инициировавшее команду.
+        bot (Bot): Экземпляр бота для выполнения действий.
+
+    Обрабатывает изменение тарифа пользователя, включая комиссию и условия.
+    """
     user_data: UserData = await find_user(callback)
     rate_id = float(callback.data.split("_")[-1])
     try:
@@ -245,8 +291,16 @@ async def change_rate(callback: CallbackQuery, bot: Bot):
 
 
 @router.callback_query(F.data == "top_up_balance")
-@bot_exceptor
+@bot_except
 async def input_balance(callback: CallbackQuery, state: FSMContext):
+    """Запрашивает у пользователя сумму для пополнения баланса.
+
+    Args:
+        callback (CallbackQuery): Событие обратного вызова, инициировавшее команду.
+        state (FSMContext): Контекст состояния для управления состоянием пользователя.
+
+    Отправляет сообщение с предложением выбрать сумму или ввести вручную.
+    """
     await callback.message.answer(
         "Выберите сумму или введите вручную. Для отмены используйте /cancel."
         f"<b>\n(Актуальная комиссия провайдера {settings.transfer_fee*100-100} %</b>",
@@ -256,8 +310,16 @@ async def input_balance(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(Service.balance, Command("cancel"))
-@bot_exceptor
+@bot_except
 async def cancel_input_balance(message: Message, state: FSMContext):
+    """Отменяет процесс ввода суммы для пополнения баланса.
+
+    Args:
+        message (Message): Сообщение, инициировавшее команду.
+        state (FSMContext): Контекст состояния для управления состоянием пользователя.
+
+    Отправляет сообщение об отмене операции.
+    """
     await state.clear()
     await state.set_state()
     await message.answer("Отменено")
@@ -266,8 +328,17 @@ async def cancel_input_balance(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("pay_sub_"))
 @router.message(Service.balance)
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def pay(trigger: Union[Message, CallbackQuery], bot: Bot, state: FSMContext):
+    """Обрабатывает процесс оплаты.
+
+    Args:
+        trigger (Union[Message, CallbackQuery]): Сообщение или событие обратного вызова, инициировавшее команду.
+        bot (Bot): Экземпляр бота для выполнения действий.
+        state (FSMContext): Контекст состояния для управления состоянием пользователя.
+
+    Создает платеж и отправляет ссылку для пополнения баланса. Обрабатывает возможные ошибки.
+    """
     try:
         client = Client(settings.YOO_TOKEN.get_secret_value())
         transaction_label = uuid4()

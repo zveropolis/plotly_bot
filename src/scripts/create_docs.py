@@ -7,6 +7,7 @@ from pdoc.render import configure
 
 # Добавляем путь к директории проекта в системный путь
 sys.path.insert(1, os.path.dirname(sys.path[0]))
+
 from core.path import PATH
 
 

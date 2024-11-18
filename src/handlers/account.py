@@ -12,7 +12,7 @@ from aiogram.types import CallbackQuery, Message
 
 import text
 from core import exceptions as exc
-from core.err import bot_exceptor
+from core.err import bot_except
 from core.metric import async_speed_metric
 from db import utils
 from db.models import UserData
@@ -31,7 +31,7 @@ router.message.filter(F.chat.type == "private")
 @router.message(F.text == "Перезагрузка")
 @router.callback_query(F.data == "start_app")
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def start_bot(trigger: Union[Message, CallbackQuery], state: FSMContext):
     """Обрабатывает команду запуска бота и приветствует пользователя.
     (Очищает весь кеш пользователя)
@@ -65,7 +65,7 @@ async def start_bot(trigger: Union[Message, CallbackQuery], state: FSMContext):
 @router.message(Command("app"))
 @router.message(F.text == "Статус")
 @async_speed_metric
-@bot_exceptor
+@bot_except
 async def account_actions(
     trigger: Union[Message, CallbackQuery],
     user_data: UserData = None,
@@ -113,7 +113,7 @@ async def account_actions(
 
 
 @router.callback_query(F.data.startswith("extra_function_"))
-@bot_exceptor
+@bot_except
 async def get_extra_menu(callback: CallbackQuery):
     """Раскрывает и закрывает панель инструментов в меню.
 

@@ -1,3 +1,5 @@
+"""Отправка уведомлений пользователям"""
+
 import logging
 import os
 
@@ -12,10 +14,29 @@ from db.utils import close_free_trial, get_admins
 
 logger = logging.getLogger("apscheduler")
 logging.getLogger("apscheduler.executors.default").setLevel(logging.WARNING)
+
 queue = os.path.join(PATH, "logs", "queue.log")
 
 
 async def send_notice(bot: Bot):
+    """Отправляет уведомления пользователям и администраторам.
+
+    Эта функция читает уведомления из файла очереди и обрабатывает их.
+    В зависимости от типа уведомления (TRANSACTION или REPORT) отправляет
+    сообщения пользователю и администраторам. Также обрабатывает
+    изменения статуса пробного тарифа.
+
+    Args:
+        bot (Bot): Экземпляр бота для отправки сообщений.
+
+    Raises:
+        TelegramForbiddenError: Если бот заблокирован пользователем.
+        Exception: Если произошла ошибка при обработке уведомлений.
+
+    Notes:
+        Уведомления, которые не удалось отправить, остаются в очереди для
+        повторной отправки.
+    """
     async with aiofiles.open(queue) as file:
         notices = (await file.read()).splitlines()
 
