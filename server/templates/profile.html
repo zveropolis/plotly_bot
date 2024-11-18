@@ -1,0 +1,313 @@
+<html>
+
+<head>
+  <base href="." />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - FalconVPN</title>
+  <link rel="stylesheet" href="../static/css/profile.css">
+  <link rel="stylesheet" href="../static/css/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/vpn" class="logo">
+        <img src="../static/Logo2_no_back_2.png" alt="DanVPN logo showing stylized falcon" width="60" height="60">
+        DanVPN
+      </a>
+      <div class="nav-links">
+        <a href="/vpn/pricing">Pricing</a>
+        <a href="/vpn/instructions">Instructions</a>
+        <a href="/vpn/support">Support</a>
+        <a href="/vpn/contact">Contact</a>
+        <a href="/vpn/profile" class="cta-button">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="profile-container">
+    <div class="user-header">
+      <div class="user-avatar">JD</div>
+      <div class="user-info">
+        <div class="user-name">John Doe</div>
+        <div class="user-email">john.doe@example.com</div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="action-button freeze">Freeze Account</button>
+      <button class="action-button new-config">New Configuration</button>
+      <button class="action-button change-plan">Change Plan</button>
+      <button class="action-button add-funds">Add Funds</button>
+    </div>
+
+    <div class="balance-card">
+      <button class="history-button">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 8v4l3 3"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+        </svg>
+      </button>
+      <div class="balance-amount">$149.99</div>
+      <div class="status-title">Current Balance</div>
+    </div>
+
+    <div class="status-grid">
+      <div class="status-card">
+        <div class="status-title">Account Status</div>
+        <div class="status-value">
+          <span class="status-badge badge-active">Active</span>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-title">Subscription Plan</div>
+        <div class="status-value">
+          <span class="status-badge badge-premium">Premium</span>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-title">Current Rate</div>
+        <div class="status-value">$9.99/month</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Your VPN Configurations</h2>
+    <div class="configs-grid">
+      {% for config in configsData %}
+      <div class="config-card">
+        <div class="config-header">
+          <div class="config-name">{{ config.name }}</div>
+          <div class="config-status"></div>
+        </div>
+        <div class="config-details">
+          <div class="config-detail">
+            <span class="detail-label">PrivateKey</span>
+            <span class="detail-value">{{ config.PrivateKey }}</span>
+          </div>
+          <div class="config-detail">
+            <span class="detail-label">Address</span>
+            <span>{{ config.Address }}</span>
+          </div>
+          <div class="config-detail">
+            <span class="detail-label">DNS</span>
+            <span>{{ config.DNS }}</span>
+          </div>
+          <div class="config-extra">
+            <span class="extra-label">PublicKey</span>
+            <span>{{ config.PublicKey }}</span>
+          </div>
+          <div class="config-extra">
+            <span class="extra-label">AllowedIPs</span>
+            <span>{{ config.AllowedIPs }}</span>
+          </div>
+          <div class="config-extra">
+            <span class="extra-label">Endpoint</span>
+            <span>{{ config.Endpoint }}</span>
+          </div>
+          <div class="config-extra">
+            <span class="extra-label">PersistentKeepalive</span>
+            <span>{{ config.PersistentKeepalive }}</span>
+          </div>
+        </div>
+        <div class="config-actions">
+          <button class="config-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <line x1="10" y1="9" x2="8" y2="9"></line>
+            </svg>
+            TEXT
+          </button>
+          <button class="config-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <rect x="7" y="7" width="10" height="10"></rect>
+            </svg>
+            QR
+          </button>
+          <button class="config-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+              <polyline points="13 2 13 9 20 9"></polyline>
+            </svg>
+            FILE
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="freezeModal">
+    <div class="modal">
+      <button class="modal-close">&times;</button>
+      <h3>Warning</h3>
+      <p>Are you sure you want to freeze your account? This will suspend all active VPN configurations.</p>
+      <div class="modal-buttons">
+        <button class="modal-button cancel">Cancel</button>
+        <button class="modal-button confirm warning">Confirm Freeze</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="configCreatedModal">
+    <div class="modal">
+      <button class="modal-close">&times;</button>
+      <h3>Success</h3>
+      <p>New VPN configuration has been created successfully!</p>
+      <div class="modal-buttons">
+        <button class="modal-button confirm">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="addFundsModal">
+    <div class="modal">
+      <button class="modal-close">&times;</button>
+      <h3>Add Funds</h3>
+      <div class="funds-input">
+        <span class="currency">$</span>
+        <input type="number" id="fundsAmount" min="1" step="1" placeholder="Enter amount">
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-button cancel">Cancel</button>
+        <button class="modal-button confirm">Add Funds</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="textModal">
+    <div class="modal">
+      <button class="modal-close">&times;</button>
+      <h3>Configuration Details</h3>
+      <div class="config-text"></div>
+      <button class="copy-button">Copy Configuration</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="qrModal">
+    <div class="modal">
+      <button class="modal-close">&times;</button>
+      <h3>Scan QR Code</h3>
+      <div class="qr-code"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="historyModal">
+    <div class="modal">
+      <button class="modal-close">&times;</button>
+      <h3>Balance History</h3>
+      <div class="history-table-container">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2024-01-15</td>
+              <td>Added funds</td>
+              <td class="amount-positive">+$50.00</td>
+              <td>$149.99</td>
+            </tr>
+            <tr>
+              <td>2024-01-10</td>
+              <td>Monthly subscription</td>
+              <td class="amount-negative">-$9.99</td>
+              <td>$99.99</td>
+            </tr>
+            <tr>
+              <td>2024-01-01</td>
+              <td>Added funds</td>
+              <td class="amount-positive">+$100.00</td>
+              <td>$109.98</td>
+            </tr>
+            <tr>
+              <td>2023-12-15</td>
+              <td>Monthly subscription</td>
+              <td class="amount-negative">-$9.99</td>
+              <td>$9.98</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+            <tr>
+              <td>2023-12-01</td>
+              <td>Initial deposit</td>
+              <td class="amount-positive">+$19.97</td>
+              <td>$19.97</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="../static/js/profile.js"></script>
+  <script src="../static/js/navbar.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,234 @@
+<html>
+
+<head>
+  <base href="." />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - FalconVPN</title>
+  <link rel="stylesheet" href="../static/css/navbar.css">
+  <link rel="stylesheet" href="../static/css/auth.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/vpn" class="logo">
+        <img src="../static/Logo2_no_back_2.png" alt="DanVPN logo showing stylized falcon" width="60" height="60">
+        DanVPN
+      </a>
+      <div class="nav-links">
+        <a href="/vpn/pricing">Pricing</a>
+        <a href="/vpn/instructions">Instructions</a>
+        <a href="/vpn/support">Support</a>
+        <a href="/vpn/contact">Contact</a>
+        <a href="/vpn/profile" class="cta-button">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="auth-container">
+    <h2 style="text-align: center; margin-bottom: 2rem;">Login to FalconVPN</h2>
+
+    <div class="step-indicator">Step 1 of 2</div>
+
+    <form class="auth-form" id="loginForm">
+      <div class="form-group">
+        <label for="telegram_id">
+          <svg class="telegram-icon" viewBox="0 0 24 24">
+            <path fill="currentColor"
+              d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10s10-4.48 10-10S17.52,2 12,2z M16.64,8.8c-0.15,1.58 -0.8,5.42 -1.13,7.19c-0.14,0.75 -0.42,1 -0.69,1.02c-0.58,0.05 -1.02,-0.38 -1.58,-0.75c-0.88,-0.58 -1.38,-0.94 -2.23,-1.5c-0.99,-0.65 -0.35,-1.01 0.22,-1.59c0.15,-0.15 2.71,-2.48 2.76,-2.69c0.01,-0.03 0.01,-0.14 -0.05,-0.2c-0.06,-0.06 -0.16,-0.04 -0.23,-0.02c-0.1,0.02 -1.62,1.03 -4.57,3.03c-0.43,0.3 -0.82,0.45 -1.17,0.44c-0.38,-0.01 -1.12,-0.22 -1.67,-0.4c-0.67,-0.22 -1.21,-0.34 -1.16,-0.72c0.02,-0.2 0.29,-0.4 0.81,-0.6c3.17,-1.38 5.29,-2.29 6.37,-2.75c3.03,-1.31 3.66,-1.54 4.07,-1.54c0.09,0 0.29,0.02 0.42,0.12c0.11,0.09 0.14,0.21 0.15,0.29c0.01,0.08 0.02,0.27 0,0.42z" />
+          </svg>
+          Telegram ID
+        </label>
+        <input type="text" id="telegram_id" required placeholder="Enter your Telegram ID">
+        <p class="help-text">Please ensure you're logged into Telegram to receive the verification code</p>
+        <p class="error-message" id="telegramIdError">Please enter a valid Telegram ID</p>
+      </div>
+
+      <div class="verification-section" id="verificationSection">
+        <div class="form-group">
+          <label for="verification_code">Verification Code</label>
+          <input type="text" id="verification_code" maxlength="6" placeholder="Enter 6-digit code" pattern="[0-9]{6}">
+          <p class="error-message" id="verificationCodeError">Please enter a valid 6-digit code</p>
+        </div>
+        <div class="verification-buttons">
+          <button type="button" class="cta-button" id="confirmButton">Confirm Code</button>
+          <button type="button" class="cta-button" id="resendButton">Resend Code</button>
+        </div>
+      </div>
+
+      <button type="submit" class="cta-button" id="submitButton">Request Code</button>
+    </form>
+  </div>
+
+  <a href="https://t.me/vpn_dan_bot" class="telegram-bot-button" target="_blank">
+    <svg viewBox="0 0 24 24">
+      <path fill="currentColor"
+        d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10s10-4.48 10-10S17.52,2 12,2z M16.64,8.8c-0.15,1.58 -0.8,5.42 -1.13,7.19c-0.14,0.75 -0.42,1 -0.69,1.02c-0.58,0.05 -1.02,-0.38 -1.58,-0.75c-0.88,-0.58 -1.38,-0.94 -2.23,-1.5c-0.99,-0.65 -0.35,-1.01 0.22,-1.59c0.15,-0.15 2.71,-2.48 2.76,-2.69c0.01,-0.03 0.01,-0.14 -0.05,-0.2c-0.06,-0.06 -0.16,-0.04 -0.23,-0.02c-0.1,0.02 -1.62,1.03 -4.57,3.03c-0.43,0.3 -0.82,0.45 -1.17,0.44c-0.38,-0.01 -1.12,-0.22 -1.67,-0.4c-0.67,-0.22 -1.21,-0.34 -1.16,-0.72c0.02,-0.2 0.29,-0.4 0.81,-0.6c3.17,-1.38 5.29,-2.29 6.37,-2.75c3.03,-1.31 3.66,-1.54 4.07,-1.54c0.09,0 0.29,0.02 0.42,0.12c0.11,0.09 0.14,0.21 0.15,0.29c0.01,0.08 0.02,0.27 0,0.42z" />
+    </svg>
+  </a>
+
+  <script src="../static/js/navbar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('loginForm');
+      const telegramInput = document.getElementById('telegram_id');
+      const verificationSection = document.getElementById('verificationSection');
+      const submitButton = document.getElementById('submitButton');
+      const resendButton = document.getElementById('resendButton');
+      const confirmButton = document.getElementById('confirmButton');
+      const stepIndicator = document.querySelector('.step-indicator');
+      const verificationCode = document.getElementById('verification_code');
+      const telegramIdError = document.getElementById('telegramIdError');
+      const verificationCodeError = document.getElementById('verificationCodeError');
+
+      let isVerificationStep = false;
+      let countdown = 60;
+      let countdownInterval;
+
+      async function sendCodeRequest(telegramId) {
+        try {
+          const response = await fetch('https://falconvpn.com/send_code', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ telegram_id: telegramId })
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+          return await response.json();
+        } catch (error) {
+          console.error('Error sending code:', error);
+          return false;
+        }
+      }
+
+      async function verifyCode(telegramId, code) {
+        try {
+          const response = await fetch('https://falconvpn.com/verify_code', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              telegram_id: telegramId,
+              code: code
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+          return await response.json();
+        } catch (error) {
+          console.error('Error verifying code:', error);
+          return false;
+        }
+      }
+
+      function validateTelegramId(id) {
+        return id.trim().length > 0;
+      }
+
+      function validateVerificationCode(code) {
+        return /^\d{6}$/.test(code);
+      }
+
+      function showError(element, errorElement) {
+        element.classList.add('error');
+        errorElement.classList.add('show');
+      }
+
+      function hideError(element, errorElement) {
+        element.classList.remove('error');
+        errorElement.classList.remove('show');
+      }
+
+      function startCountdown(button) {
+        button.disabled = true;
+        countdown = 60;
+        countdownInterval = setInterval(() => {
+          countdown--;
+          button.textContent = `Resend Code (${countdown}s)`;
+
+          if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            button.disabled = false;
+            button.textContent = 'Resend Code';
+          }
+        }, 1000);
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        if (!isVerificationStep) {
+          if (validateTelegramId(telegramInput.value)) {
+            const sendResult = await sendCodeRequest(telegramInput.value);
+
+            if (sendResult) {
+              hideError(telegramInput, telegramIdError);
+              isVerificationStep = true;
+              verificationSection.classList.add('active');
+              submitButton.style.display = 'none';
+              stepIndicator.textContent = 'Step 2 of 2';
+              telegramInput.disabled = true;
+              startCountdown(resendButton);
+            } else {
+              showError(telegramInput, telegramIdError);
+              telegramIdError.textContent = 'Failed to send verification code. Please try again.';
+            }
+          } else {
+            showError(telegramInput, telegramIdError);
+          }
+        }
+      });
+
+      resendButton.addEventListener('click', async function () {
+        if (!resendButton.disabled) {
+          const sendResult = await sendCodeRequest(telegramInput.value);
+          if (sendResult) {
+            startCountdown(resendButton);
+          } else {
+            verificationCodeError.textContent = 'Failed to resend code. Please try again.';
+            verificationCodeError.classList.add('show');
+          }
+        }
+      });
+
+      confirmButton.addEventListener('click', async function () {
+        if (validateVerificationCode(verificationCode.value)) {
+          hideError(verificationCode, verificationCodeError);
+          const verifyResult = await verifyCode(telegramInput.value, verificationCode.value);
+          if (verifyResult) {
+            window.location.href = '/dashboard';
+          } else {
+            showError(verificationCode, verificationCodeError);
+            verificationCodeError.textContent = 'Invalid verification code. Please try again.';
+          }
+        } else {
+          showError(verificationCode, verificationCodeError);
+        }
+      });
+
+      telegramInput.addEventListener('input', () => {
+        hideError(telegramInput, telegramIdError);
+      });
+
+      verificationCode.addEventListener('input', () => {
+        hideError(verificationCode, verificationCodeError);
+      });
+    });
+  </script>
+
+</body>
+
+</html>
