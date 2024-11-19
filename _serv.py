@@ -139,8 +139,8 @@ async def html_landing() -> HTMLResponse:
 
 
 if __name__ == "__main__":
-    with open("./logs/server.log", "w"), open("./logs/psql_serv.log", "w"):
-        ...
+    # with open("./logs/server.log", "w"), open("./logs/psql_serv.log", "w"):
+    #     ...
     uvicorn.run(
         "_serv:app",
         # host="127.0.0.1",
