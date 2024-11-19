@@ -355,7 +355,7 @@ async def server_status(trigger: Union[Message, CallbackQuery], bot: Bot):
         wg = WgServerTools()
 
         server_status = await wg.get_server_status()
-        cpu_usage = await wg.get_server_сpu_usage()
+        cpu_usage = await wg.get_server_cpu_usage()
 
     except WireguardError:
         await getattr(trigger, "message", trigger).answer(text.WG_ERROR)

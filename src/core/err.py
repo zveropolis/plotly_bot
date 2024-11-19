@@ -4,14 +4,14 @@ import logging
 import os
 from functools import wraps
 
-from aiogram.exceptions import AiogramError
+from aiogram.exceptions import AiogramError, TelegramNetworkError
 from redis import exceptions as rexc
 from redis.asyncio.client import Pipeline
 
 from core.exceptions import DatabaseError
 
 logger = logging.getLogger()
-rlogger = logging.getLogger("redis")
+rLogger = logging.getLogger("redis")
 
 
 def get_args_dict(fn, args, kwargs):
@@ -98,29 +98,29 @@ def redis_exceptor(func):
     async def wrapper(pipeline: Pipeline):
         """Обертка для функции с обработкой исключений Redis."""
         try:
-            logquery = str(getattr(pipeline, "command_stack", ""))
+            logQuery = str(getattr(pipeline, "command_stack", ""))
 
             result = await func(pipeline)
             return result
 
         except rexc.AuthenticationError:
-            rlogger.exception(
-                f"Ошибка аутентификации при подключении к Redis :: {logquery}"
+            rLogger.exception(
+                f"Ошибка аутентификации при подключении к Redis :: {logQuery}"
             )
             raise DatabaseError
         except rexc.ConnectionError:
-            rlogger.exception(f"Ошибка подключения к Redis :: {logquery}")
+            rLogger.exception(f"Ошибка подключения к Redis :: {logQuery}")
             raise DatabaseError
         except rexc.TimeoutError:
-            rlogger.exception(
-                f"Превышено время ожидания при работе с Redis :: {logquery}"
+            rLogger.exception(
+                f"Превышено время ожидания при работе с Redis :: {logQuery}"
             )
             raise DatabaseError
         except IndexError:
-            rlogger.exception("Command Stack is empty")
+            rLogger.exception("Command Stack is empty")
             raise DatabaseError
         except rexc.RedisError:
-            rlogger.exception(f"Произошла неизвестная ошибка c Redis :: {logquery}")
+            rLogger.exception(f"Произошла неизвестная ошибка c Redis :: {logQuery}")
             raise DatabaseError
 
     return wrapper
@@ -134,6 +134,8 @@ def bot_except(func):
         try:
             result = await func(*args, **kwargs)
 
+        except TelegramNetworkError as e:
+            logger.warning(e.args[0])
         except AiogramError:
             logger.exception("Ошибка Aiogram API")
             raise
